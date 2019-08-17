@@ -2,7 +2,7 @@ package queries
 
 import (
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource/models"
+  "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 func GetUser( id uint, recursive bool ) *models.UserModel {

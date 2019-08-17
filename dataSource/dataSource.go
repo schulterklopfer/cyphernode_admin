@@ -3,7 +3,7 @@ package dataSource
 import (
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource/models"
+  "github.com/schulterklopfer/cyphernode_admin/models"
   "sync"
 )
 

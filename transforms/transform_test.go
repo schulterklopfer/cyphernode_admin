@@ -1,7 +1,7 @@
 package transforms_test
 
 import (
-  "github.com/schulterklopfer/cyphernode_admin/dataSource/models"
+  "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "testing"
 )
