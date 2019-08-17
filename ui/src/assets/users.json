@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "login": "skp",
+    "emailAddress": "skp@skp.rocks",
+    "name": "Markus"
+  },
+  {
+    "id": 2,
+    "login": "kexkey",
+    "emailAddress": "kexkey@kexkey.rocks",
+    "name": "Etienne"
+  }
+]
+

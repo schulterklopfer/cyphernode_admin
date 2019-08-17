@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "hash": "hash1",
+    "name": "Cyphernode admin",
+    "description": "Cyphernode admin panel",
+    "roles": [
+      {
+        "id": 1,
+        "name": "admin",
+        "description": "God mode!",
+        "autoAssign": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "hash": "hash2",
+    "name": "Stats",
+    "description": "Some stats about cyphernode",
+    "roles": [
+      {
+        "id": 2,
+        "name": "stats",
+        "description": "View stats",
+        "autoAssign": true
+      }
+    ]
+  }
+]

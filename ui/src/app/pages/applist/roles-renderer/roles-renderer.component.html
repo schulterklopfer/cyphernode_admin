@@ -1,0 +1,4 @@
+<span *ngFor="let role of roles" class="badge badge-pill mr-1" [ngClass]="{
+    'badge-primary':role.autoAssign === false,
+    'badge-success':role.autoAssign === true
+  }">{{ role.name }}</span>
