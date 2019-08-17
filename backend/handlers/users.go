@@ -4,6 +4,7 @@ import (
   "encoding/json"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
   "strconv"
 )
@@ -13,11 +14,7 @@ func GetUser(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
 
   if err != nil {
-    if gin.DebugMode == "debug" {
-      c.JSON(http.StatusNotFound, gin.H{ "message": err.Error() } )
-    } else {
-      c.Status(http.StatusNotFound )
-    }
+    c.Status(http.StatusNotFound )
     return
   }
 
@@ -28,16 +25,19 @@ func GetUser(c *gin.Context) {
     return
   }
 
-  userJson, err := json.Marshal(user)
+  var transformedUser transforms.UserV0
 
-  if err != nil {
-    if gin.DebugMode == "debug" {
-      c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-    } else {
+  if transforms.Transform( user, &transformedUser ) {
+    userJson, err := json.Marshal(transformedUser)
+
+    if err != nil {
       c.Status(http.StatusInternalServerError )
+      return
     }
+
+    c.JSON(http.StatusOK, userJson )
     return
   }
 
-  c.JSON(http.StatusCreated, userJson )
+  c.Status(http.StatusNotFound )
 }

@@ -29,7 +29,8 @@ type (
 )
 
 // transform from database model to api object
-func Transform( in interface{}, out interface{} ) {
+func Transform( in interface{}, out interface{} ) bool {
+  transformed := false
   switch out.(type) {
   case *UserV0:
     switch in.(type) {
@@ -48,7 +49,7 @@ func Transform( in interface{}, out interface{} ) {
       }
 
       out.(*UserV0).Roles = transformedRoles
-
+      transformed = true
     }
   case *AppV0:
     switch in.(type) {
@@ -67,7 +68,7 @@ func Transform( in interface{}, out interface{} ) {
       }
 
       out.(*AppV0).AvailableRoles = transformedAvailableRoles
-
+      transformed = true
     }
   case *RoleV0:
     switch in.(type) {
@@ -77,8 +78,9 @@ func Transform( in interface{}, out interface{} ) {
       out.(*RoleV0).Description = in.(*models.RoleModel).Description
       out.(*RoleV0).AutoAssign = in.(*models.RoleModel).AutoAssign
       out.(*RoleV0).AppId = in.(*models.RoleModel).AppId
+      transformed = true
     }
-
   }
+  return transformed
 }
 
