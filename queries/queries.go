@@ -24,7 +24,7 @@ func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
 
 }
 
-func FindUsers( where []string, order string, limit int, offset uint ) ([]*models.UserModel, error) {
+func FindUsers( where []string, order string, limit int, offset uint, recursive bool ) ([]*models.UserModel, error) {
 
   /*
     where == nil -> no where
@@ -59,6 +59,12 @@ func FindUsers( where []string, order string, limit int, offset uint ) ([]*model
    var users []*models.UserModel
 
    db.Find( &users )
+
+   if recursive {
+     for i:=0; i<len(users); i++ {
+       loadRolesForUser( users[i] )
+     }
+   }
 
    return users, db.Error
 
