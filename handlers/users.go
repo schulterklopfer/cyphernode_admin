@@ -1,7 +1,6 @@
 package handlers
 
 import (
-  "encoding/json"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
@@ -28,14 +27,7 @@ func GetUser(c *gin.Context) {
   var transformedUser transforms.UserV0
 
   if transforms.Transform( user, &transformedUser ) {
-    userJson, err := json.Marshal(transformedUser)
-
-    if err != nil {
-      c.Status(http.StatusInternalServerError )
-      return
-    }
-
-    c.JSON(http.StatusOK, userJson )
+    c.JSON(http.StatusOK, transformedUser )
     return
   }
 
