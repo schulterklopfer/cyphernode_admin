@@ -10,7 +10,7 @@ import (
   "strings"
 )
 
-var ALLOWED_USER_PROPERTIES = [4]string{ "id","name","login","emailAddress" }
+var ALLOWED_USER_PROPERTIES = [4]string{ "id", "name","login","emailAddress" }
 
 func GetUser(c *gin.Context) {
   // param 0 is first param in url pattern
@@ -62,13 +62,7 @@ func FindUsers(c *gin.Context) {
   if c.Bind(&userQuery) == nil {
     fields := make( []string, 0 )
     args := make( []interface{}, 0 )
-
-
-    if userQuery.ID != 0 {
-      fields = append( fields, "id = ?" )
-      args = append( args, userQuery.ID )
-    }
-
+    // TODO: sanatize params to prevent sql injection
     if userQuery.Name != "" {
       fields = append( fields, "name LIKE ?" )
       args = append( args, userQuery.Name+"%" )
@@ -80,7 +74,7 @@ func FindUsers(c *gin.Context) {
     }
 
     if userQuery.EmailAddress != "" {
-      fields = append( fields, "emailAddress LIKE ?" )
+      fields = append( fields, "email_address LIKE ?" )
       args = append( args, userQuery.EmailAddress+"%" )
     }
 
