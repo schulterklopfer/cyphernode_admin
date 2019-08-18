@@ -2,12 +2,15 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
   "strconv"
   "strings"
 )
+
+var ALLOWED_USER_PROPERTIES = [4]string{ "id","name","login","emailAddress" }
 
 func GetUser(c *gin.Context) {
   // param 0 is first param in url pattern
@@ -41,9 +44,10 @@ func GetUser(c *gin.Context) {
 }
 
 type Paging struct {
-  Offset uint `form:"offset"`
-  Limit int `form:"limit"`
-  Order []string `form:"order"`
+  Page uint `form:"_page"`
+  Limit int `form:"_limit"`
+  Sort string `form:"_sort"`
+  Order string `form:"_order"`
 }
 
 func FindUsers(c *gin.Context) {
@@ -52,6 +56,8 @@ func FindUsers(c *gin.Context) {
 
   where := make( []interface{}, 0 )
   order := ""
+  offset := uint(0)
+  limit := -1
 
   if c.Bind(&userQuery) == nil {
     fields := make( []string, 0 )
@@ -85,15 +91,34 @@ func FindUsers(c *gin.Context) {
 
   }
 
-  c.Bind(&paging)
+  if c.Bind(&paging) == nil {
+
+    // is Sort empty or not in ALLOWED_USER_PROPERTIES?
+    if paging.Sort != "" ||
+       helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool { return ALLOWED_USER_PROPERTIES[i] == paging.Sort } ) == -1 {
+      order = "name"
+    } else {
+      order = paging.Sort
+    }
+
+    if paging.Order != "" || ( paging.Order != "ASC" && paging.Order != "DESC" ) {
+      order = order + " asc"
+    } else {
+      order = order + " "+strings.ToLower(paging.Order)
+    }
+  }
 
   // makes no sense to request 0 users
   // we assume user wants no limit
-  if paging.Limit == 0 {
-    paging.Limit=-1
+  if paging.Limit > 0 {
+    limit = paging.Limit
   }
 
-  users, err := queries.FindUsers( where, order, paging.Limit, paging.Offset, true )
+  if paging.Page > 0 && limit > 0 {
+    offset = (paging.Page-1)*uint(limit)
+  }
+
+  users, err := queries.FindUsers( where, order, limit, offset, true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -109,6 +134,5 @@ func FindUsers(c *gin.Context) {
   }
 
   c.JSON(http.StatusOK, transformedUsers)
-  return
 
 }

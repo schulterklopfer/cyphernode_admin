@@ -25,10 +25,6 @@ export class UserlistComponent implements OnInit {
       confirmDelete: true,
     },
     columns: {
-      id: {
-        title: 'ID',
-        type: 'number',
-      },
       login: {
         title: 'Login',
         type: 'string',

@@ -29,7 +29,7 @@ export class UsersService {
       },
     ];
     this.dataSource = new ServerDataSource( http, {
-      endPoint: 'assets/users.json',
+      endPoint: 'http://localhost:8080/api/v0/users',
     });
   }
 
