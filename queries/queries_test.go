@@ -2,6 +2,7 @@ package queries_test
 
 import (
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "os"
   "testing"
@@ -11,7 +12,27 @@ func TestModels(t *testing.T) {
   dbFile := "/tmp/tests.sqlite3"
   os.Remove(dbFile)
   dataSource.Init(dbFile)
+
+  var user *models.UserModel
+  user = new(models.UserModel)
+  user.Login = "login1"
+  user.Password = "password1"
+  user.Name ="name1"
+  user.EmailAddress = "email1@email.rocks"
+
+  dataSource.GetDB().Create(user)
+
+  user = new(models.UserModel)
+  user.Login = "login2"
+  user.Password = "password2"
+  user.Name ="name2"
+  user.EmailAddress = "email2@email.rocks"
+
+  dataSource.GetDB().Create(user)
+
   t.Run("Get user", getUser )
+  t.Run("Find users", findUsers )
+
 }
 
 
@@ -23,3 +44,45 @@ func getUser( t *testing.T ) {
   }
 
 }
+
+func findUsers( t *testing.T ) {
+  var users []*models.UserModel
+
+  users = queries.FindUsers( nil, "", -1,0)
+
+  if users == nil {
+    t.Error( "unable to load all users")
+  }
+
+  users = queries.FindUsers( nil, "", 0,0)
+
+  if users == nil || len(users) != 0 {
+    t.Error( "unable to load 0 users")
+  }
+
+  users = queries.FindUsers( nil, "", 1,0)
+
+  if users == nil || len(users) != 1 || users[0].Name != "name1" {
+    t.Error( "unable to load 1 user")
+  }
+
+  users = queries.FindUsers( nil, "", 1,1)
+
+  if users == nil || len(users) != 1 || users[0].Name != "name2" {
+    t.Error( "unable to load 1 user with offset 1")
+  }
+
+  users = queries.FindUsers( nil, "id desc", 1,1)
+
+  if users == nil || len(users) != 1 || users[0].Name != "name1" {
+    t.Error( "unable to load 1 user with offset 1 order by id desc")
+  }
+
+  users = queries.FindUsers( []string{"name LIKE ?", "name%"}, "name", -1,0)
+
+  if users == nil || len(users) != 2 || users[0].Name != "name1" || users[1].Name != "name2" {
+    t.Error( "unable to load 2 users with order by name")
+  }
+
+}
+
