@@ -5,23 +5,26 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
-func GetUser( id uint, recursive bool ) *models.UserModel {
+func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
   db := dataSource.GetDB()
   var user models.UserModel
   db.Take(&user, id)
 
   if user.ID > 0 {
     if recursive {
-      loadRolesForUser(&user)
+      err := loadRolesForUser(&user)
+      if err != nil {
+        return nil, err
+      }
     }
-    return &user
+    return &user, nil
   } else {
-    return nil
+    return nil, nil
   }
 
 }
 
-func FindUsers( where []string, order string, limit int, offset uint ) []*models.UserModel {
+func FindUsers( where []string, order string, limit int, offset uint ) ([]*models.UserModel, error) {
 
   /*
     where == nil -> no where
@@ -57,14 +60,15 @@ func FindUsers( where []string, order string, limit int, offset uint ) []*models
 
    db.Find( &users )
 
-   return users
+   return users, db.Error
 
 }
 
 
-func loadRolesForUser( user *models.UserModel ) {
+func loadRolesForUser( user *models.UserModel ) error {
   db := dataSource.GetDB()
   var roles []*models.RoleModel
   db.Model(&user).Association("Roles").Find(&roles)
   user.Roles = roles
+  return db.Error
 }

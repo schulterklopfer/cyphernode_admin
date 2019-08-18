@@ -17,7 +17,12 @@ func GetUser(c *gin.Context) {
     return
   }
 
-  user := queries.GetUser( uint(id), true )
+  user, err := queries.GetUser( uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
 
   if user == nil {
     c.Status(http.StatusNotFound )

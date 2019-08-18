@@ -37,7 +37,7 @@ func TestModels(t *testing.T) {
 
 
 func getUser( t *testing.T ) {
-  user := queries.GetUser(1, true)
+  user, _ := queries.GetUser(1, true)
 
   if user == nil {
     t.Error( "unable to load user")
@@ -48,37 +48,37 @@ func getUser( t *testing.T ) {
 func findUsers( t *testing.T ) {
   var users []*models.UserModel
 
-  users = queries.FindUsers( nil, "", -1,0)
+  users, _ = queries.FindUsers( nil, "", -1,0)
 
   if users == nil {
     t.Error( "unable to load all users")
   }
 
-  users = queries.FindUsers( nil, "", 0,0)
+  users, _ = queries.FindUsers( nil, "", 0,0)
 
   if users == nil || len(users) != 0 {
     t.Error( "unable to load 0 users")
   }
 
-  users = queries.FindUsers( nil, "", 1,0)
+  users, _ = queries.FindUsers( nil, "", 1,0)
 
   if users == nil || len(users) != 1 || users[0].Name != "name1" {
     t.Error( "unable to load 1 user")
   }
 
-  users = queries.FindUsers( nil, "", 1,1)
+  users, _ = queries.FindUsers( nil, "", 1,1)
 
   if users == nil || len(users) != 1 || users[0].Name != "name2" {
     t.Error( "unable to load 1 user with offset 1")
   }
 
-  users = queries.FindUsers( nil, "id desc", 1,1)
+  users, _ = queries.FindUsers( nil, "id desc", 1,1)
 
   if users == nil || len(users) != 1 || users[0].Name != "name1" {
     t.Error( "unable to load 1 user with offset 1 order by id desc")
   }
 
-  users = queries.FindUsers( []string{"name LIKE ?", "name%"}, "name", -1,0)
+  users, _ = queries.FindUsers( []string{"name LIKE ?", "name%"}, "name", -1,0)
 
   if users == nil || len(users) != 2 || users[0].Name != "name1" || users[1].Name != "name2" {
     t.Error( "unable to load 2 users with order by name")
