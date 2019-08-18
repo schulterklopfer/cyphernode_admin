@@ -5,12 +5,15 @@ import (
 	"github.com/schulterklopfer/cyphernode_admin/dataSource"
 	"github.com/schulterklopfer/cyphernode_admin/handlers"
   "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_admin/password"
 )
 
 type Config struct {
-	DatabaseFile         string
-	InitialAdminUsername string
+	DatabaseFile string
+	InitialAdminLogin string
 	InitialAdminPassword string
+  InitialAdminName string
+  InitialAdminEmailAddress string
 }
 
 type App struct {
@@ -43,51 +46,59 @@ func (app *App) Init() {
 	}
 }
 
-func (self *App) initContent() {
-	// Create user id=1, app id=1, role id=1
-  role := new(models.RoleModel)
-  app := new(models.AppModel)
-  user := new(models.UserModel)
+func (app *App) initContent() error {
+
+	// Create adminUser id=1, app id=1, adminRole id=1
+  adminRole := new(models.RoleModel)
+  adminApp := new(models.AppModel)
+  adminUser := new(models.UserModel)
 
   db := dataSource.GetDB()
 
-  db.First( role, 1 )
-  db.First( app, 1 )
-  db.First( user, 1 )
+  db.Take(adminRole, 1 )
+  db.Take(adminApp, 1 )
+  db.Take(adminUser, 1 )
 
-  if !db.NewRecord( role ) || !db.NewRecord( app ) || !db.NewRecord( user ) {
-    return
+  if !db.NewRecord(adminRole) || !db.NewRecord( app ) || !db.NewRecord(adminUser) {
+    return nil
   }
 
-  role.ID = 1
-  role.Name = "admin"
-  role.Description = "Main admin with god mode"
-  role.AutoAssign = false
-  role.AppId = 1
+  hashedPassword, err := password.HashPassword( app.config.InitialAdminPassword )
+
+  if err != nil {
+    return err
+  }
+
+  adminRole.ID = 1
+  adminRole.Name = "admin"
+  adminRole.Description = "Main admin with god mode"
+  adminRole.AutoAssign = false
+  adminRole.AppId = 1
 
   roles := make( []*models.RoleModel, 1 )
-  roles[0]=role
+  roles[0]= adminRole
 
-  app.ID = 1
-  app.Name = "Cyphernode admin"
-  app.Description = "Manage your cyphernode"
-  app.Hash = "adminapphash" // change me
-  app.AvailableRoles = roles
+  adminApp.ID = 1
+  adminApp.Name = "Cyphernode admin app"
+  adminApp.Description = "Manage your cyphernode"
+  adminApp.Hash = "adminapphash" // change me
+  adminApp.AvailableRoles = roles
 
-  user.ID = 1
-  user.Login = self.config.InitialAdminUsername
-  user.Password = self.config.InitialAdminPassword
-  user.Name = "Adnim Administer"
-  user.EmailAddress = "admin@admin.rocks"
-  user.Roles = roles
+  adminUser.ID = 1
+  adminUser.Login = app.config.InitialAdminLogin
+  adminUser.Password = hashedPassword
+  adminUser.Name = app.config.InitialAdminName
+  adminUser.EmailAddress = app.config.InitialAdminEmailAddress
+  adminUser.Roles = roles
 
-
-  db.Create( role )
-  db.Create( app )
-  db.Create( user )
+  tx := db.Begin()
+  tx.Create(adminRole)
+  tx.Create(adminApp)
+  tx.Create(adminUser)
+  return tx.Commit().Error
 
 }
 
 func (app *App) Start() {
-	app.engine.Run()
+  app.engine.Run()
 }
