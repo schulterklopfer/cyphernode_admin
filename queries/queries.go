@@ -24,7 +24,7 @@ func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
 
 }
 
-func FindUsers( where []string, order string, limit int, offset uint, recursive bool ) ([]*models.UserModel, error) {
+func FindUsers( where []interface{}, order string, limit int, offset uint, recursive bool ) ([]*models.UserModel, error) {
 
   /*
     where == nil -> no where
@@ -41,7 +41,7 @@ func FindUsers( where []string, order string, limit int, offset uint, recursive 
    db := dataSource.GetDB()
 
    if len(where) > 0 {
-     db = db.Where( where[0], where[1:] )
+     db = db.Where( where[0].(string), where[1:] )
    }
 
    if order != "" {
