@@ -4,8 +4,8 @@ import "github.com/jinzhu/gorm"
 
 type AppModel struct {
   gorm.Model
-  Hash string `json:"hash" gorm:"type:varchar(32);unique_index;not null"`
-  Name string `json:"name" gorm:"type:varchar(30);not null"`
+  Hash string `json:"hash" gorm:"type:varchar(32);unique_index;not null" validate:"regexp=^[a-fA-F0-9]{32}$"`
+  Name string `json:"name" gorm:"type:varchar(30);not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\- ]+$"`
   Description string `json:"description" gorm:"type:varchar(255)"`
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
 }
