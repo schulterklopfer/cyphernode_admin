@@ -33,8 +33,10 @@ func CreateUser( user *models.UserModel ) (*models.UserModel, error) {
 
   // Validate roles:
   // For each role:
+  // Check if role id == 0
+  // if yes: do not create user
   // Check if role is in db
-  // if not, do not create user
+  // if not: do not create user
 
   var role models.RoleModel
   for i:=0; i<len( user.Roles ); i++ {
