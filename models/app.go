@@ -10,5 +10,6 @@ type AppModel struct {
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
 }
 
-
-
+func ( app *AppModel ) AfterDelete() {
+  // TOOD: delete all roles
+}

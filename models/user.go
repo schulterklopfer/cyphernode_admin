@@ -13,3 +13,6 @@ type UserModel struct {
   Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;"`
 }
 
+func (user *UserModel) AfterCreate()  {
+  // TODO: assign all auto assignable roles to this user
+}

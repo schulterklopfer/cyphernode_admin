@@ -9,3 +9,12 @@ type RoleModel struct {
   AutoAssign bool `json:"autoAssign" gorm:"default false"`
   AppId uint `json:"appId" validate:"nonzero"`
 }
+
+func ( role *RoleModel ) AfterDelete() {
+  // TODO: delete all roles associations with users
+}
+
+func ( role *RoleModel) AfterCreate()  {
+  // TODO: if role is autoassignable, assign it to all existing users
+}
+
