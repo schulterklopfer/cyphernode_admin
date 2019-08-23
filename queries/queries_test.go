@@ -23,8 +23,21 @@ func TestModels(t *testing.T) {
 
   dataSource.GetDB().Create(role)
 
+  t.Run( "Create user", createUser )
+  t.Run("Get user", getUser )
+  t.Run("Find users", findUsers )
+
+}
+
+func createUser( t *testing.T ) {
+
+  db := dataSource.GetDB()
+  role := new(models.RoleModel)
+
+  db.Take( &role, 1)
+
   roles := make( []*models.RoleModel, 1 )
-  roles[0]= role
+  roles[0]=role
 
   var user *models.UserModel
 
@@ -35,7 +48,21 @@ func TestModels(t *testing.T) {
   user.EmailAddress = "email1@email.rocks"
   user.Roles = roles
 
-  dataSource.GetDB().Create(user)
+  user, err := queries.CreateUser( user )
+  _, err = queries.CreateUser( user )
+
+  if err == nil {
+    t.Error( "Create user with user id" )
+  }
+
+  user.ID = 0
+  _, err = queries.CreateUser( user )
+
+  if err == nil {
+    t.Error( "Created same user twice" )
+  }
+
+
 
   user = new(models.UserModel)
   user.Login = "login2"
@@ -44,13 +71,9 @@ func TestModels(t *testing.T) {
   user.EmailAddress = "email2@email.rocks"
   user.Roles = roles
 
-  dataSource.GetDB().Create(user)
-
-  t.Run("Get user", getUser )
-  t.Run("Find users", findUsers )
+  queries.CreateUser( user )
 
 }
-
 
 func getUser( t *testing.T ) {
   user, _ := queries.GetUser(1, true)
@@ -94,7 +117,7 @@ func findUsers( t *testing.T ) {
     t.Error( "unable to load 1 user with offset 1 order by id desc")
   }
 
-  users, _ = queries.FindUsers( []string{"name LIKE ?", "name%"}, "name", -1,0,true)
+  users, _ = queries.FindUsers( []interface{}{"name LIKE ?", "name%"}, "name", -1,0,true)
 
   if users == nil || len(users) != 2 || users[0].Name != "name1" || users[1].Name != "name2" {
     t.Error( "unable to load 2 users with order by name")
