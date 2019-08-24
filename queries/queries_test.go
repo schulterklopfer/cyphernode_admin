@@ -53,21 +53,20 @@ func createUser( t *testing.T ) {
   user.EmailAddress = "email1@email.rocks"
   user.Roles = roles
 
-  user, err := queries.CreateUser( user )
-  _, err = queries.CreateUser( user )
+  err := queries.CreateUser( user )
+
+  err = queries.CreateUser( user )
 
   if err == nil {
     t.Error( "Create user with user id" )
   }
 
   user.ID = 0
-  _, err = queries.CreateUser( user )
+  err = queries.CreateUser( user )
 
   if err == nil {
     t.Error( "Created same user twice" )
   }
-
-
 
   user = new(models.UserModel)
   user.Login = "login2"
@@ -76,7 +75,7 @@ func createUser( t *testing.T ) {
   user.EmailAddress = "email2@email.rocks"
   user.Roles = roles
 
-  queries.CreateUser( user )
+  _ = queries.CreateUser( user )
 
 }
 
@@ -85,7 +84,7 @@ func deleteUser( t *testing.T) {
   db := dataSource.GetDB()
   var user *models.UserModel
 
-  _, err := queries.DeleteUser( 0 )
+  err := queries.DeleteUser( 0 )
   if err == nil {
     t.Error( "Deleted user with no primary key" )
   }
@@ -93,7 +92,7 @@ func deleteUser( t *testing.T) {
   user = new( models.UserModel )
   db.Take( user, 1)
 
-  queries.DeleteUser( 1 )
+  _ = queries.DeleteUser( 1 )
 
   user = new( models.UserModel )
   db.Take( user, 1)
@@ -105,7 +104,7 @@ func deleteUser( t *testing.T) {
   user = new( models.UserModel )
   db.Take( user, 2)
 
-  queries.DeleteUser( 2 )
+  _ = queries.DeleteUser( 2 )
 
   user = new( models.UserModel )
   db.Take( user, 2)
