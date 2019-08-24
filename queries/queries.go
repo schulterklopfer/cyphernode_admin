@@ -80,7 +80,7 @@ func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
 
   if user.ID > 0 {
     if recursive {
-      err := loadRolesForUser(&user)
+      err := loadRoles(&user)
       if err != nil {
         return nil, err
       }
@@ -130,7 +130,7 @@ func FindUsers( where []interface{}, order string, limit int, offset uint, recur
 
    if recursive {
      for i:=0; i<len(users); i++ {
-       loadRolesForUser( users[i] )
+       loadRoles( users[i] )
      }
    }
 
@@ -138,11 +138,16 @@ func FindUsers( where []interface{}, order string, limit int, offset uint, recur
 
 }
 
-
-func loadRolesForUser( user *models.UserModel ) error {
+func loadRoles( in interface{} ) error {
   db := dataSource.GetDB()
   var roles []*models.RoleModel
-  db.Model(&user).Association("Roles").Find(&roles)
-  user.Roles = roles
+  switch in.(type) {
+  case *models.UserModel:
+    db.Model(in).Association("Roles").Find(&roles)
+    in.(*models.UserModel).Roles = roles
+  case *models.AppModel:
+    db.Model(in).Association("AvailableRoles").Find(&roles)
+    in.(*models.AppModel).AvailableRoles = roles
+  }
   return db.Error
 }
