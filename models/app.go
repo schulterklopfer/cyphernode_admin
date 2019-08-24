@@ -11,5 +11,5 @@ type AppModel struct {
 }
 
 func ( app *AppModel ) AfterDelete() {
-  // TOOD: delete all roles
+  // TODO: delete all roles
 }
