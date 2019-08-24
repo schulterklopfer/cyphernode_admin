@@ -17,6 +17,12 @@ func Get( model interface{}, id uint, recursive bool ) error {
   return nil
 }
 
+func Update( model interface{} ) error {
+  db := dataSource.GetDB()
+  db.Save( model )
+  return db.Error
+}
+
 func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {
 
   /*
