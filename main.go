@@ -1,11 +1,11 @@
 package main
 
 import (
-  "github.com/schulterklopfer/cyphernode_admin/app"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
   "os"
 )
 func main() {
-  appConfig := new( app.Config )
+  appConfig := new( cyphernodeAdmin.Config )
   initialAdminLogin := os.Getenv("CNA_ADMIN_LOGIN")
   initialAdminPassword := os.Getenv("CNA_ADMIN_PASSWORD")
   initialAdminName := os.Getenv("CNA_ADMIN_NAME")
@@ -32,7 +32,7 @@ func main() {
   appConfig.InitialAdminPassword = initialAdminPassword
   appConfig.InitialAdminName = initialAdminName
   appConfig.InitialAdminEmailAddress = initialAdminEmailAddress
-  app := app.NewApp( appConfig )
+  app := cyphernodeAdmin.NewCyphernodeAdmin( appConfig )
   app.Init()
   app.Start()
 }

@@ -3,6 +3,7 @@ package dataSource
 import (
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "sync"
 )
@@ -17,11 +18,11 @@ func GetDB() *gorm.DB {
 func Init( databaseFile string ) {
   once.Do(func() {
     var err error
+    logwrapper.StandardLogger.Info( "Opening database")
     db, err = gorm.Open("sqlite3", databaseFile )
     if err != nil {
-      panic("failed to connect to database" )
+      logwrapper.StandardLogger.Panic("failed to connect to database" )
     }
-    println("Connected to db" )
     AutoMigrate()
   })
 }
@@ -30,6 +31,6 @@ func AutoMigrate() {
   if db == nil {
     return
   }
-  println("Migrating models" )
+  logwrapper.StandardLogger.Info( "Migrating database")
   db.AutoMigrate(&models.UserModel{},&models.AppModel{},&models.RoleModel{})
 }
