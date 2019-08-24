@@ -11,7 +11,7 @@ func CreateRole( role *models.RoleModel ) error {
 
   if role.ID != 0 {
     // role must not have any ID possibly existing in DB
-    return errors.New( "Role ID must be 0" )
+    return errors.New( "role ID must be 0" )
   }
 
   db := dataSource.GetDB()
@@ -25,13 +25,13 @@ func CreateRole( role *models.RoleModel ) error {
 
 func DeleteRole( id uint ) error {
   if id == 0 {
-    return errors.New("No such role")
+    return errors.New("no such role")
   }
   db := dataSource.GetDB()
   var role models.RoleModel
   db.Take( &role, id )
   if role.ID == 0 {
-    return errors.New("No such role")
+    return errors.New("no such role")
   }
   db.Unscoped().Delete( &role)
   role.ID = 0

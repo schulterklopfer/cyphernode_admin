@@ -10,7 +10,7 @@ import (
 func CreateApp( app *models.AppModel ) error {
   if app.ID != 0 {
     // app must not have any ID possibly existing in DB
-    return errors.New( "App ID must be 0" )
+    return errors.New( "app ID must be 0" )
   }
   db := dataSource.GetDB()
 
@@ -18,7 +18,7 @@ func CreateApp( app *models.AppModel ) error {
   db.Limit(1).Find( &existingApps, models.AppModel{Hash: app.Hash} )
 
   if len(existingApps) > 0 {
-    return errors.New( "App with same hash already exists" )
+    return errors.New( "app with same hash already exists" )
   }
 
   err := validator.Validate(app)
@@ -31,13 +31,13 @@ func CreateApp( app *models.AppModel ) error {
 
 func DeleteApp( id uint ) error {
   if id == 0 {
-    return errors.New("No such app")
+    return errors.New("no such app")
   }
   db := dataSource.GetDB()
   var app models.AppModel
   db.Take( &app, id )
   if app.ID == 0 {
-    return errors.New("No such app")
+    return errors.New("no such app")
   }
   db.Unscoped().Delete( &app )
   return nil

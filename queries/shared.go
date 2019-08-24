@@ -34,11 +34,11 @@ func Update( model interface{} ) error {
   case *models.UserModel:
     for i:=0; i<len( model.(*models.UserModel).Roles ); i++ {
       if  model.(*models.UserModel).Roles[i].ID == 0 {
-        return errors.New( "Cannot update user with unknown role" )
+        return errors.New( "cannot update user with unknown role" )
       }
       db.Take( &role,  model.(*models.UserModel).Roles[i].ID )
       if role.ID !=   model.(*models.UserModel).Roles[i].ID {
-        return errors.New( "Cannot update user with unknown role" )
+        return errors.New( "cannot update user with unknown role" )
       }
     }
   }
