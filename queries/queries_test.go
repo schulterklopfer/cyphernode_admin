@@ -26,6 +26,7 @@ func TestModels(t *testing.T) {
   t.Run( "Create user", createUser )
   t.Run("Get user", getUser )
   t.Run("Find users", findUsers )
+  t.Run( "Delete user", deleteUser )
 
 }
 
@@ -72,6 +73,42 @@ func createUser( t *testing.T ) {
   user.Roles = roles
 
   queries.CreateUser( user )
+
+}
+
+func deleteUser( t *testing.T) {
+
+  db := dataSource.GetDB()
+  var user *models.UserModel
+
+  _, err := queries.DeleteUser( 0 )
+  if err == nil {
+    t.Error( "Deleted user with no primary key" )
+  }
+
+  user = new( models.UserModel )
+  db.Take( user, 1)
+
+  queries.DeleteUser( 1 )
+
+  user = new( models.UserModel )
+  db.Take( user, 1)
+
+  if user.ID != 0 {
+    t.Error( "User was not deleted" )
+  }
+
+  user = new( models.UserModel )
+  db.Take( user, 2)
+
+  queries.DeleteUser( 2 )
+
+  user = new( models.UserModel )
+  db.Take( user, 2)
+
+  if user.ID != 0 {
+    t.Error( "User was not deleted" )
+  }
 
 }
 

@@ -54,6 +54,25 @@ func CreateUser( user *models.UserModel ) (*models.UserModel, error) {
   return user, nil
 }
 
+func DeleteUser( id uint ) (*models.UserModel, error) {
+  if id == 0 {
+    return nil, errors.New("No such user")
+  }
+  db := dataSource.GetDB()
+
+  var user models.UserModel
+
+  db.Take( &user, id )
+
+  if user.ID == 0 {
+    return nil, errors.New("No such user")
+  }
+
+  db.Unscoped().Delete( &user )
+  user.ID = 0
+  return &user, nil
+}
+
 func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
   db := dataSource.GetDB()
   var user models.UserModel
