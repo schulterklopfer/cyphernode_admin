@@ -11,16 +11,24 @@ type Event struct {
   message string
 }
 
-// StandardLogger enforces specific log message formats
-var StandardLogger *logrus.Logger
+// standardLogger enforces specific log message formats
+var standardLogger *logrus.Logger
 var once sync.Once
 
 // NewLogger initializes the standard logger
-func Init() {
+func initOnce() {
   once.Do(func() {
-    StandardLogger = logrus.New()
-    StandardLogger.Formatter = &logrus.JSONFormatter{}
+    standardLogger = logrus.New()
+    standardLogger.Formatter = &logrus.TextFormatter{}
   })
+}
+
+func Logger() *logrus.Logger {
+  if standardLogger == nil {
+    initOnce()
+  }
+  standardLogger.SetReportCaller(true)
+  return standardLogger
 }
 
 // Declare variables to store log messages as new Events
@@ -32,15 +40,15 @@ var (
 
 // InvalidArg is a standard error message
 func InvalidArg(argumentName string) {
-  StandardLogger.Errorf(invalidArgMessage.message, argumentName)
+  standardLogger.Errorf(invalidArgMessage.message, argumentName)
 }
 
 // InvalidArgValue is a standard error message
 func InvalidArgValue(argumentName string, argumentValue string) {
-  StandardLogger.Errorf(invalidArgValueMessage.message, argumentName, argumentValue)
+  standardLogger.Errorf(invalidArgValueMessage.message, argumentName, argumentValue)
 }
 
 // MissingArg is a standard error message
 func  MissingArg(argumentName string) {
-  StandardLogger.Errorf(missingArgMessage.message, argumentName)
+  standardLogger.Errorf(missingArgMessage.message, argumentName)
 }

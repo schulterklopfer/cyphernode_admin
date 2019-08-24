@@ -18,10 +18,10 @@ func GetDB() *gorm.DB {
 func Init( databaseFile string ) {
   once.Do(func() {
     var err error
-    logwrapper.StandardLogger.Info( "Opening database")
+    logwrapper.Logger().Info( "Opening database")
     db, err = gorm.Open("sqlite3", databaseFile )
     if err != nil {
-      logwrapper.StandardLogger.Panic("failed to connect to database" )
+      logwrapper.Logger().Panic("failed to connect to database" )
     }
     AutoMigrate()
   })
@@ -31,6 +31,6 @@ func AutoMigrate() {
   if db == nil {
     return
   }
-  logwrapper.StandardLogger.Info( "Migrating database")
+  logwrapper.Logger().Info( "Migrating database")
   db.AutoMigrate(&models.UserModel{},&models.AppModel{},&models.RoleModel{})
 }

@@ -2,13 +2,17 @@ package queries_test
 
 import (
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/sirupsen/logrus"
   "os"
   "testing"
 )
 
 func TestModels(t *testing.T) {
+  logwrapper.Logger().SetLevel( logrus.PanicLevel )
+
   dbFile := "/tmp/tests.sqlite3"
   os.Remove(dbFile)
   dataSource.Init(dbFile)

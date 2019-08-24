@@ -4,7 +4,6 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/handlers"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/password"
 )
@@ -24,7 +23,6 @@ type CyphernodeAdmin struct {
 }
 
 func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
-  logwrapper.Init()
   cyphernodeAdmin := new(CyphernodeAdmin)
   cyphernodeAdmin.config = config
   return cyphernodeAdmin
