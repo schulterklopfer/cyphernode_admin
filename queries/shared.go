@@ -1,6 +1,8 @@
 package queries
 
 import (
+  "errors"
+  "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
@@ -19,6 +21,28 @@ func Get( model interface{}, id uint, recursive bool ) error {
 
 func Update( model interface{} ) error {
   db := dataSource.GetDB()
+
+  err := validator.Validate( model )
+
+  if err != nil {
+    return err
+  }
+
+  var role models.RoleModel
+
+  switch model.(type) {
+  case *models.UserModel:
+    for i:=0; i<len( model.(*models.UserModel).Roles ); i++ {
+      if  model.(*models.UserModel).Roles[i].ID == 0 {
+        return errors.New( "Cannot update user with unknown role" )
+      }
+      db.Take( &role,  model.(*models.UserModel).Roles[i].ID )
+      if role.ID !=   model.(*models.UserModel).Roles[i].ID {
+        return errors.New( "Cannot update user with unknown role" )
+      }
+    }
+  }
+  
   db.Save( model )
   return db.Error
 }
