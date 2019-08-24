@@ -92,51 +92,54 @@ func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
 
 }
 
-func FindUsers( where []interface{}, order string, limit int, offset uint, recursive bool ) ([]*models.UserModel, error) {
+func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {
 
   /*
-    where == nil -> no where
-    order == "" -> no order
-    limit == -1 -> no limit
-    offset == 0 -> no offset
-
-    Example:
-
-    users = queries.FindUsers( []string{"name LIKE ?", "name%"}, "name", -1,0)
-
+     where == nil -> no where
+     order == "" -> no order
+     limit == -1 -> no limit
+     offset == 0 -> no offset
   */
 
-   db := dataSource.GetDB()
+  db := dataSource.GetDB()
 
-   if len(where) > 0 {
-     db = db.Where( where[0].(string), where[1:] )
-   }
+  if len(where) > 0 {
+    db = db.Where( where[0].(string), where[1:] )
+  }
 
-   if order != "" {
-     db = db.Order( order )
-   }
+  if order != "" {
+    db = db.Order( order )
+  }
 
-   if limit != -1 {
-     db = db.Limit( limit )
-   }
+  if limit != -1 {
+    db = db.Limit( limit )
+  }
 
-   if offset > 0 {
-     db = db.Offset( offset )
-   }
+  if offset > 0 {
+    db = db.Offset( offset )
+  }
 
-   var users []*models.UserModel
+  db.Find( out )
 
-   db.Find( &users )
+  if recursive {
+    switch out.(type) {
+    case *[]*models.UserModel:
+      users := *out.(*[]*models.UserModel)
+      for i:=0; i<len(users); i++ {
+        _ = loadRoles(users[i])
+      }
+    case *[]*models.AppModel:
+      apps := *out.(*[]*models.AppModel)
+      for i:=0; i<len(apps); i++ {
+        _ = loadRoles(apps[i])
+      }
+    }
+  }
 
-   if recursive {
-     for i:=0; i<len(users); i++ {
-       loadRoles( users[i] )
-     }
-   }
-
-   return users, db.Error
+  return db.Error
 
 }
+
 
 func loadRoles( in interface{} ) error {
   db := dataSource.GetDB()
