@@ -73,23 +73,16 @@ func DeleteUser( id uint ) (*models.UserModel, error) {
   return &user, nil
 }
 
-func GetUser( id uint, recursive bool ) (*models.UserModel, error) {
+func Get( model interface{}, id uint, recursive bool ) error {
   db := dataSource.GetDB()
-  var user models.UserModel
-  db.Take(&user, id)
-
-  if user.ID > 0 {
-    if recursive {
-      err := loadRoles(&user)
-      if err != nil {
-        return nil, err
-      }
+  db.Take(model, id)
+  if recursive {
+    err := loadRoles(model)
+    if err != nil {
+      return err
     }
-    return &user, nil
-  } else {
-    return nil, nil
   }
-
+  return nil
 }
 
 func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {
@@ -140,17 +133,20 @@ func Find( out interface{}, where []interface{}, order string, limit int, offset
 
 }
 
-
 func loadRoles( in interface{} ) error {
   db := dataSource.GetDB()
   var roles []*models.RoleModel
   switch in.(type) {
   case *models.UserModel:
-    db.Model(in).Association("Roles").Find(&roles)
-    in.(*models.UserModel).Roles = roles
+    if in.(*models.UserModel).ID > 0 {
+      db.Model(in).Association("Roles").Find(&roles)
+      in.(*models.UserModel).Roles = roles
+    }
   case *models.AppModel:
-    db.Model(in).Association("AvailableRoles").Find(&roles)
-    in.(*models.AppModel).AvailableRoles = roles
+    if in.(*models.AppModel).ID > 0 {
+      db.Model(in).Association("AvailableRoles").Find(&roles)
+      in.(*models.AppModel).AvailableRoles = roles
+    }
   }
   return db.Error
 }

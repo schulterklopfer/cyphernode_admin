@@ -117,10 +117,20 @@ func deleteUser( t *testing.T) {
 }
 
 func getUser( t *testing.T ) {
-  user, _ := queries.GetUser(1, true)
+  var user *models.UserModel
 
-  if user == nil {
+  user = new(  models.UserModel )
+  _ = queries.Get( user, 1,true)
+
+  if user.ID == 0 {
     t.Error( "unable to load user")
+  }
+
+  user = new(  models.UserModel )
+  _ = queries.Get( user, 3,true)
+
+  if user.ID != 0 {
+    t.Error( "User id should be 0")
   }
 
 }
