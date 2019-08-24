@@ -16,3 +16,7 @@ type UserModel struct {
 func (user *UserModel) AfterCreate()  {
   // TODO: assign all auto assignable roles to this user
 }
+
+func (user *UserModel) AfterDelete()  {
+  // TODO: remove all role associations with this user
+}
