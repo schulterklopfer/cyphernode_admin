@@ -24,5 +24,6 @@ require (
 	golang.org/x/tools v0.0.0-20190816200558-6889da9d5479 // indirect
 	google.golang.org/genproto v0.0.0-20190817000702-55e96fffbd48 // indirect
 	google.golang.org/grpc v1.23.0 // indirect
+	gopkg.in/validator.v2 v2.0.0-20190822201109-3e97113cc9be // indirect
 	honnef.co/go/tools v0.0.1-2019.2.2 // indirect
 )
