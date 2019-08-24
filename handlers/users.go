@@ -3,6 +3,7 @@ package handlers
 import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
@@ -21,21 +22,23 @@ func GetUser(c *gin.Context) {
     return
   }
 
-  user, err := queries.GetUser( uint(id), true )
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user == nil {
+  if user.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
 
   var transformedUser transforms.UserV0
 
-  if transforms.Transform( user, &transformedUser ) {
+  if transforms.Transform( &user, &transformedUser ) {
     c.JSON(http.StatusOK, transformedUser )
     return
   }
@@ -111,7 +114,9 @@ func FindUsers(c *gin.Context) {
     offset = (paging.Page-1)*uint(limit)
   }
 
-  users, err := queries.FindUsers( where, order, limit, offset, true )
+  var users []*models.UserModel
+
+  err := queries.Find( &users, where, order, limit, offset, true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
