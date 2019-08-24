@@ -62,7 +62,6 @@ func FindUsers(c *gin.Context) {
   if c.Bind(&userQuery) == nil {
     fields := make( []string, 0 )
     args := make( []interface{}, 0 )
-    // TODO: sanatize params to prevent sql injection
     if userQuery.Name != "" {
       fields = append( fields, "name LIKE ?" )
       args = append( args, userQuery.Name+"%" )
