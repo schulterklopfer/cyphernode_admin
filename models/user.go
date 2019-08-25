@@ -13,10 +13,14 @@ type UserModel struct {
   Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;"`
 }
 
-func (user *UserModel) AfterCreate()  {
-  // TODO: assign all auto assignable roles to this user
+func (user *UserModel) AfterCreate( tx *gorm.DB )  {
+  var allAutoAssignRoles []*RoleModel
+  tx.Where( &RoleModel{ AutoAssign: true }).Find( &allAutoAssignRoles )
+  for i:=0; i< len(allAutoAssignRoles); i++ {
+    tx.Model(user).Association("Roles").Append( allAutoAssignRoles[i] )
+  }
 }
 
-func (user *UserModel) AfterDelete()  {
-  // TODO: remove all role associations with this user
+func (user *UserModel) AfterDelete( tx *gorm.DB )  {
+  tx.Model(user).Association("Roles").Clear()
 }

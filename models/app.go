@@ -1,6 +1,8 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+  "github.com/jinzhu/gorm"
+)
 
 type AppModel struct {
   gorm.Model
@@ -10,6 +12,6 @@ type AppModel struct {
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
 }
 
-func ( app *AppModel ) AfterDelete() {
-  // TODO: delete all roles
+func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {
+  tx.Model(app).Association("AvailableRoles" ).Delete()
 }

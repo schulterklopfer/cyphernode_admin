@@ -30,6 +30,23 @@ func TestModels(t *testing.T) {
   t.Run( "Delete user", deleteUser )
   t.Run( "Delete app", deleteApp )
 
+  t.Run( "Hooks", func(t *testing.T) {
+    app := new ( models.AppModel )
+    app.Name = "App1"
+    app.Hash = "0123456789abcdef0123456789abcdef"
+    app.Description = "Description"
+    _ = queries.CreateApp(app)
+
+    user := new ( models.UserModel )
+    user.Name = "User1"
+    user.Login = "login1"
+    user.Password = "test123"
+    user.EmailAddress = "user@user.com"
+    _ = queries.CreateUser(user)
+
+    t.Run( "Role Autoassign", roleAutoAssign )
+  })
+
 }
 
 func createApp( t *testing.T ) {
@@ -452,7 +469,7 @@ func findUsers( t *testing.T ) {
   users = make( []*models.UserModel, 0 )
   _ = queries.Find( &users, nil, "", 1,0,true)
 
-  if users == nil || len(users) != 1 || users[0].Name != "name1" || len(users[0].Roles) != 1 {
+  if users == nil || len(users) != 1 || users[0].Name != "name1" || len(users[0].Roles) != 3 {
     t.Error( "unable to load 1 user")
   }
 
@@ -479,5 +496,34 @@ func findUsers( t *testing.T ) {
 
 }
 
+func roleAutoAssign( t *testing.T ) {
+  var user *models.UserModel
 
+  user = new (models.UserModel)
+  _ = queries.Get( user, 3, true )
+
+  var role models.RoleModel
+
+  role.Name = "autoassign"
+  role.AutoAssign = true
+  role.AppId = 3
+
+  _ = queries.CreateRole(&role)
+  _ = queries.Get( user, 3, true )
+
+  if len(user.Roles) != 1 {
+    t.Error( "Autoassign failed: new role" )
+  }
+
+  user = new (models.UserModel)
+  user.Login = "login"
+  user.Password = "test123"
+  user.EmailAddress = "user@user.com"
+
+  _ = queries.CreateUser( user )
+
+  if len(user.Roles) != 1 {
+    t.Error( "Autoassign failed: new user" )
+  }
+}
 
