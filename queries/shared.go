@@ -112,3 +112,9 @@ func loadRoles( in interface{} ) error {
   }
   return db.Error
 }
+
+func TotalCount( model interface{}, count *uint ) error {
+  db := dataSource.GetDB()
+  db.Model( model ).Count( count )
+  return db.Error
+}

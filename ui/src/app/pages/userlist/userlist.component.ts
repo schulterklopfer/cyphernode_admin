@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from '../../services/users.service';
-import { ServerDataSource } from 'ng2-smart-table';
+import { RemoteDataSource } from '../../services/lib/remoteDataSource';
 
 @Component({
   selector: 'ngx-userlist',
@@ -29,23 +29,31 @@ export class UserlistComponent implements OnInit {
         title: 'Login',
         type: 'string',
       },
+      password: {
+        title: 'Password',
+        type: 'password',
+      },
       name: {
         title: 'Name',
         type: 'string',
       },
-      emailAddress: {
+      email_address: {
         title: 'E-mail',
         type: 'string',
       },
     },
   };
 
-  source: ServerDataSource;
+  source: RemoteDataSource;
 
   constructor(
     private usersService: UsersService,
   ) {
     this.source = usersService.getDataSource();
+
+    this.source.onAdded().subscribe( (a) => {
+
+    } );
   }
 
   ngOnInit() {

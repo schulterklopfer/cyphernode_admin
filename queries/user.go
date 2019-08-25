@@ -7,6 +7,9 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
+var ErrDuplicateUser = errors.New("queries: user already exists")
+var ErrUserHasUnknownRole = errors.New("queries: user has unknown role")
+
 func CreateUser( user *models.UserModel ) error {
   // Check if user with same login exists
   // Create user.
@@ -14,7 +17,7 @@ func CreateUser( user *models.UserModel ) error {
 
   if user.ID != 0 {
     // user must not have any ID possibly existing in DB
-    return errors.New( "user ID must be 0" )
+    user.ID = 0
   }
 
   db := dataSource.GetDB()
@@ -23,7 +26,7 @@ func CreateUser( user *models.UserModel ) error {
   db.Limit(1).Find( &existingUsers, models.UserModel{Login: user.Login} )
 
   if len(existingUsers) > 0 {
-    return errors.New( "user with same login already exists" )
+    return ErrDuplicateUser
   }
 
   err := validator.Validate( user )
@@ -41,17 +44,16 @@ func CreateUser( user *models.UserModel ) error {
   var role models.RoleModel
   for i:=0; i<len( user.Roles ); i++ {
     if user.Roles[i].ID == 0 {
-      return errors.New( "cannot create user with unknown role" )
+      return ErrUserHasUnknownRole
     }
     db.Take( &role, user.Roles[i].ID )
     if role.ID !=  user.Roles[i].ID {
-      return errors.New( "cannot create user with unknown role" )
+      return ErrUserHasUnknownRole
     }
   }
 
   db.Create( user )
-
-  return nil
+  return db.Error
 }
 
 func DeleteUser( id uint ) error {

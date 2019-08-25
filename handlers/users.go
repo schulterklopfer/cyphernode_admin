@@ -2,6 +2,7 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
@@ -11,12 +12,11 @@ import (
   "strings"
 )
 
-var ALLOWED_USER_PROPERTIES = [4]string{ "id", "name","login","emailAddress" }
+var ALLOWED_USER_PROPERTIES = [4]string{ "id", "name","login","email_address" }
 
 func GetUser(c *gin.Context) {
   // param 0 is first param in url pattern
   id, err := strconv.Atoi(c.Params[0].Value)
-
   if err != nil {
     c.Status(http.StatusNotFound )
     return
@@ -46,16 +46,109 @@ func GetUser(c *gin.Context) {
   c.Status(http.StatusNotFound )
 }
 
-type Paging struct {
-  Page uint `form:"_page"`
-  Limit int `form:"_limit"`
-  Sort string `form:"_sort"`
-  Order string `form:"_order"`
+func CreateUser(c *gin.Context) {
+  var user models.UserModel
+
+  // read out body
+  _ = c.ShouldBind(&user)
+
+  err := queries.CreateUser(&user)
+
+  if err != nil {
+    switch err {
+    case queries.ErrDuplicateUser:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusConflict )
+      return
+    case queries.ErrUserHasUnknownRole:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusForbidden )
+      return
+    default:
+      switch err.(type) {
+      case validator.ErrorMap:
+        c.Header("X-Status-Reason", err.Error() )
+        c.Status(http.StatusForbidden)
+        return
+      }
+    }
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  c.JSON(http.StatusOK, user)
+
+}
+
+func UpdateUser(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  if user.ID == 0 {
+    c.Status(http.StatusNotFound )
+    return
+  }
+}
+
+func PatchUser(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  if user.ID == 0 {
+    c.Status(http.StatusNotFound )
+    return
+  }
+}
+
+func DeleteUser(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  if user.ID == 0 {
+    c.Status(http.StatusNotFound )
+    return
+  }
 }
 
 func FindUsers(c *gin.Context) {
   var userQuery transforms.UserV0
-  var paging Paging
+  var paging PagingParams
 
   where := make( []interface{}, 0 )
   order := ""
@@ -90,14 +183,16 @@ func FindUsers(c *gin.Context) {
   if c.Bind(&paging) == nil {
 
     // is Sort empty or not in ALLOWED_USER_PROPERTIES?
-    if paging.Sort != "" ||
-       helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool { return ALLOWED_USER_PROPERTIES[i] == paging.Sort } ) == -1 {
+    if paging.Sort == "" ||
+       helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool {
+          return ALLOWED_USER_PROPERTIES[i] == paging.Sort
+       } ) == -1 {
       order = "name"
     } else {
       order = paging.Sort
     }
 
-    if paging.Order != "" || ( paging.Order != "ASC" && paging.Order != "DESC" ) {
+    if paging.Order == "" || ( paging.Order != "ASC" && paging.Order != "DESC" ) {
       order = order + " asc"
     } else {
       order = order + " "+strings.ToLower(paging.Order)
@@ -131,6 +226,18 @@ func FindUsers(c *gin.Context) {
     transforms.Transform( users[i], transformedUsers[i] )
   }
 
-  c.JSON(http.StatusOK, transformedUsers)
+  pagedResult := new( PagedResult )
+
+  pagedResult.Page = paging.Page
+  pagedResult.Limit = paging.Limit
+  pagedResult.Sort = paging.Sort
+  pagedResult.Order = paging.Order
+  pagedResult.Data = transformedUsers
+
+  _ = queries.TotalCount( &models.UserModel{}, &pagedResult.Total )
+
+
+
+  c.JSON(http.StatusOK, pagedResult)
 
 }

@@ -9,7 +9,7 @@ type UserModel struct {
   Login string `json:"login" gorm:"type:varchar(30);unique_index;not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\-]+$"`
   Name string `json:"name"` // optional
   Password string `json:"password" gorm:"type:varchar(128);not null" validate:"nonzero"`
-  EmailAddress string `json:"emailAddress" gorm:"type:varchar(100)" validate:"max=100,regexp=(^$|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"`
+  EmailAddress string `json:"email_address" gorm:"type:varchar(100)" validate:"max=100,regexp=(^$|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"`
   Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;"`
 }
 

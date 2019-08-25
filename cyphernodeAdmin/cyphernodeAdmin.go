@@ -36,7 +36,11 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
   cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")
   {
     cyphernodeAdmin.routerGroups["users"].GET("/", handlers.FindUsers)
+    cyphernodeAdmin.routerGroups["users"].POST("/", handlers.CreateUser)
     cyphernodeAdmin.routerGroups["users"].GET("/:id", handlers.GetUser)
+    cyphernodeAdmin.routerGroups["users"].POST("/:id", handlers.UpdateUser )
+    cyphernodeAdmin.routerGroups["users"].PATCH("/:id", handlers.PatchUser )
+    cyphernodeAdmin.routerGroups["users"].DELETE("/:id", handlers.DeleteUser )
 
     /*v1.POST("/", createTodo)
       v1.GET("/", fetchAllTodo)

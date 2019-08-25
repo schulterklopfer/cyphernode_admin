@@ -2,14 +2,14 @@ import { of as observableOf,  Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { User } from '../shared/user';
 import { HttpClient } from '@angular/common/http';
-import {ServerDataSource} from 'ng2-smart-table';
+import { RemoteDataSource } from './lib/remoteDataSource';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsersService {
   users: User[];
-  dataSource: ServerDataSource;
+  dataSource: RemoteDataSource;
 
   constructor(
     http: HttpClient,
@@ -28,8 +28,10 @@ export class UsersService {
         name: 'Etienne',
       },
     ];
-    this.dataSource = new ServerDataSource( http, {
+    this.dataSource = new RemoteDataSource( http, {
       endPoint: 'http://localhost:8080/api/v0/users',
+      totalKey: 'total',
+      dataKey: 'data',
     });
   }
 
@@ -60,7 +62,7 @@ export class UsersService {
     return observableOf(this.users.find( user => user.id === id ));
   }
 
-  getDataSource(): ServerDataSource {
+  getDataSource(): RemoteDataSource {
     return this.dataSource;
   }
 
