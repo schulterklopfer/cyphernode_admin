@@ -1,11 +1,20 @@
 package queries
 
 import (
-  "errors"
   "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
+
+func Create(model interface{} ) error {
+  db := dataSource.GetDB()
+  err := validator.Validate( model )
+  if err != nil {
+    return err
+  }
+  return db.Create( model ).Error
+}
+
 
 func Get( model interface{}, id uint, recursive bool ) error {
   db := dataSource.GetDB()
@@ -19,7 +28,7 @@ func Get( model interface{}, id uint, recursive bool ) error {
   return nil
 }
 
-func Update( model interface{} ) error {
+func Save( model interface{} ) error {
   db := dataSource.GetDB()
 
   err := validator.Validate( model )
@@ -27,24 +36,7 @@ func Update( model interface{} ) error {
   if err != nil {
     return err
   }
-
-  var role models.RoleModel
-
-  switch model.(type) {
-  case *models.UserModel:
-    for i:=0; i<len( model.(*models.UserModel).Roles ); i++ {
-      if  model.(*models.UserModel).Roles[i].ID == 0 {
-        return errors.New( "cannot update user with unknown role" )
-      }
-      db.Take( &role,  model.(*models.UserModel).Roles[i].ID )
-      if role.ID !=   model.(*models.UserModel).Roles[i].ID {
-        return errors.New( "cannot update user with unknown role" )
-      }
-    }
-  }
-  
-  db.Save( model )
-  return db.Error
+  return db.Save( model ).Error
 }
 
 func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {

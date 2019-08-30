@@ -42,7 +42,7 @@ func TestModels(t *testing.T) {
     user.Login = "login1"
     user.Password = "test123"
     user.EmailAddress = "user@user.com"
-    _ = queries.CreateUser(user)
+    _ = queries.Create(user)
 
     t.Run( "Role Autoassign", roleAutoAssign )
   })
@@ -365,16 +365,16 @@ func createUser( t *testing.T ) {
   user.EmailAddress = "email1@email.rocks"
   user.Roles = roles
 
-  err := queries.CreateUser( user )
+  err := queries.Create( user )
 
-  err = queries.CreateUser( user )
+  err = queries.Create( user )
 
   if err == nil {
     t.Error( "Create user with user id" )
   }
 
   user.ID = 0
-  err = queries.CreateUser( user )
+  err = queries.Create( user )
 
   if err == nil {
     t.Error( "Created same user twice" )
@@ -387,7 +387,7 @@ func createUser( t *testing.T ) {
   user.EmailAddress = "email2@email.rocks"
   user.Roles = roles
 
-  err = queries.CreateUser( user )
+  err = queries.Create( user )
 
   if err != nil {
     t.Error( "Failed to create second user" )
@@ -520,7 +520,7 @@ func roleAutoAssign( t *testing.T ) {
   user.Password = "test123"
   user.EmailAddress = "user@user.com"
 
-  _ = queries.CreateUser( user )
+  _ = queries.Create( user )
 
   if len(user.Roles) != 1 {
     t.Error( "Autoassign failed: new user" )

@@ -6,6 +6,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/shared"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
   "strconv"
@@ -42,25 +43,31 @@ func GetUser(c *gin.Context) {
     c.JSON(http.StatusOK, transformedUser )
     return
   }
-
-  c.Status(http.StatusNotFound )
 }
 
 func CreateUser(c *gin.Context) {
+
+  input := new( map[string]interface{} )
+  err := c.Bind( &input )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
   var user models.UserModel
+  shared.SetByJsonTag( &user, input )
 
-  // read out body
-  _ = c.ShouldBind(&user)
-
-  err := queries.CreateUser(&user)
+  // just to be sure
+  err = queries.Create(&user)
 
   if err != nil {
     switch err {
-    case queries.ErrDuplicateUser:
+    case models.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case queries.ErrUserHasUnknownRole:
+    case models.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusForbidden )
       return
@@ -100,6 +107,44 @@ func UpdateUser(c *gin.Context) {
     c.Status(http.StatusNotFound )
     return
   }
+
+  input := new( map[string]interface{} )
+
+  err = c.Bind( &input )
+
+  var newUser models.UserModel
+
+  shared.SetByJsonTag( &newUser, input )
+  newUser.ID = user.ID
+
+  err = queries.Save( &newUser )
+
+  if err != nil {
+    switch err {
+    case models.ErrDuplicateUser:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusConflict )
+      return
+    case models.ErrUserHasUnknownRole:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusForbidden )
+      return
+    default:
+      switch err.(type) {
+      case validator.ErrorMap:
+        c.Header("X-Status-Reason", err.Error() )
+        c.Status(http.StatusForbidden)
+        return
+      }
+    }
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  var transformedUser transforms.UserV0
+  transforms.Transform( &newUser, &transformedUser )
+  c.JSON( http.StatusOK, &transformedUser )
+
 }
 
 func PatchUser(c *gin.Context) {
@@ -122,6 +167,40 @@ func PatchUser(c *gin.Context) {
     c.Status(http.StatusNotFound )
     return
   }
+
+  input := new( map[string]interface{} )
+
+  err = c.Bind( &input )
+
+  shared.SetByJsonTag( &user, input )
+
+  err = queries.Save( &user )
+
+  if err != nil {
+    switch err {
+    case models.ErrDuplicateUser:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusConflict )
+      return
+    case models.ErrUserHasUnknownRole:
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusForbidden )
+      return
+    default:
+      switch err.(type) {
+      case validator.ErrorMap:
+        c.Header("X-Status-Reason", err.Error() )
+        c.Status(http.StatusForbidden)
+        return
+      }
+    }
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  var transformedUser transforms.UserV0
+  transforms.Transform( &user, &transformedUser )
+  c.JSON( http.StatusOK, &transformedUser )
 }
 
 func DeleteUser(c *gin.Context) {
@@ -144,6 +223,16 @@ func DeleteUser(c *gin.Context) {
     c.Status(http.StatusNotFound )
     return
   }
+
+  err = queries.DeleteUser( user.ID )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  c.Status(http.StatusNoContent)
+
 }
 
 func FindUsers(c *gin.Context) {
@@ -235,8 +324,6 @@ func FindUsers(c *gin.Context) {
   pagedResult.Data = transformedUsers
 
   _ = queries.TotalCount( &models.UserModel{}, &pagedResult.Total )
-
-
 
   c.JSON(http.StatusOK, pagedResult)
 
