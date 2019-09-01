@@ -27,6 +27,14 @@ func Init( databaseFile string ) {
   })
 }
 
+func Close() {
+  if db == nil {
+    return
+  }
+  db.Close()
+  db = nil
+}
+
 func AutoMigrate() {
   if db == nil {
     return
