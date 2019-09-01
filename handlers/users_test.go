@@ -71,22 +71,24 @@ func TestGetUser(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 
-  input := map[string]string {
-    "login": "testUser",
-    "name": "name",
-    "email_address": "email@test.com",
-    "password": "test123",
-  }
-
-  body, err := json.Marshal( input )
-
-  res, err := testServer.Client().Post( testServer.URL+"/api/v0/users/", "application/json", bytes.NewBuffer(body) )
+  jsonInput := `
+{
+  "login": "testUser",
+  "name": "name",
+  "email_address": "email@test.com",
+  "password": "test123",
+  "roles": [
+    { "ID": 1 }
+  ]
+}
+`
+  res, err := testServer.Client().Post( testServer.URL+"/api/v0/users/", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
 
   if err != nil {
     t.Error(err)
   }
 
-  body, err = ioutil.ReadAll(res.Body)
+  body, err := ioutil.ReadAll(res.Body)
   if err != nil {
     t.Error(err)
   }
@@ -98,7 +100,7 @@ func TestCreateUser(t *testing.T) {
       user.Name != "name" ||
       user.EmailAddress != "email@test.com" ||
       user.ID != 2 ||
-      len(user.Roles) != 0 {
+      len(user.Roles) != 1 {
     t.Error( "error in get user" )
   }
 }
@@ -139,7 +141,7 @@ func TestFindUser(t *testing.T) {
     pagedResult.Data[0].Name != "name" ||
     pagedResult.Data[0].EmailAddress != "email@test.com" ||
     pagedResult.Data[0].ID != 2 ||
-    len(pagedResult.Data[0].Roles) != 0 {
+    len(pagedResult.Data[0].Roles) != 1 {
     t.Error( "error in get user" )
   }
 }

@@ -48,7 +48,7 @@ func GetUser(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 
   input := new( map[string]interface{} )
-  err := c.Bind( &input )
+  err := c.Bind( input )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -57,6 +57,27 @@ func CreateUser(c *gin.Context) {
 
   var user models.UserModel
   shared.SetByJsonTag( &user, input )
+
+  if rolesInput, foundRoles := (*input)["roles"]; foundRoles {
+    switch rolesInput.(type) {
+    case []interface{}:
+      roleCount := len(rolesInput.([]interface{}))
+      if roleCount > 0 {
+        user.Roles = make( []*models.RoleModel, roleCount )
+        for i:=0; i<roleCount; i++ {
+          elem := rolesInput.([]interface{})[i]
+          switch elem.(type) {
+          case map[string]interface{}:
+            if roleId, foundRoleID := elem.(map[string]interface{})["ID"]; foundRoleID {
+              role := new( models.RoleModel )
+              role.ID = uint( roleId.(float64))
+              user.Roles[i] = role
+            }
+          }
+        }
+      }
+    }
+  }
 
   // just to be sure
   err = queries.Create(&user)
@@ -82,6 +103,8 @@ func CreateUser(c *gin.Context) {
     c.Status(http.StatusInternalServerError)
     return
   }
+
+  queries.LoadRoles( &user )
 
   var transformedUser transforms.UserV0
   transforms.Transform( &user, &transformedUser )
@@ -119,7 +142,7 @@ func UpdateUser(c *gin.Context) {
   shared.SetByJsonTag( &newUser, input )
   newUser.ID = user.ID
 
-  err = queries.Save( &newUser )
+  err = queries.Update( &newUser )
 
   if err != nil {
     switch err {
@@ -176,7 +199,7 @@ func PatchUser(c *gin.Context) {
 
   shared.SetByJsonTag( &user, input )
 
-  err = queries.Save( &user )
+  err = queries.Update( &user )
 
   if err != nil {
     switch err {

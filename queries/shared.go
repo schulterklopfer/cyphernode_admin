@@ -1,9 +1,9 @@
 package queries
 
 import (
-  "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
+  "gopkg.in/validator.v2"
 )
 
 func Create(model interface{} ) error {
@@ -20,7 +20,7 @@ func Get( model interface{}, id uint, recursive bool ) error {
   db := dataSource.GetDB()
   db.Take(model, id)
   if recursive {
-    err := loadRoles(model)
+    err := LoadRoles(model)
     if err != nil {
       return err
     }
@@ -28,7 +28,7 @@ func Get( model interface{}, id uint, recursive bool ) error {
   return nil
 }
 
-func Save( model interface{} ) error {
+func Update( model interface{} ) error {
   db := dataSource.GetDB()
 
   err := validator.Validate( model )
@@ -36,7 +36,7 @@ func Save( model interface{} ) error {
   if err != nil {
     return err
   }
-  return db.Save( model ).Error
+  return db.Update( model ).Error
 }
 
 func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {
@@ -73,12 +73,12 @@ func Find( out interface{}, where []interface{}, order string, limit int, offset
     case *[]*models.UserModel:
       users := *out.(*[]*models.UserModel)
       for i:=0; i<len(users); i++ {
-        _ = loadRoles(users[i])
+        _ = LoadRoles(users[i])
       }
     case *[]*models.AppModel:
       apps := *out.(*[]*models.AppModel)
       for i:=0; i<len(apps); i++ {
-        _ = loadRoles(apps[i])
+        _ = LoadRoles(apps[i])
       }
     }
   }
@@ -87,7 +87,7 @@ func Find( out interface{}, where []interface{}, order string, limit int, offset
 
 }
 
-func loadRoles( in interface{} ) error {
+func LoadRoles( in interface{} ) error {
   db := dataSource.GetDB()
   var roles []*models.RoleModel
   switch in.(type) {
