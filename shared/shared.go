@@ -7,8 +7,6 @@ import (
 
 func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
   structType := reflect.TypeOf(obj).Elem()
-  name := structType.Name()
-  print( name )
   mutableObject := reflect.ValueOf(obj).Elem()
 
   for jsonFieldName, jsonFieldValue := range *values {
