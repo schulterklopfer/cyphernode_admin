@@ -83,7 +83,9 @@ func CreateUser(c *gin.Context) {
     return
   }
 
-  c.JSON(http.StatusOK, user)
+  var transformedUser transforms.UserV0
+  transforms.Transform( &user, &transformedUser )
+  c.JSON( http.StatusOK, &transformedUser )
 
 }
 

@@ -9,3 +9,7 @@ curl -v 'http://localhost:8080/api/v0/users/7' -XPUT -H "Content-type: applicati
 
 # delete
 curl -v 'http://localhost:8080/api/v0/users/5' -XDELETE -H "Content-type: application/json" -H "Accept: application/json" --compressed
+
+#get
+
+curl -v 'http://localhost:8080/api/v0/users/1' -XGET -H "Content-type: application/json" -H "Accept: application/json" --compressed

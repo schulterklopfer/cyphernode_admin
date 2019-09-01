@@ -16,15 +16,16 @@ func GetDB() *gorm.DB {
 }
 
 func Init( databaseFile string ) {
-  once.Do(func() {
-    var err error
-    logwrapper.Logger().Info( "Opening database")
-    db, err = gorm.Open("sqlite3", databaseFile )
-    if err != nil {
-      logwrapper.Logger().Panic("failed to connect to database" )
-    }
-    AutoMigrate()
-  })
+  if db != nil {
+    return
+  }
+  var err error
+  logwrapper.Logger().Info( "Opening database")
+  db, err = gorm.Open("sqlite3", databaseFile )
+  if err != nil {
+    logwrapper.Logger().Panic("failed to connect to database" )
+  }
+  AutoMigrate()
 }
 
 func Close() {

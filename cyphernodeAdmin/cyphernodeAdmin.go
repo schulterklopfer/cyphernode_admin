@@ -104,6 +104,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) initContent() error {
 
 }
 
+func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
+  return cyphernodeAdmin.engine
+}
+
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
   cyphernodeAdmin.engine.Run()
 }

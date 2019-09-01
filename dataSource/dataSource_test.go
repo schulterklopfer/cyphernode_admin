@@ -1,29 +1,32 @@
 package dataSource_test
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/schulterklopfer/cyphernode_admin/dataSource"
-	"github.com/schulterklopfer/cyphernode_admin/models"
-	"os"
-	"testing"
+  "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/sirupsen/logrus"
+  "math/rand"
+  "os"
+  "strconv"
+  "testing"
+  "time"
 )
 
-var db *gorm.DB
+func TestMain(m *testing.M) {
+  r := rand.New(rand.NewSource(time.Now().UnixNano()))
+  logwrapper.Logger().SetLevel( logrus.PanicLevel )
+  dbFile := "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
+  dataSource.Init(dbFile)
 
-func TestModels(t *testing.T) {
-	dbFile := "/tmp/tests.sqlite3"
-	os.Remove(dbFile)
-	dataSource.Init(dbFile)
-	db = dataSource.GetDB()
-	t.Run("Create app", createApp)
-	t.Run("Load app", loadApp)
-	t.Run("Load role", loadRole)
-	t.Run("Create user", createUser)
-	t.Run("Load user", loadUser)
+  code := m.Run()
 
+  dataSource.Close()
+
+  os.Remove(dbFile)
+  os.Exit(code)
 }
 
-func createApp(t *testing.T) {
+func TestCreateApp(t *testing.T) {
 
 	app1 := new(models.AppModel)
 	app1.Hash = "hash1"
@@ -42,6 +45,7 @@ func createApp(t *testing.T) {
 
 	app1.AvailableRoles = roles1[:]
 
+	db := dataSource.GetDB()
 	db.Create(app1)
 
 	if db.NewRecord(app1) || db.NewRecord(role1) || db.NewRecord(role2) {
@@ -50,9 +54,10 @@ func createApp(t *testing.T) {
 
 }
 
-func loadApp(t *testing.T) {
+func TestLoadApp(t *testing.T) {
 	var app models.AppModel
-	db.First(&app, 1)
+  db := dataSource.GetDB()
+  db.First(&app, 1)
 
 	var roles []*models.RoleModel
 
@@ -63,9 +68,10 @@ func loadApp(t *testing.T) {
 	}
 }
 
-func loadRole(t *testing.T) {
+func TestLoadRole(t *testing.T) {
 	var role models.RoleModel
-	db.First(&role, 1)
+  db := dataSource.GetDB()
+  db.First(&role, 1)
 
 	var app models.AppModel
 
@@ -76,7 +82,7 @@ func loadRole(t *testing.T) {
 	}
 }
 
-func createUser(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	user := new(models.UserModel)
 	user.Login = "login"
 	user.Name = "Test user"
@@ -84,6 +90,7 @@ func createUser(t *testing.T) {
 
 	var app models.AppModel
 
+  db := dataSource.GetDB()
 	db.First(&app, 1)
 
 	var roles []*models.RoleModel
@@ -99,9 +106,11 @@ func createUser(t *testing.T) {
 	}
 }
 
-func loadUser(t *testing.T) {
+func TestLoadUser(t *testing.T) {
 	var user models.UserModel
-	db.First(&user, 1)
+
+	db := dataSource.GetDB()
+  db.First(&user, 1)
 
 	var roles []*models.RoleModel
 
