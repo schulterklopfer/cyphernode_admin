@@ -72,13 +72,13 @@ func CreateUser(c *gin.Context) {
       return
     case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusForbidden )
+      c.Status(http.StatusBadRequest )
       return
     default:
       switch err.(type) {
       case validator.ErrorMap:
         c.Header("X-Status-Reason", err.Error() )
-        c.Status(http.StatusForbidden)
+        c.Status(http.StatusBadRequest)
         return
       }
     }
@@ -134,13 +134,13 @@ func UpdateUser(c *gin.Context) {
       return
     case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusForbidden )
+      c.Status(http.StatusBadRequest )
       return
     default:
       switch err.(type) {
       case validator.ErrorMap:
         c.Header("X-Status-Reason", err.Error() )
-        c.Status(http.StatusForbidden)
+        c.Status(http.StatusBadRequest)
         return
       }
     }
@@ -193,13 +193,13 @@ func PatchUser(c *gin.Context) {
       return
     case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusForbidden )
+      c.Status(http.StatusBadRequest )
       return
     default:
       switch err.(type) {
       case validator.ErrorMap:
         c.Header("X-Status-Reason", err.Error() )
-        c.Status(http.StatusForbidden)
+        c.Status(http.StatusBadRequest)
         return
       }
     }
@@ -378,10 +378,10 @@ func UserAddRole(c *gin.Context) {
     switch err {
     case cnaErrors.ErrNoSuchRole:
       c.Header("X-Status-Reason", "Role does not exist" )
-      c.Status(http.StatusForbidden)
+      c.Status(http.StatusBadRequest)
     case cnaErrors.ErrUserAlreadyHasRole:
       c.Header("X-Status-Reason", "Trying to add role twice" )
-      c.Status(http.StatusForbidden)
+      c.Status(http.StatusBadRequest)
     default:
       c.Status(http.StatusInternalServerError)
     }
@@ -432,7 +432,7 @@ func UserRemoveRole(c *gin.Context) {
     }
   }
   c.Header("X-Status-Reason", "User does not have that role" )
-  c.Status(http.StatusForbidden)
+  c.Status(http.StatusBadRequest)
   return
 }
 
