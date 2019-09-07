@@ -342,7 +342,7 @@ func FindUsers(c *gin.Context) {
 
 // Roles
 
-func UserAddRole(c *gin.Context) {
+func UserAddRoles(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
@@ -363,29 +363,30 @@ func UserAddRole(c *gin.Context) {
     return
   }
 
-  var roleInput models.RoleModel
+  var roleInputs []models.RoleModel
 
-  err = c.Bind( &roleInput )
+  err = c.Bind( &roleInputs )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  err = queries.AddRoleToUser( &user, uint( roleInput.ID ) )
-
-  if err != nil {
-    switch err {
-    case cnaErrors.ErrNoSuchRole:
-      c.Header("X-Status-Reason", "Role does not exist" )
-      c.Status(http.StatusBadRequest)
-    case cnaErrors.ErrUserAlreadyHasRole:
-      c.Header("X-Status-Reason", "Trying to add role twice" )
-      c.Status(http.StatusBadRequest)
-    default:
-      c.Status(http.StatusInternalServerError)
+  for i:=0; i<len( roleInputs ); i++ {
+    err = queries.AddRoleToUser( &user, uint( roleInputs[i].ID ) )
+    if err != nil {
+      switch err {
+      case cnaErrors.ErrNoSuchRole:
+        c.Header("X-Status-Reason", "Role does not exist" )
+        c.Status(http.StatusBadRequest)
+      case cnaErrors.ErrUserAlreadyHasRole:
+        c.Header("X-Status-Reason", "Trying to add role twice" )
+        c.Status(http.StatusBadRequest)
+      default:
+        c.Status(http.StatusInternalServerError)
+      }
+      return
     }
-    return
   }
 
   var transformedUser transforms.UserV0

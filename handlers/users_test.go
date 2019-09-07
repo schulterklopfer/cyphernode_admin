@@ -129,7 +129,7 @@ func testCreateUser(t *testing.T) {
 }
 
 func testUserAddRole( t *testing.T ) {
-  jsonInput := `{ "ID": 2 }`
+  jsonInput := `[{ "ID": 2 }]`
   res, err := testServer.Client().Post( testServer.URL+"/api/v0/users/2/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
 
   if err != nil {
