@@ -21,7 +21,7 @@ tags:
       description: "Find out more"
       url: "https://github.com/OpenAPITools/openapi-generator"
 paths:
-  /users:
+  /users/:
     get:
       summary: "List all users"
       operationId: "findUsers"
@@ -69,9 +69,7 @@ paths:
           content:
             application/json:
               schema:
-                type: "array"
-                items:
-                  $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/PagedUsers'
         '403':
           description: "Access token is missing or invalid"
         '500':
@@ -231,7 +229,7 @@ paths:
           description: "Not found"
         '500':
           description: "Internal server error"
-  /users/{userId}/roles:
+  /users/{userId}/roles/:
     post:
       summary: "add roles to user"
       operationId: "addRolesToUser"
@@ -393,6 +391,29 @@ components:
           type: "integer"
           minimum: 1
           example: 1
+    PagedUsers:
+      type: "object"
+      required:
+        - "page"
+        - "limit"
+        - "sort"
+        - "total"
+        - "data"
+      properties:
+        page:
+          type: "integer"
+        limit:
+          type: "integer"
+        sort:
+          type: "string"
+          enum: ["id","name","emailAddress","login"]
+        order:
+          type: "string"
+          enum: ["ASC","DESC"]
+        data:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/User'
   securitySchemes:
     BearerAuth:
       type: http
