@@ -18,11 +18,7 @@ func ( role *RoleModel ) AfterDelete( tx *gorm.DB ) {
 }
 
 func ( role *RoleModel ) AfterSave( tx *gorm.DB ) {
-  if role.AutoAssign {
-    role.addToAllUsers( tx )
-  } else {
-    role.removeFromAllUsers( tx )
-  }
+  role.AfterUpdate( tx )
 }
 
 func ( role *RoleModel ) AfterUpdate( tx *gorm.DB ) {
