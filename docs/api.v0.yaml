@@ -86,6 +86,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
+            example:
+              login: "newUser"
+              password: "test123"
+              email_address: "user@user.com"
+              roles:
+                - ID: 1
+                - ID: 2
       responses:
         '201':
           description: "successfully created"
@@ -143,6 +150,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
+            example:
+              email_address: "new_eamil@user.com"
       responses:
         '200':
           description: "success"
@@ -175,6 +184,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
+            example:
+              login: "otherUser"
+              password: "test4321"
+              email_address: "new_eamil@user.com"
+              roles:
+                - ID: 3
+                - ID: 4
       responses:
         '200':
           description: "success"
@@ -240,6 +256,9 @@ paths:
                   ID:
                     type: "integer"
                     minimum: 1
+            example:
+              - ID: 1
+              - ID: 2
       responses:
         '200':
           description: "success"
