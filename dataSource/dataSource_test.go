@@ -12,21 +12,24 @@ import (
   "time"
 )
 
-func TestMain(m *testing.M) {
+func TestDataSource(t *testing.T) {
   r := rand.New(rand.NewSource(time.Now().UnixNano()))
   logwrapper.Logger().SetLevel( logrus.PanicLevel )
   dbFile := "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
   dataSource.Init(dbFile)
 
-  code := m.Run()
+  t.Run("testCreateApp", testCreateApp )
+  t.Run("testLoadApp", testLoadApp )
+  t.Run("testLoadRole", testLoadRole )
+  t.Run("testCreateUser", testCreateUser )
+  t.Run("testLoadUser", testLoadUser )
 
   dataSource.Close()
 
   os.Remove(dbFile)
-  os.Exit(code)
 }
 
-func TestCreateApp(t *testing.T) {
+func testCreateApp(t *testing.T) {
 
 	app1 := new(models.AppModel)
 	app1.Hash = "hash1"
@@ -54,7 +57,7 @@ func TestCreateApp(t *testing.T) {
 
 }
 
-func TestLoadApp(t *testing.T) {
+func testLoadApp(t *testing.T) {
 	var app models.AppModel
   db := dataSource.GetDB()
   db.First(&app, 1)
@@ -68,7 +71,7 @@ func TestLoadApp(t *testing.T) {
 	}
 }
 
-func TestLoadRole(t *testing.T) {
+func testLoadRole(t *testing.T) {
 	var role models.RoleModel
   db := dataSource.GetDB()
   db.First(&role, 1)
@@ -82,7 +85,7 @@ func TestLoadRole(t *testing.T) {
 	}
 }
 
-func TestCreateUser(t *testing.T) {
+func testCreateUser(t *testing.T) {
 	user := new(models.UserModel)
 	user.Login = "login"
 	user.Name = "Test user"
@@ -106,7 +109,7 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func TestLoadUser(t *testing.T) {
+func testLoadUser(t *testing.T) {
 	var user models.UserModel
 
 	db := dataSource.GetDB()

@@ -1,8 +1,8 @@
 package models
 
 import (
-  "errors"
   "github.com/jinzhu/gorm"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
 )
 
 type UserModel struct {
@@ -13,10 +13,6 @@ type UserModel struct {
   EmailAddress string `json:"email_address" gorm:"type:varchar(100)" form:"emailAddress" validate:"max=100,regexp=(^$|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"`
   Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;association_autoupdate:false" form:"roles" validate:"-"`
 }
-
-var ErrDuplicateUser = errors.New("user already exists")
-var ErrUserHasUnknownRole = errors.New("user has unknown role")
-var ErrNoSuchUser = errors.New( "no such user" )
 
 func (user *UserModel) AfterCreate( tx *gorm.DB ) (err error) {
   var allAutoAssignRoles []*RoleModel
@@ -30,7 +26,7 @@ func (user *UserModel) AfterCreate( tx *gorm.DB ) (err error) {
 func (user *UserModel) BeforeDelete( tx *gorm.DB ) (err error) {
   // very important. if no check, will delete all users if ID == 0
   if user.ID == 0 {
-    err = ErrNoSuchUser
+    err = cnaErrors.ErrNoSuchUser
     return
   }
   return
@@ -70,7 +66,7 @@ func (user *UserModel) checkDuplicate( tx *gorm.DB ) error {
   tx.Limit(1).Find( &existingUsers, "login = ? AND id != ?", user.Login, user.ID )
 
   if len(existingUsers) > 0 {
-    return ErrDuplicateUser
+    return cnaErrors.ErrDuplicateUser
   }
   return nil
 }
@@ -78,12 +74,12 @@ func (user *UserModel) checkDuplicate( tx *gorm.DB ) error {
 func (user *UserModel) checkRoles( tx *gorm.DB ) error {
   for i:=0; i<len(user.Roles ); i++ {
     if user.Roles[i].ID == 0 {
-      return ErrUserHasUnknownRole
+      return cnaErrors.ErrUserHasUnknownRole
     }
     var role RoleModel
     tx.Take( &role,  user.Roles[i].ID )
     if role.ID != user.Roles[i].ID {
-      return ErrUserHasUnknownRole
+      return cnaErrors.ErrUserHasUnknownRole
     }
   }
   return nil

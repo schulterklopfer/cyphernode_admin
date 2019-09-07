@@ -6,20 +6,26 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/sirupsen/logrus"
+  "math/rand"
   "os"
+  "strconv"
   "testing"
+  "time"
 )
 
-func TestModels(t *testing.T) {
+func TestQueries(t *testing.T) {
+  r := rand.New(rand.NewSource(time.Now().UnixNano()))
   logwrapper.Logger().SetLevel( logrus.PanicLevel )
 
-  dbFile := "/tmp/tests.sqlite3"
-  os.Remove(dbFile)
+  dbFile := "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
+
   dataSource.Init(dbFile)
 
   t.Run( "Create app", createApp )
   t.Run( "Create role", createRole )
   t.Run( "Create user", createUser )
+  t.Run( "Remove role from user", removeRoleFromUser )
+  t.Run( "Add role to user", addRoleToUser )
   t.Run( "Get app", getApp )
   t.Run( "Find app", findApps)
   t.Run( "Get role", getRole )
@@ -46,6 +52,9 @@ func TestModels(t *testing.T) {
 
     t.Run( "Role Autoassign", roleAutoAssign )
   })
+
+  dataSource.Close()
+  os.Remove(dbFile)
 
 }
 
@@ -392,6 +401,25 @@ func createUser( t *testing.T ) {
   if err != nil {
     t.Error( "Failed to create second user" )
   }
+}
+
+func removeRoleFromUser( t *testing.T ) {
+  // remove role id 4
+  var user *models.UserModel
+  user = new(  models.UserModel )
+  _ = queries.Get( user, 1,true)
+
+  queries.RemoveRoleFromUser( user, 4 )
+}
+
+func addRoleToUser( t *testing.T ) {
+  // add role id 4
+  var user *models.UserModel
+  user = new(  models.UserModel )
+  _ = queries.Get( user, 1,true)
+
+  queries.AddRoleToUser( user, 4 )
+
 }
 
 func deleteUser( t *testing.T) {

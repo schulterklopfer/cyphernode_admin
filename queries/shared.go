@@ -36,7 +36,7 @@ func Update( model interface{} ) error {
   if err != nil {
     return err
   }
-  return db.Update( model ).Error
+  return db.Save( model ).Error
 }
 
 func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {

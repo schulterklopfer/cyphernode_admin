@@ -3,6 +3,7 @@ package handlers
 import (
   "github.com/gin-gonic/gin"
   "github.com/go-validator/validator"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
@@ -58,37 +59,18 @@ func CreateUser(c *gin.Context) {
   var user models.UserModel
   shared.SetByJsonTag( &user, input )
 
-  if rolesInput, foundRoles := (*input)["roles"]; foundRoles {
-    switch rolesInput.(type) {
-    case []interface{}:
-      roleCount := len(rolesInput.([]interface{}))
-      if roleCount > 0 {
-        user.Roles = make( []*models.RoleModel, roleCount )
-        for i:=0; i<roleCount; i++ {
-          elem := rolesInput.([]interface{})[i]
-          switch elem.(type) {
-          case map[string]interface{}:
-            if roleId, foundRoleID := elem.(map[string]interface{})["ID"]; foundRoleID {
-              role := new( models.RoleModel )
-              role.ID = uint( roleId.(float64))
-              user.Roles[i] = role
-            }
-          }
-        }
-      }
-    }
-  }
+  updateRoles( input, &user )
 
   // just to be sure
   err = queries.Create(&user)
 
   if err != nil {
     switch err {
-    case models.ErrDuplicateUser:
+    case cnaErrors.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case models.ErrUserHasUnknownRole:
+    case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusForbidden )
       return
@@ -108,7 +90,7 @@ func CreateUser(c *gin.Context) {
 
   var transformedUser transforms.UserV0
   transforms.Transform( &user, &transformedUser )
-  c.JSON( http.StatusOK, &transformedUser )
+  c.JSON( http.StatusCreated, &transformedUser )
 
 }
 
@@ -140,17 +122,17 @@ func UpdateUser(c *gin.Context) {
   var newUser models.UserModel
 
   shared.SetByJsonTag( &newUser, input )
-  newUser.ID = user.ID
 
+  newUser.ID = user.ID
   err = queries.Update( &newUser )
 
   if err != nil {
     switch err {
-    case models.ErrDuplicateUser:
+    case cnaErrors.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case models.ErrUserHasUnknownRole:
+    case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusForbidden )
       return
@@ -165,6 +147,8 @@ func UpdateUser(c *gin.Context) {
     c.Status(http.StatusInternalServerError)
     return
   }
+
+  queries.LoadRoles( &newUser )
 
   var transformedUser transforms.UserV0
   transforms.Transform( &newUser, &transformedUser )
@@ -203,11 +187,11 @@ func PatchUser(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case models.ErrDuplicateUser:
+    case cnaErrors.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case models.ErrUserHasUnknownRole:
+    case cnaErrors.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusForbidden )
       return
@@ -222,6 +206,8 @@ func PatchUser(c *gin.Context) {
     c.Status(http.StatusInternalServerError)
     return
   }
+
+  queries.LoadRoles( &user )
 
   var transformedUser transforms.UserV0
   transforms.Transform( &user, &transformedUser )
@@ -352,4 +338,124 @@ func FindUsers(c *gin.Context) {
 
   c.JSON(http.StatusOK, pagedResult)
 
+}
+
+// Roles
+
+func UserAddRole(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  if user.ID == 0 {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var roleInput models.RoleModel
+
+  err = c.Bind( &roleInput )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  err = queries.AddRoleToUser( &user, uint( roleInput.ID ) )
+
+  if err != nil {
+    switch err {
+    case cnaErrors.ErrNoSuchRole:
+      c.Header("X-Status-Reason", "Role does not exist" )
+      c.Status(http.StatusForbidden)
+    case cnaErrors.ErrUserAlreadyHasRole:
+      c.Header("X-Status-Reason", "Trying to add role twice" )
+      c.Status(http.StatusForbidden)
+    default:
+      c.Status(http.StatusInternalServerError)
+    }
+    return
+  }
+
+  var transformedUser transforms.UserV0
+
+  if transforms.Transform( &user, &transformedUser ) {
+    c.JSON(http.StatusOK, transformedUser )
+  } else {
+    c.Status(http.StatusInternalServerError)
+  }
+}
+
+func UserRemoveRole(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+  roleId, err := strconv.Atoi(c.Params[1].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound )
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get( &user, uint(id), true )
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  for i:=0; i<len( user.Roles ); i++ {
+    if user.Roles[i].ID == uint(roleId) {
+      // found role
+      // TODO: remove
+      err := queries.RemoveRoleFromUser( &user, uint(roleId) )
+      if err != nil {
+        c.Status(http.StatusInternalServerError)
+        return
+      }
+      c.Status(http.StatusNoContent)
+      return
+    }
+  }
+  c.Header("X-Status-Reason", "User does not have that role" )
+  c.Status(http.StatusForbidden)
+  return
+}
+
+func updateRoles( input *map[string]interface{}, user *models.UserModel ) {
+  if rolesInput, foundRoles := (*input)["roles"]; foundRoles {
+    switch rolesInput.(type) {
+    case []interface{}:
+      roleCount := len(rolesInput.([]interface{}))
+      user.Roles = make( []*models.RoleModel, roleCount )
+      if roleCount > 0 {
+        user.Roles = make( []*models.RoleModel, roleCount )
+        for i:=0; i<roleCount; i++ {
+          elem := rolesInput.([]interface{})[i]
+          switch elem.(type) {
+          case map[string]interface{}:
+            if roleId, foundRoleID := elem.(map[string]interface{})["ID"]; foundRoleID {
+              role := new( models.RoleModel )
+              role.ID = uint( roleId.(float64))
+              user.Roles[i] = role
+            }
+          }
+        }
+      }
+    }
+  }
 }
