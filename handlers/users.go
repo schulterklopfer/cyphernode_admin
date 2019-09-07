@@ -282,17 +282,29 @@ func FindUsers(c *gin.Context) {
 
   if c.Bind(&paging) == nil {
 
+
+    if paging.Sort == "" {
+      paging.Sort = "login"
+    }
+
+    if paging.Order == "" {
+      paging.Order = "ASC"
+    }
+
+    if paging.Limit == 0 {
+      paging.Limit = 20
+    }
+
     // is Sort empty or not in ALLOWED_USER_PROPERTIES?
-    if paging.Sort == "" ||
-       helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool {
+    if helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool {
           return ALLOWED_USER_PROPERTIES[i] == paging.Sort
        } ) == -1 {
-      order = "name"
+      order = "login"
     } else {
       order = paging.Sort
     }
 
-    if paging.Order == "" || ( paging.Order != "ASC" && paging.Order != "DESC" ) {
+    if ( paging.Order != "ASC" && paging.Order != "DESC" ) {
       order = order + " asc"
     } else {
       order = order + " "+strings.ToLower(paging.Order)

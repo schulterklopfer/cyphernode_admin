@@ -113,5 +113,5 @@ func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
-  cyphernodeAdmin.engine.Run()
+  cyphernodeAdmin.engine.Run("localhost:8080")
 }
