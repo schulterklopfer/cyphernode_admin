@@ -14,19 +14,42 @@ type RoleModel struct {
 }
 
 func ( role *RoleModel ) AfterDelete( tx *gorm.DB ) {
-  tx.Model(role).Association("Users" ).Clear()
+  role.removeFromAllUsers( tx )
+}
+
+func ( role *RoleModel ) AfterSave( tx *gorm.DB ) {
+  if role.AutoAssign {
+    role.addToAllUsers( tx )
+  } else {
+    role.removeFromAllUsers( tx )
+  }
+}
+
+func ( role *RoleModel ) AfterUpdate( tx *gorm.DB ) {
+  if role.AutoAssign {
+    role.addToAllUsers( tx )
+  } else {
+    role.removeFromAllUsers( tx )
+  }
 }
 
 func ( role *RoleModel) AfterCreate( tx *gorm.DB )  {
   if !role.AutoAssign {
     return
   }
+  role.addToAllUsers( tx )
+}
 
+func ( role *RoleModel) addToAllUsers( tx *gorm.DB ) {
   var allUsers []*UserModel
   tx.Find( &allUsers )
   for i:=0; i< len(allUsers); i++ {
     tx.Model(allUsers[i]).Association("Roles").Append( role )
   }
-
 }
+
+func ( role *RoleModel) removeFromAllUsers( tx *gorm.DB ) {
+  tx.Model(role).Association("Users" ).Clear()
+}
+
 
