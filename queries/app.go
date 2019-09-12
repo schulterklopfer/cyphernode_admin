@@ -3,6 +3,7 @@ package queries
 import (
   "errors"
   "github.com/go-validator/validator"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
@@ -43,4 +44,32 @@ func DeleteApp( id uint ) error {
   return nil
 }
 
+func RemoveRoleFromApp(  app *models.AppModel, roleId uint ) error {
+  db := dataSource.GetDB()
 
+  var role models.RoleModel
+
+  err := Get( &role, roleId, false )
+
+  if err != nil {
+    return err
+  }
+
+  if role.ID == 0 || role.AppId != app.ID {
+    return cnaErrors.ErrNoSuchRole
+  }
+
+  db.Model(app).Association("AvailableRoles").Delete( role )
+  return db.Error
+}
+
+func CreateRoleForApp( app *models.AppModel, role *models.RoleModel ) error {
+  db := dataSource.GetDB()
+
+  if role.ID != 0 {
+    return cnaErrors.ErrCannotAddExistingRole
+  }
+
+  db.Model(app).Association("AvailableRoles").Append( role )
+  return db.Error
+}

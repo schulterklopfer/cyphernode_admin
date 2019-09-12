@@ -1,5 +1,8 @@
 package handlers
 
+var ALLOWED_APP_PROPERTIES = [3]string{ "id", "name", "hash" }
+var ALLOWED_USER_PROPERTIES = [4]string{ "id", "name","login","email_address" }
+
 type PagingParams struct {
   Page uint `form:"_page"`
   Limit int `form:"_limit"`

@@ -1,51 +1,15 @@
 package handlers_test
 
 import (
-  "bytes"
-  "encoding/json"
-  "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
-  "github.com/schulterklopfer/cyphernode_admin/transforms"
-  "github.com/sirupsen/logrus"
-  "io/ioutil"
-  "math/rand"
-  "net/http"
-  "net/http/httptest"
-  "os"
-  "strconv"
-  "testing"
-  "time"
+	"bytes"
+	"encoding/json"
+	"github.com/schulterklopfer/cyphernode_admin/transforms"
+	"io/ioutil"
+	"net/http"
+	"testing"
 )
 
-var testServer *httptest.Server
-
-func TestUserHandlers( t *testing.T ) {
-  r := rand.New(rand.NewSource(time.Now().UnixNano()))
-  logwrapper.Logger().SetLevel( logrus.PanicLevel )
-
-  var config cyphernodeAdmin.Config
-  config.DatabaseFile = "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
-  config.InitialAdminEmailAddress = "email@email.com"
-  config.InitialAdminName = "admin"
-  config.InitialAdminLogin = "admin"
-  config.InitialAdminPassword = "test123"
-
-  cnAdmin := cyphernodeAdmin.NewCyphernodeAdmin( &config )
-  cnAdmin.Init()
-
-  testServer = httptest.NewServer( cnAdmin.Engine() )
-
-  var role models.RoleModel
-
-  role.Name = "testRole"
-  role.AutoAssign = false
-  role.AppId = 99999
-
-  _ = queries.CreateRole(&role)
-
+func testUserHandlers( t *testing.T ) {
   t.Run( "testGetUser", testGetUser )
   t.Run( "testCreateUser", testCreateUser )
   t.Run( "testUserAddRole", testUserAddRole )
@@ -53,10 +17,6 @@ func TestUserHandlers( t *testing.T ) {
   t.Run( "testPatchUser", testPatchUser )
   t.Run( "testFindUser", testFindUser )
   t.Run( "testDeleteUser", testDeleteUser )
-
-  testServer.Close()
-  dataSource.Close()
-  os.Remove(config.DatabaseFile)
 }
 
 func testGetUser(t *testing.T) {

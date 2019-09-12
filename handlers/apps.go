@@ -1,20 +1,20 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-validator/validator"
-	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-	"github.com/schulterklopfer/cyphernode_admin/helpers"
-	"github.com/schulterklopfer/cyphernode_admin/models"
-	"github.com/schulterklopfer/cyphernode_admin/queries"
-	"github.com/schulterklopfer/cyphernode_admin/shared"
-	"github.com/schulterklopfer/cyphernode_admin/transforms"
-	"net/http"
-	"strconv"
-	"strings"
+  "github.com/gin-gonic/gin"
+  "github.com/go-validator/validator"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/shared"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "net/http"
+  "strconv"
+  "strings"
 )
 
-func GetUser(c *gin.Context) {
+func GetApp(c *gin.Context) {
   // param 0 is first param in url pattern
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
@@ -22,29 +22,29 @@ func GetUser(c *gin.Context) {
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user.ID == 0 {
+  if app.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
 
-  var transformedUser transforms.UserV0
+  var transformedApp transforms.AppV0
 
-  if transforms.Transform( &user, &transformedUser ) {
-    c.JSON(http.StatusOK, transformedUser )
+  if transforms.Transform( &app, &transformedApp ) {
+    c.JSON(http.StatusOK, transformedApp )
     return
   }
 }
 
-func CreateUser(c *gin.Context) {
+func CreateApp(c *gin.Context) {
 
   input := new( map[string]interface{} )
   err := c.Bind( input )
@@ -54,12 +54,11 @@ func CreateUser(c *gin.Context) {
     return
   }
 
-  var user models.UserModel
-
-  shared.SetByJsonTag( &user, input )
+  var app models.AppModel
+  shared.SetByJsonTag( &app, input )
 
   // just to be sure
-  err = queries.Create(&user)
+  err = queries.Create(&app)
 
   if err != nil {
     switch err {
@@ -83,31 +82,29 @@ func CreateUser(c *gin.Context) {
     return
   }
 
-  queries.LoadRoles( &user )
-
-  var transformedUser transforms.UserV0
-  transforms.Transform( &user, &transformedUser )
-  c.JSON( http.StatusCreated, &transformedUser )
+  var transformedApp transforms.AppV0
+  transforms.Transform( &app, &transformedApp )
+  c.JSON( http.StatusCreated, &transformedApp )
 
 }
 
-func UpdateUser(c *gin.Context) {
+func UpdateApp(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user.ID == 0 {
+  if app.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
@@ -116,11 +113,11 @@ func UpdateUser(c *gin.Context) {
 
   err = c.Bind( &input )
 
-  var newUser models.UserModel
+  var newUser models.AppModel
 
   shared.SetByJsonTag( &newUser, input )
 
-  newUser.ID = user.ID
+  newUser.ID = app.ID
   err = queries.Update( &newUser )
 
   if err != nil {
@@ -147,29 +144,29 @@ func UpdateUser(c *gin.Context) {
 
   queries.LoadRoles( &newUser )
 
-  var transformedUser transforms.UserV0
-  transforms.Transform( &newUser, &transformedUser )
-  c.JSON( http.StatusOK, &transformedUser )
+  var transformedApp transforms.AppV0
+  transforms.Transform( &newUser, &transformedApp)
+  c.JSON( http.StatusOK, &transformedApp)
 
 }
 
-func PatchUser(c *gin.Context) {
+func PatchApp(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user.ID == 0 {
+  if app.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
@@ -178,9 +175,9 @@ func PatchUser(c *gin.Context) {
 
   err = c.Bind( &input )
 
-  shared.SetByJsonTag( &user, input )
+  shared.SetByJsonTag( &app, input )
 
-  err = queries.Update( &user )
+  err = queries.Update( &app )
 
   if err != nil {
     switch err {
@@ -204,35 +201,35 @@ func PatchUser(c *gin.Context) {
     return
   }
 
-  queries.LoadRoles( &user )
+  queries.LoadRoles( &app )
 
-  var transformedUser transforms.UserV0
-  transforms.Transform( &user, &transformedUser )
-  c.JSON( http.StatusOK, &transformedUser )
+  var transformedApp transforms.AppV0
+  transforms.Transform( &app, &transformedApp)
+  c.JSON( http.StatusOK, &transformedApp)
 }
 
-func DeleteUser(c *gin.Context) {
+func DeleteApp(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user.ID == 0 {
+  if app.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
 
-  err = queries.DeleteUser( user.ID )
+  err = queries.DeleteApp( app.ID )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -243,8 +240,8 @@ func DeleteUser(c *gin.Context) {
 
 }
 
-func FindUsers(c *gin.Context) {
-  var userQuery transforms.UserV0
+func FindApps(c *gin.Context) {
+  var appQuery transforms.UserV0
   var paging PagingParams
 
   where := make( []interface{}, 0 )
@@ -252,22 +249,22 @@ func FindUsers(c *gin.Context) {
   offset := uint(0)
   limit := -1
 
-  if c.Bind(&userQuery) == nil {
+  if c.Bind(&appQuery) == nil {
     fields := make( []string, 0 )
     args := make( []interface{}, 0 )
-    if userQuery.Name != "" {
+    if appQuery.Name != "" {
       fields = append( fields, "name LIKE ?" )
-      args = append( args, userQuery.Name+"%" )
+      args = append( args, appQuery.Name+"%" )
     }
 
-    if userQuery.Login != "" {
+    if appQuery.Login != "" {
       fields = append( fields, "login LIKE ?" )
-      args = append( args, userQuery.Login+"%" )
+      args = append( args, appQuery.Login+"%" )
     }
 
-    if userQuery.EmailAddress != "" {
+    if appQuery.EmailAddress != "" {
       fields = append( fields, "email_address LIKE ?" )
-      args = append( args, userQuery.EmailAddress+"%" )
+      args = append( args, appQuery.EmailAddress+"%" )
     }
 
     if len(fields) > 0 {
@@ -292,11 +289,11 @@ func FindUsers(c *gin.Context) {
       paging.Limit = 20
     }
 
-    // is Sort empty or not in ALLOWED_USER_PROPERTIES?
-    if helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool {
-          return ALLOWED_USER_PROPERTIES[i] == paging.Sort
+    // is Sort empty or not in ALLOWED_APP_PROPERTIES?
+    if helpers.SliceIndex( len(ALLOWED_APP_PROPERTIES), func(i int) bool {
+          return ALLOWED_APP_PROPERTIES[i] == paging.Sort
        } ) == -1 {
-      order = "login"
+      order = "name"
     } else {
       order = paging.Sort
     }
@@ -308,8 +305,8 @@ func FindUsers(c *gin.Context) {
     }
   }
 
-  // makes no sense to request 0 users
-  // we assume user wants no limit
+  // makes no sense to request 0 apps
+  // we assume app wants no limit
   if paging.Limit > 0 {
     limit = paging.Limit
   }
@@ -318,21 +315,21 @@ func FindUsers(c *gin.Context) {
     offset = (paging.Page-1)*uint(limit)
   }
 
-  var users []*models.UserModel
+  var apps []*models.AppModel
 
-  err := queries.Find( &users, where, order, limit, offset, true )
+  err := queries.Find( &apps, where, order, limit, offset, true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  userCount := len(users)
-  transformedUsers := make( []*transforms.UserV0, userCount )
+  appCount := len(apps)
+  transformedApps := make( []*transforms.AppV0, appCount )
 
-  for i:=0; i<userCount; i++ {
-    transformedUsers[i] = new( transforms.UserV0 )
-    transforms.Transform( users[i], transformedUsers[i] )
+  for i:=0; i<appCount; i++ {
+    transformedApps[i] = new( transforms.AppV0 )
+    transforms.Transform( apps[i], transformedApps[i] )
   }
 
   pagedResult := new( PagedResult )
@@ -341,9 +338,9 @@ func FindUsers(c *gin.Context) {
   pagedResult.Limit = paging.Limit
   pagedResult.Sort = paging.Sort
   pagedResult.Order = paging.Order
-  pagedResult.Data = transformedUsers
+  pagedResult.Data = transformedApps
 
-  _ = queries.TotalCount( &models.UserModel{}, &pagedResult.Total )
+  _ = queries.TotalCount( &models.AppModel{}, &pagedResult.Total )
 
   c.JSON(http.StatusOK, pagedResult)
 
@@ -351,23 +348,23 @@ func FindUsers(c *gin.Context) {
 
 // Roles
 
-func UserAddRoles(c *gin.Context) {
+func AppAddRoles(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  if user.ID == 0 {
+  if app.ID == 0 {
     c.Status(http.StatusNotFound )
     return
   }
@@ -382,14 +379,14 @@ func UserAddRoles(c *gin.Context) {
   }
 
   for i:=0; i<len( roleInputs ); i++ {
-    err = queries.AddRoleToUser( &user, uint( roleInputs[i].ID ) )
+		roleInputs[i].AppId = app.ID
+
+		err = queries.CreateRoleForApp( &app, &roleInputs[i] )
+
     if err != nil {
       switch err {
-      case cnaErrors.ErrNoSuchRole:
-        c.Header("X-Status-Reason", "Role does not exist" )
-        c.Status(http.StatusBadRequest)
-      case cnaErrors.ErrUserAlreadyHasRole:
-        c.Header("X-Status-Reason", "Trying to add role twice" )
+      case cnaErrors.ErrCannotAddExistingRole:
+        c.Header("X-Status-Reason", "Trying to add an existing role" )
         c.Status(http.StatusBadRequest)
       default:
         c.Status(http.StatusInternalServerError)
@@ -398,16 +395,16 @@ func UserAddRoles(c *gin.Context) {
     }
   }
 
-  var transformedUser transforms.UserV0
+  var transformedApp transforms.AppV0
 
-  if transforms.Transform( &user, &transformedUser ) {
-    c.JSON(http.StatusOK, transformedUser )
+  if transforms.Transform( &app, &transformedApp ) {
+    c.JSON(http.StatusOK, transformedApp )
   } else {
     c.Status(http.StatusInternalServerError)
   }
 }
 
-func UserRemoveRole(c *gin.Context) {
+func AppRemoveRole(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
@@ -419,29 +416,35 @@ func UserRemoveRole(c *gin.Context) {
     return
   }
 
-  var user models.UserModel
+  var app models.AppModel
 
-  err = queries.Get( &user, uint(id), true )
+  err = queries.Get( &app, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
     return
   }
 
-  for i:=0; i<len( user.Roles ); i++ {
-    if user.Roles[i].ID == uint(roleId) {
+  for i:=0; i<len( app.AvailableRoles ); i++ {
+    if app.AvailableRoles[i].ID == uint(roleId) {
       // found role
       // TODO: remove
-      err := queries.RemoveRoleFromUser( &user, uint(roleId) )
+      err := queries.RemoveRoleFromApp( &app, uint(roleId) )
       if err != nil {
-        c.Status(http.StatusInternalServerError)
-        return
+				switch err {
+				case cnaErrors.ErrNoSuchRole:
+					c.Header("X-Status-Reason", "App does not have that role" )
+					c.Status(http.StatusBadRequest)
+				default:
+					c.Status(http.StatusInternalServerError)
+				}
+				return
       }
       c.Status(http.StatusNoContent)
       return
     }
   }
-  c.Header("X-Status-Reason", "User does not have that role" )
+  c.Header("X-Status-Reason", "App does not have that role" )
   c.Status(http.StatusBadRequest)
   return
 }

@@ -13,5 +13,11 @@ type AppModel struct {
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {
-  tx.Model(app).Association("AvailableRoles" ).Delete()
+	var roles []RoleModel
+	tx.Model(app).Association("AvailableRoles" ).Find(&roles)
+	for i:=0; i< len(roles); i++ {
+		tx.Delete( roles[i] )
+		// Why do I have to call this manually?
+		roles[i].AfterDelete( tx )
+	}
 }

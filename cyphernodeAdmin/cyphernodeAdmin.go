@@ -8,6 +8,13 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/password"
 )
 
+const ADMIN_APP_NAME string = "Cyphernode admin cyphernodeAdmin"
+const ADMIN_APP_DESCRIPTION string = "Manage your cyphernode"
+const ADMIN_APP_HASH string = "00000000000000000000000000000000"
+
+const ADMIN_APP_ADMIN_ROLE_NAME string = "admin"
+const ADMIN_APP_ADMIN_ROLE_DESCRIPTION string = "Main admin with god mode"
+
 type Config struct {
   DatabaseFile string
   InitialAdminLogin string
@@ -44,15 +51,19 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
 
     cyphernodeAdmin.routerGroups["users"].POST("/:id/roles", handlers.UserAddRoles )
     cyphernodeAdmin.routerGroups["users"].DELETE("/:id/roles/:roleId", handlers.UserRemoveRole )
-
-
-    /*v1.POST("/", createTodo)
-      v1.GET("/", fetchAllTodo)
-      v1.GET("/:id", fetchSingleTodo)
-      v1.PUT("/:id", updateTodo)
-      v1.DELETE("/:id", deleteTodo)
-    */
   }
+	cyphernodeAdmin.routerGroups["apps"] = cyphernodeAdmin.engine.Group("/api/v0/apps")
+	{
+		cyphernodeAdmin.routerGroups["apps"].GET("/", handlers.FindApps)
+		cyphernodeAdmin.routerGroups["apps"].POST("/", handlers.CreateApp)
+		cyphernodeAdmin.routerGroups["apps"].GET("/:id", handlers.GetApp)
+		cyphernodeAdmin.routerGroups["apps"].PUT("/:id", handlers.UpdateApp )
+		cyphernodeAdmin.routerGroups["apps"].PATCH("/:id", handlers.PatchApp )
+		cyphernodeAdmin.routerGroups["apps"].DELETE("/:id", handlers.DeleteApp )
+
+		cyphernodeAdmin.routerGroups["apps"].POST("/:id/roles", handlers.AppAddRoles )
+		cyphernodeAdmin.routerGroups["apps"].DELETE("/:id/roles/:roleId", handlers.AppRemoveRole )
+	}
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initContent() error {
@@ -79,8 +90,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) initContent() error {
   }
 
   adminRole.ID = 1
-  adminRole.Name = "admin"
-  adminRole.Description = "Main admin with god mode"
+  adminRole.Name = ADMIN_APP_ADMIN_ROLE_NAME
+  adminRole.Description = ADMIN_APP_ADMIN_ROLE_DESCRIPTION
   adminRole.AutoAssign = false
   adminRole.AppId = 1
 
@@ -88,9 +99,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) initContent() error {
   roles[0]= adminRole
 
   adminApp.ID = 1
-  adminApp.Name = "Cyphernode admin cyphernodeAdmin"
-  adminApp.Description = "Manage your cyphernode"
-  adminApp.Hash = "adminapphash" // change me
+  adminApp.Name = ADMIN_APP_NAME
+  adminApp.Description = ADMIN_APP_DESCRIPTION
+  adminApp.Hash = ADMIN_APP_HASH
   adminApp.AvailableRoles = roles
 
   adminUser.ID = 1

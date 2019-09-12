@@ -3,8 +3,8 @@ package transforms
 type (
   AppV0 struct {
     ID uint   `json:"id" form:"id"`
-    Hash string `json:"hash" form:"hash"`
-    Name string `json:"name" form:"name"`
+    Hash string `json:"hash" form:"hash_like"`
+    Name string `json:"name" form:"name_like"`
     Description string `json:"description" form:"description"`
     AvailableRoles []*RoleV0 `json:"availableRoles" form:"availableRoles"`
   }
