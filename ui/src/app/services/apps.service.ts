@@ -46,7 +46,9 @@ export class AppsService {
       },
     ];
     this.dataSource = new ServerDataSource( http, {
-      endPoint: 'assets/apps.json',
+      endPoint: 'http://localhost:8080/api/v0/apps',
+      totalKey: 'total',
+      dataKey: 'data',
     });
   }
 

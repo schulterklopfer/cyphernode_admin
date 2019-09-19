@@ -36,7 +36,7 @@ export class ApplistComponent implements OnInit {
         title: 'Description',
         type: 'string',
       },
-      roles: {
+      availableRoles: {
         title: 'Available roles',
         type: 'custom',
         renderComponent: RolesRendererComponent,

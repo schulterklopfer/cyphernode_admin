@@ -8,7 +8,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/password"
 )
 
-const ADMIN_APP_NAME string = "Cyphernode admin cyphernodeAdmin"
+const ADMIN_APP_NAME string = "Cyphernode Admin"
 const ADMIN_APP_DESCRIPTION string = "Manage your cyphernode"
 const ADMIN_APP_HASH string = "00000000000000000000000000000000"
 
