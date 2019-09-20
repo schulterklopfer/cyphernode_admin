@@ -1,11 +1,11 @@
 package cyphernodeAdmin
 
 import (
-  "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/handlers"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/password"
+	"github.com/gin-gonic/gin"
+	"github.com/schulterklopfer/cyphernode_admin/dataSource"
+	"github.com/schulterklopfer/cyphernode_admin/handlers"
+	"github.com/schulterklopfer/cyphernode_admin/models"
+	"github.com/schulterklopfer/cyphernode_admin/password"
 )
 
 const ADMIN_APP_NAME string = "Cyphernode Admin"
@@ -40,6 +40,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
   cyphernodeAdmin.migrate()
   cyphernodeAdmin.engine = gin.Default()
+  cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")
   cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")
   {
     cyphernodeAdmin.routerGroups["users"].GET("/", handlers.FindUsers)
@@ -64,9 +65,13 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
 	}
 	cyphernodeAdmin.routerGroups["hydra"] = cyphernodeAdmin.engine.Group("/hydra")
 	{
+		// TODO: csrf protection
 		cyphernodeAdmin.routerGroups["hydra"].GET("/consent", handlers.GetHydraConsent )
 		cyphernodeAdmin.routerGroups["hydra"].GET("/login", handlers.GetHydraLogin )
 		cyphernodeAdmin.routerGroups["hydra"].GET("/logout", handlers.GetHydraLogout )
+		cyphernodeAdmin.routerGroups["hydra"].POST("/consent", handlers.PostHydraConsent )
+		cyphernodeAdmin.routerGroups["hydra"].POST("/login", handlers.PostHydraLogin )
+		cyphernodeAdmin.routerGroups["hydra"].POST("/logout", handlers.PostHydraLogout )
 	}
 }
 

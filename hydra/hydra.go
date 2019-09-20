@@ -1,10 +1,10 @@
 package hydra
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
 	"github.com/schulterklopfer/cyphernode_admin/globals"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -32,7 +32,39 @@ func absoluteURL( path string ) (*url.URL, error) {
 	return u, nil
 }
 
-func requestFromBackend( client *http.Client, method string, flowAndAction string, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+type Client struct {
+	PolicyUri string `json:"policy_uri"`
+	TosUri string `json:"tos_uri"`
+	LogoUri string `json:"logo_uri"`
+	ClientName string `json:"client_name"`
+	ClientId string `json:"client_id"`
+}
+
+type Response struct {
+	Skip bool `json:"skip"`
+	RequestedScope []string `json:"requested_scope"`
+	RequestedAccessTokenAudience []string `json:"requested_access_token_audience"`
+	RedirectTo string `json:"redirect_to"`
+	Subject string `json:"subject"`
+	Client Client `json:"client"`
+}
+
+type Session struct {
+}
+
+type RequestBody struct {
+	Subject string `json:"subject"`
+	GrantScope []string `json:"grant_scope"`
+	GrantAccessTokenAudience []string `json:"grant_access_token_audience"`
+	Session *Session `json:"session"`
+	Error string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+	Remember bool `json:"remember"`
+	RememberFor uint `json:"remember_for"`
+	Acr uint `json:"acr"`
+}
+
+func requestFromBackend( client *http.Client, method string, flowAndAction string, challenge string, body *RequestBody ) (*Response, error) {
 
 	u, err := absoluteURL( globals.HYDRA_FLOW_BASE_PATH + flowAndAction)
 	if err != nil {
@@ -41,7 +73,13 @@ func requestFromBackend( client *http.Client, method string, flowAndAction strin
 
 	u.RawQuery = flowAndAction +"_challenge="+challenge
 	urlString := u.String()
-	req, err := http.NewRequest( method, urlString, body )
+	outBytes, err := json.Marshal( body )
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest( method, urlString, bytes.NewReader(outBytes) )
 
 	if err != nil {
 		return nil, err
@@ -64,52 +102,52 @@ func requestFromBackend( client *http.Client, method string, flowAndAction strin
 		return nil, err
 	}
 
-	var resMap map[string]interface{}
-	err = json.Unmarshal(resBody, &resMap)
+	var response Response
+	err = json.Unmarshal(resBody, &response)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode < 200 || res.StatusCode > 302 {
-		return &resMap, cnaErrors.ErrUnexpectedHydraResponse
+		return &response, cnaErrors.ErrUnexpectedHydraResponse
 	}
 
-	return &resMap, nil
+	return &response, nil
 }
 
-func GetLoginRequest( client *http.Client, challenge string ) (*map[string]interface{}, error) {
+func GetLoginRequest( client *http.Client, challenge string ) (*Response, error) {
 	return requestFromBackend( client, "GET", "login", challenge, nil )
 }
 
-func AcceptLoginRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func AcceptLoginRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "login/accept", challenge, body )
 }
 
-func RejectLoginRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func RejectLoginRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "login/reject", challenge, body )
 }
 
-func GetConsentRequest( client *http.Client, challenge string ) (*map[string]interface{}, error) {
+func GetConsentRequest( client *http.Client, challenge string ) (*Response, error) {
 	return requestFromBackend( client, "GET", "consent", challenge, nil )
 }
 
-func AcceptConsentRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func AcceptConsentRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "consent/accept", challenge, body )
 }
 
-func RejectConsentRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func RejectConsentRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "consent/reject", challenge, body )
 }
 
-func GetLogoutRequest( client *http.Client, challenge string ) (*map[string]interface{}, error) {
+func GetLogoutRequest( client *http.Client, challenge string ) (*Response, error) {
 	return requestFromBackend( client, "GET", "logout", challenge, nil )
 }
 
-func AcceptLogoutRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func AcceptLogoutRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "logout/accept", challenge, body )
 }
 
-func RejectLogoutRequest( client *http.Client, challenge string, body io.Reader ) (*map[string]interface{}, error) {
+func RejectLogoutRequest( client *http.Client, challenge string, body *RequestBody ) (*Response, error) {
 	return requestFromBackend( client, "PUT", "logout/reject", challenge, body )
 }
