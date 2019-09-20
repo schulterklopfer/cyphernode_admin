@@ -36,9 +36,9 @@ func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() {
+	dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
-  dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
-  cyphernodeAdmin.initContent()
+  cyphernodeAdmin.migrate()
   cyphernodeAdmin.engine = gin.Default()
   cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")
   {
@@ -48,7 +48,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
     cyphernodeAdmin.routerGroups["users"].PUT("/:id", handlers.UpdateUser )
     cyphernodeAdmin.routerGroups["users"].PATCH("/:id", handlers.PatchUser )
     cyphernodeAdmin.routerGroups["users"].DELETE("/:id", handlers.DeleteUser )
-
     cyphernodeAdmin.routerGroups["users"].POST("/:id/roles", handlers.UserAddRoles )
     cyphernodeAdmin.routerGroups["users"].DELETE("/:id/roles/:roleId", handlers.UserRemoveRole )
   }
@@ -60,13 +59,18 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() {
 		cyphernodeAdmin.routerGroups["apps"].PUT("/:id", handlers.UpdateApp )
 		cyphernodeAdmin.routerGroups["apps"].PATCH("/:id", handlers.PatchApp )
 		cyphernodeAdmin.routerGroups["apps"].DELETE("/:id", handlers.DeleteApp )
-
 		cyphernodeAdmin.routerGroups["apps"].POST("/:id/roles", handlers.AppAddRoles )
 		cyphernodeAdmin.routerGroups["apps"].DELETE("/:id/roles/:roleId", handlers.AppRemoveRole )
 	}
+	cyphernodeAdmin.routerGroups["hydra"] = cyphernodeAdmin.engine.Group("/hydra")
+	{
+		cyphernodeAdmin.routerGroups["hydra"].GET("/consent", handlers.GetHydraConsent )
+		cyphernodeAdmin.routerGroups["hydra"].GET("/login", handlers.GetHydraLogin )
+		cyphernodeAdmin.routerGroups["hydra"].GET("/logout", handlers.GetHydraLogout )
+	}
 }
 
-func (cyphernodeAdmin *CyphernodeAdmin) initContent() error {
+func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   // Create adminUser id=1, cyphernodeAdmin id=1, adminRole id=1
   adminRole := new(models.RoleModel)
