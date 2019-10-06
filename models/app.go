@@ -10,6 +10,7 @@ type AppModel struct {
   Name string `json:"name" gorm:"type:varchar(30);not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\- ]+$"`
   Description string `json:"description" gorm:"type:varchar(255)"`
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
+	HydraClientID uint `json:"-" gorm:"DEFAULT:0" form:"-" validate:"-"`
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {

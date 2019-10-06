@@ -16,8 +16,9 @@ func GetHydraLogin( c *gin.Context ) {
 
 	getLoginResponse, err := hydra.GetLoginRequest( http.DefaultClient, challenge )
 
-	if err == nil {
+	if err != nil {
 		// err ... bad
+		println( err )
 		return
 	}
 
@@ -25,14 +26,15 @@ func GetHydraLogin( c *gin.Context ) {
 		// You can apply logic here, for example grant another scope, or do whatever...
 		// ...
 
-		// Now it's time to grant the consent request. You could also deny the request if something went terribly wrong
+		// Now it's time to grant the login request. You could also deny the request if something went terribly wrong
 		requestBody := new( hydra.RequestBody )
 		requestBody.Subject = getLoginResponse.Subject
 
-		acceptLoginResponse, err := hydra.AcceptConsentRequest( http.DefaultClient, challenge, requestBody )
+		acceptLoginResponse, err := hydra.AcceptLoginRequest( http.DefaultClient, challenge, requestBody )
 
 		if err != nil {
 			// something is wrong
+			println( err )
 			return
 		}
 
@@ -42,7 +44,7 @@ func GetHydraLogin( c *gin.Context ) {
 		// If consent can't be skipped we MUST show the consent UI.
 		// TODO: render login UI here
 		c.HTML(http.StatusOK, "hydra/login", gin.H{
-			"title": "consent",
+			"title": "login",
 			"csrfToken": "",
 			"challenge": challenge,
 		})
@@ -60,15 +62,16 @@ func PostHydraLogin( c *gin.Context ) {
 	email, _ := c.GetPostForm( "email" )
 	password, _ := c.GetPostForm( "password" )
 	rememberValue, _ := c.GetPostForm("remember" )
-	remember := rememberValue == "true"
+	remember := rememberValue == "1"
 
-	if email != "foo@bar.com" || password != "foo" {
+	if email != "foo@bar.com" || password != "foobar" {
 		// stuff is wrong
 		// show login ui again
 		c.HTML(http.StatusOK, "hydra/login", gin.H{
-			"title": "consent",
+			"title": "login",
 			"csrfToken": "",
 			"challenge": challenge,
+			"error": "user or password wrong",
 		})
 		return
 	}
@@ -90,10 +93,11 @@ func PostHydraLogin( c *gin.Context ) {
 	requestBody.Acr = 0
 
 	// Seems like the user authenticated! Let's tell hydra...
-	acceptLoginResponse, err := hydra.AcceptConsentRequest( http.DefaultClient, challenge, requestBody )
+	acceptLoginResponse, err := hydra.AcceptLoginRequest( http.DefaultClient, challenge, requestBody )
 
 	if err != nil {
 		// something is wrong
+		println( err )
 		return
 	}
 

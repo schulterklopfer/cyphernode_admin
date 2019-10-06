@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/schulterklopfer/cyphernode_admin/globals"
+	"github.com/schulterklopfer/cyphernode_admin/helpers"
 	"github.com/schulterklopfer/cyphernode_admin/hydra"
 	"net/http"
 )
@@ -16,8 +18,9 @@ func GetHydraConsent( c *gin.Context ) {
 
 	getConsentResponse, err := hydra.GetConsentRequest( http.DefaultClient, challenge )
 
-	if err == nil {
+	if err != nil {
 		// err ... bad
+		println( err )
 		return
 	}
 
@@ -31,6 +34,18 @@ func GetHydraConsent( c *gin.Context ) {
 		// We can grant all scopes that have been requested - hydra already checked for us that no additional scopes
 		// are requested accidentally.
 		requestBody.GrantScope = getConsentResponse.RequestedScope
+
+		// Grant the roles scope to every client, so they can get the users roles over the backchannel
+		// ... is roles scope already in requestBody.GrantScope
+		// the client app will be able to request /api/v0/roles. This endpoint will only return
+		// data if a valid appHash is provided in the querystring. Returned information
+		// is strictly limited to the app requesting the roles. You only receive your roles in the
+		// requesting app
+		if helpers.SliceIndex( len(requestBody.GrantScope), func(i int) bool {
+			return requestBody.GrantScope[i] == globals.HYDRA_ROLES_SCOPE
+		} ) == -1 {
+			requestBody.GrantScope = append(requestBody.GrantScope, globals.HYDRA_ROLES_SCOPE )
+		}
 
 		// ORY Hydra checks if requested audiences are allowed by the client, so we can simply echo this.
 		requestBody.GrantAccessTokenAudience = getConsentResponse.RequestedAccessTokenAudience
@@ -47,6 +62,7 @@ func GetHydraConsent( c *gin.Context ) {
 
 		if err != nil {
 			// something is wrong
+			println( err )
 			return
 		}
 
@@ -88,6 +104,7 @@ func PostHydraConsent( c *gin.Context ) {
 
 		if err != nil {
 			// something is wrong
+			println( err )
 			return
 		}
 
@@ -96,13 +113,14 @@ func PostHydraConsent( c *gin.Context ) {
 	} else {
 		grantScope, _ := c.GetPostFormArray("grant_scope" )
 		rememberValue, _ := c.GetPostForm("remember" )
-		remember := rememberValue == "true"
+		remember := rememberValue == "1"
 
 		// Seems like the user authenticated! Let's tell hydra...
 		getConsentResponse, err := hydra.GetConsentRequest( http.DefaultClient, challenge )
 
 		if err != nil {
 			// something is wrong
+			println( err )
 			return
 		}
 
@@ -115,6 +133,18 @@ func PostHydraConsent( c *gin.Context ) {
 		// We can grant all scopes that have been requested - hydra already checked for us that no additional scopes
 		// are requested accidentally.
 		requestBody.GrantScope = grantScope
+
+		// Grant the roles scope to every client, so they can get the users roles over the backchannel
+		// ... is roles scope already in requestBody.GrantScope
+		// the client app will be able to request /api/v0/roles. This endpoint will only return
+		// data if a valid appHash is provided in the querystring. Returned information
+		// is strictly limited to the app requesting the roles. You only receive your roles in the
+		// requesting app
+		if helpers.SliceIndex( len(requestBody.GrantScope), func(i int) bool {
+			return requestBody.GrantScope[i] == globals.HYDRA_ROLES_SCOPE
+		} ) == -1 {
+			requestBody.GrantScope = append(requestBody.GrantScope, globals.HYDRA_ROLES_SCOPE )
+		}
 
 		// ORY Hydra checks if requested audiences are allowed by the client, so we can simply echo this.
 		requestBody.GrantAccessTokenAudience = getConsentResponse.RequestedAccessTokenAudience
@@ -138,6 +168,7 @@ func PostHydraConsent( c *gin.Context ) {
 
 		if err != nil {
 			// something is wrong
+			println( err )
 			return
 		}
 

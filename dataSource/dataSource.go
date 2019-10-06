@@ -41,5 +41,5 @@ func AutoMigrate() {
     return
   }
   logwrapper.Logger().Info( "Migrating database")
-  db.AutoMigrate(&models.UserModel{},&models.AppModel{},&models.RoleModel{})
+  db.AutoMigrate(&models.UserModel{},&models.AppModel{},&models.RoleModel{},&models.HydraClientModel{})
 }
