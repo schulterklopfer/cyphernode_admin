@@ -13,7 +13,8 @@ func GetHydraLogin( c *gin.Context ) {
 	challenge, _ := c.GetQuery( "login_challenge" )
 
 	if challenge == "" {
-		// no challenge ... bad
+		c.Header("X-Status-Reason","no challenge" )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 	getLoginRequestParams := hydraAdmin.NewGetLoginRequestParams()
@@ -22,8 +23,8 @@ func GetHydraLogin( c *gin.Context ) {
 	getLoginResponse, err := hydraAPI.GetBackendClient().Admin.GetLoginRequest(getLoginRequestParams)
 
 	if err != nil {
-		// err ... bad
-		println( err )
+		c.Header("X-Status-Reason", err.Error() )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 
@@ -41,8 +42,8 @@ func GetHydraLogin( c *gin.Context ) {
 		acceptLoginResponse, err := hydraAPI.GetBackendClient().Admin.AcceptLoginRequest(acceptLoginRequestParams)
 
 		if err != nil {
-			// something is wrong
-			println( err )
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusBadRequest )
 			return
 		}
 
@@ -63,7 +64,8 @@ func PostHydraLogin( c *gin.Context ) {
 	challenge, _ := c.GetPostForm( "challenge" )
 
 	if challenge == "" {
-		// no challenge ... bad
+		c.Header("X-Status-Reason","no challenge" )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 
@@ -109,8 +111,8 @@ func PostHydraLogin( c *gin.Context ) {
 	acceptLoginResponse, err := hydraAPI.GetBackendClient().Admin.AcceptLoginRequest(acceptLoginRequestParams)
 
 	if err != nil {
-		// something is wrong
-		println( err )
+		c.Header("X-Status-Reason", err.Error() )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 

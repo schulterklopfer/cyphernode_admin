@@ -15,7 +15,8 @@ func GetHydraConsent( c *gin.Context ) {
 	challenge, _ := c.GetQuery( "consent_challenge" )
 
 	if challenge == "" {
-		// no challenge ... bad
+		c.Header("X-Status-Reason","no challenge" )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 
@@ -24,8 +25,8 @@ func GetHydraConsent( c *gin.Context ) {
 	getConsentResponse, err := hydraAPI.GetBackendClient().Admin.GetConsentRequest(consentRequestParams)
 
 	if err != nil {
-		// err ... bad
-		println( err )
+		c.Header("X-Status-Reason", err.Error() )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 
@@ -74,8 +75,8 @@ func GetHydraConsent( c *gin.Context ) {
 		acceptConsentResponse, err := hydraAPI.GetBackendClient().Admin.AcceptConsentRequest(acceptConsentRequestParams)
 
 		if err != nil {
-			// something is wrong
-			println( err )
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusBadRequest )
 			return
 		}
 
@@ -102,7 +103,8 @@ func PostHydraConsent( c *gin.Context ) {
 	challenge, _ := c.GetPostForm( "challenge" )
 
 	if challenge == "" {
-		// no challenge ... bad
+		c.Header("X-Status-Reason","no challenge" )
+		c.Status(http.StatusBadRequest )
 		return
 	}
 
@@ -121,8 +123,8 @@ func PostHydraConsent( c *gin.Context ) {
 		rejectConsentResponse, err := hydraAPI.GetBackendClient().Admin.RejectConsentRequest(rejectConsentRequestParams)
 
 		if err != nil {
-			// something is wrong
-			println( err )
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusBadRequest )
 			return
 		}
 
@@ -139,8 +141,8 @@ func PostHydraConsent( c *gin.Context ) {
 		getConsentResponse, err := hydraAPI.GetBackendClient().Admin.GetConsentRequest(getConsentRequestParams)
 
 		if err != nil {
-			// something is wrong
-			println( err )
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusBadRequest )
 			return
 		}
 
@@ -193,8 +195,8 @@ func PostHydraConsent( c *gin.Context ) {
 		acceptConsentResponse, err := hydraAPI.GetBackendClient().Admin.AcceptConsentRequest(acceptConsentRequestParams)
 
 		if err != nil {
-			// something is wrong
-			println( err )
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusBadRequest )
 			return
 		}
 
