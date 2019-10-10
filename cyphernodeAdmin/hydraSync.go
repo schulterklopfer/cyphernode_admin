@@ -1,11 +1,12 @@
 package cyphernodeAdmin
 
 import (
+	hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
+	hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
 	"github.com/schulterklopfer/cyphernode_admin/dataSource"
-	"github.com/schulterklopfer/cyphernode_admin/hydra"
+	"github.com/schulterklopfer/cyphernode_admin/hydraAPI"
 	"github.com/schulterklopfer/cyphernode_admin/models"
 	"github.com/schulterklopfer/cyphernode_admin/queries"
-	"net/http"
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) checkHydraClients() {
@@ -14,7 +15,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) checkHydraClients() {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) syncHydraClients() {
-	oauthClients, err := hydra.GetClients( http.DefaultClient )
+	params := hydraAdmin.NewListOAuth2ClientsParams()
+	result, err := hydraAPI.GetBackendClient().Admin.ListOAuth2Clients(params)
+
+	oauthClients := result.GetPayload()
 
 	if err != nil {
 		return
@@ -44,7 +48,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) syncHydraClients() {
 		if !found {
 			// delete from hydra
 			// TODO: HANDLE ERROR ?
-			_ = hydra.DeleteClient( http.DefaultClient, oauthClient.ClientID )
+			params := hydraAdmin.NewDeleteOAuth2ClientParams()
+			params.ID = oauthClient.ClientID
+			_, _ = hydraAPI.GetBackendClient().Admin.DeleteOAuth2Client(params)
 		}
 	}
 
@@ -65,13 +71,15 @@ func (cyphernodeAdmin *CyphernodeAdmin) syncHydraClients() {
 		if !found {
 			// create client
 			// TODO: HANDLE ERROR ?
-			var oauthClient hydra.Client
-			oauthClient.ClientSecret = hydraClient.Secret
+			params := hydraAdmin.NewCreateOAuth2ClientParams()
+			var oauthClient hydraModels.Client
+			oauthClient.Secret = hydraClient.Secret
 
-			err = hydra.CreateClient( http.DefaultClient, &oauthClient )
+			params.Body = &oauthClient
+			result, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
 
 			if err == nil {
-				hydraClient.ClientID = oauthClient.ClientID
+				hydraClient.ClientID = result.Payload.ClientID
 				db.Save( hydraClient )
 			}
 		}
@@ -91,15 +99,17 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
 	db := dataSource.GetDB()
 	for i:=0; i<len(apps); i++ {
 		var hydraClient models.HydraClientModel
-		var oauthClient hydra.Client
+		var oauthClient hydraModels.Client
+		params := hydraAdmin.NewCreateOAuth2ClientParams()
+		oauthClient.Secret = apps[i].Hash
 
-		oauthClient.ClientSecret = apps[i].Hash
+		params.Body = &oauthClient
+		_, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
 
-		err := hydra.CreateClient( http.DefaultClient, &oauthClient )
 		if err == nil {
 			hydraClient.AppID = apps[i].ID
 			hydraClient.ClientID = oauthClient.ClientID
-			hydraClient.Secret = oauthClient.ClientSecret
+			hydraClient.Secret = apps[i].Hash
 			tx := db.Begin()
 			tx.Save( &hydraClient )
 			apps[i].HydraClientID = hydraClient.ID

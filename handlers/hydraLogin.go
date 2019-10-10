@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/schulterklopfer/cyphernode_admin/hydra"
+	hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
+	hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
+	"github.com/schulterklopfer/cyphernode_admin/authentication"
+	"github.com/schulterklopfer/cyphernode_admin/hydraAPI"
 	"net/http"
 )
 
@@ -13,8 +16,10 @@ func GetHydraLogin( c *gin.Context ) {
 		// no challenge ... bad
 		return
 	}
+	getLoginRequestParams := hydraAdmin.NewGetLoginRequestParams()
+	getLoginRequestParams.LoginChallenge = challenge
 
-	getLoginResponse, err := hydra.GetLoginRequest( http.DefaultClient, challenge )
+	getLoginResponse, err := hydraAPI.GetBackendClient().Admin.GetLoginRequest(getLoginRequestParams)
 
 	if err != nil {
 		// err ... bad
@@ -22,15 +27,18 @@ func GetHydraLogin( c *gin.Context ) {
 		return
 	}
 
-	if getLoginResponse.Skip {
+	if getLoginResponse.GetPayload().Skip {
 		// You can apply logic here, for example grant another scope, or do whatever...
 		// ...
 
 		// Now it's time to grant the login request. You could also deny the request if something went terribly wrong
-		requestBody := new( hydra.RequestBody )
-		requestBody.Subject = getLoginResponse.Subject
+		acceptLoginRequestParams := hydraAdmin.NewAcceptLoginRequestParams()
+		var handledLoginRequest hydraModels.HandledLoginRequest
+		acceptLoginRequestParams.LoginChallenge = challenge
+		acceptLoginRequestParams.Body = &handledLoginRequest
+		acceptLoginRequestParams.Body.Subject = &getLoginResponse.GetPayload().Subject
 
-		acceptLoginResponse, err := hydra.AcceptLoginRequest( http.DefaultClient, challenge, requestBody )
+		acceptLoginResponse, err := hydraAPI.GetBackendClient().Admin.AcceptLoginRequest(acceptLoginRequestParams)
 
 		if err != nil {
 			// something is wrong
@@ -39,7 +47,7 @@ func GetHydraLogin( c *gin.Context ) {
 		}
 
 		// All we need to do now is to redirect the user back to hydra!
-		c.Redirect(http.StatusTemporaryRedirect, acceptLoginResponse.RedirectTo )
+		c.Redirect(http.StatusTemporaryRedirect, acceptLoginResponse.GetPayload().RedirectTo )
 	} else {
 		// If consent can't be skipped we MUST show the consent UI.
 		// TODO: render login UI here
@@ -59,41 +67,46 @@ func PostHydraLogin( c *gin.Context ) {
 		return
 	}
 
-	email, _ := c.GetPostForm( "email" )
+	login, _ := c.GetPostForm( "login" )
 	password, _ := c.GetPostForm( "password" )
 	rememberValue, _ := c.GetPostForm("remember" )
 	remember := rememberValue == "1"
 
-	if email != "foo@bar.com" || password != "foobar" {
+	err := authentication.CheckUserPassword( login, password )
+
+	if err != nil {
 		// stuff is wrong
 		// show login ui again
 		c.HTML(http.StatusOK, "hydra/login", gin.H{
 			"title": "login",
 			"csrfToken": "",
 			"challenge": challenge,
-			"error": "user or password wrong",
+			"error": err.Error(),
 		})
 		return
 	}
 
-	requestBody := new( hydra.RequestBody )
+	acceptLoginRequestParams := hydraAdmin.NewAcceptLoginRequestParams()
+	var handledLoginRequest hydraModels.HandledLoginRequest
+	acceptLoginRequestParams.Body = &handledLoginRequest
+	acceptLoginRequestParams.LoginChallenge = challenge
 
 	// Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
-	requestBody.Subject = "foo@bar.com"
+	acceptLoginRequestParams.Body.Subject = &login
 
 	// This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
 	// set the "skip" parameter in the other route to true on subsequent requests!
-	requestBody.Remember = remember
+	acceptLoginRequestParams.Body.Remember = remember
 
 	// When the session expires, in seconds. Set this to 0 so it will never expire.
-	requestBody.RememberFor = 3600
+	acceptLoginRequestParams.Body.RememberFor = 3600
 
 	// Sets which "level" (e.g. 2-factor authentication) of authentication the user has. The value is really arbitrary
 	// and optional. In the context of OpenID Connect, a value of 0 indicates the lowest authorization level.
-	requestBody.Acr = 0
+	acceptLoginRequestParams.Body.ACR = "0"
 
 	// Seems like the user authenticated! Let's tell hydra...
-	acceptLoginResponse, err := hydra.AcceptLoginRequest( http.DefaultClient, challenge, requestBody )
+	acceptLoginResponse, err := hydraAPI.GetBackendClient().Admin.AcceptLoginRequest(acceptLoginRequestParams)
 
 	if err != nil {
 		// something is wrong
@@ -102,7 +115,7 @@ func PostHydraLogin( c *gin.Context ) {
 	}
 
 	// All we need to do now is to redirect the browser back to hydra!
-	c.Redirect(http.StatusTemporaryRedirect, acceptLoginResponse.RedirectTo )
+	c.Redirect(http.StatusTemporaryRedirect, acceptLoginResponse.Payload.RedirectTo )
 }
 
 // You could also deny the login request which tells hydra that no one authenticated!

@@ -3,7 +3,10 @@ package cyphernodeAdmin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/schulterklopfer/cyphernode_admin/dataSource"
+	"github.com/schulterklopfer/cyphernode_admin/globals"
 	"github.com/schulterklopfer/cyphernode_admin/helpers"
+	"github.com/schulterklopfer/cyphernode_admin/hydraAPI"
+	"os"
 )
 
 const ADMIN_APP_NAME string = "Cyphernode Admin"
@@ -35,6 +38,7 @@ func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() {
 	dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
+	hydraAPI.Init()
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
   cyphernodeAdmin.migrate()
   cyphernodeAdmin.engine = gin.Default()
@@ -50,6 +54,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
-	helpers.SetInterval(cyphernodeAdmin.checkHydraClients, 1000, false)
+	if os.Getenv(globals.HYDRA_DISABLE_SYNC_ENV_KEY) == "" {
+		helpers.SetInterval(cyphernodeAdmin.checkHydraClients, 1000, false)
+	}
 	cyphernodeAdmin.engine.Run("0.0.0.0:3030")
 }
