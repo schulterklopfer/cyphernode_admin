@@ -4,11 +4,11 @@ import (
   "github.com/gin-gonic/gin"
 )
 
-func GetHydraLogout( c *gin.Context ) {
+func HydraLogoutGet( c *gin.Context ) {
 
 }
 
-func PostHydraLogout( c *gin.Context ) {
+func HydraLogoutPost( c *gin.Context ) {
 
 }
 

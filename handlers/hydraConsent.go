@@ -11,7 +11,7 @@ import (
   "net/http"
 )
 
-func GetHydraConsent( c *gin.Context ) {
+func HydraConsentGet( c *gin.Context ) {
   challenge, _ := c.GetQuery( "consent_challenge" )
 
   if challenge == "" {
@@ -99,7 +99,7 @@ func GetHydraConsent( c *gin.Context ) {
   }
 }
 
-func PostHydraConsent( c *gin.Context ) {
+func HydraConsentPost( c *gin.Context ) {
   challenge, _ := c.GetPostForm( "challenge" )
 
   if challenge == "" {

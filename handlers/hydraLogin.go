@@ -9,7 +9,7 @@ import (
   "net/http"
 )
 
-func GetHydraLogin( c *gin.Context ) {
+func HydraLoginGet( c *gin.Context ) {
   challenge, _ := c.GetQuery( "login_challenge" )
 
   if challenge == "" {
@@ -59,7 +59,7 @@ func GetHydraLogin( c *gin.Context ) {
   }
 }
 
-func PostHydraLogin( c *gin.Context ) {
+func HydraLoginPost( c *gin.Context ) {
   challenge, _ := c.GetPostForm( "challenge" )
 
   if challenge == "" {
