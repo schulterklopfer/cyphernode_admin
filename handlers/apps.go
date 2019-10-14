@@ -291,8 +291,8 @@ func FindApps(c *gin.Context) {
 
     // is Sort empty or not in ALLOWED_APP_PROPERTIES?
     if helpers.SliceIndex( len(ALLOWED_APP_PROPERTIES), func(i int) bool {
-          return ALLOWED_APP_PROPERTIES[i] == paging.Sort
-       } ) == -1 {
+      return ALLOWED_APP_PROPERTIES[i] == paging.Sort
+    } ) == -1 {
       order = "name"
     } else {
       order = paging.Sort
@@ -379,9 +379,9 @@ func AppAddRoles(c *gin.Context) {
   }
 
   for i:=0; i<len( roleInputs ); i++ {
-		roleInputs[i].AppId = app.ID
+    roleInputs[i].AppId = app.ID
 
-		err = queries.CreateRoleForApp( &app, &roleInputs[i] )
+    err = queries.CreateRoleForApp( &app, &roleInputs[i] )
 
     if err != nil {
       switch err {
@@ -431,14 +431,14 @@ func AppRemoveRole(c *gin.Context) {
       // TODO: remove
       err := queries.RemoveRoleFromApp( &app, uint(roleId) )
       if err != nil {
-				switch err {
-				case cnaErrors.ErrNoSuchRole:
-					c.Header("X-Status-Reason", "App does not have that role" )
-					c.Status(http.StatusBadRequest)
-				default:
-					c.Status(http.StatusInternalServerError)
-				}
-				return
+        switch err {
+        case cnaErrors.ErrNoSuchRole:
+          c.Header("X-Status-Reason", "App does not have that role" )
+          c.Status(http.StatusBadRequest)
+        default:
+          c.Status(http.StatusInternalServerError)
+        }
+        return
       }
       c.Status(http.StatusNoContent)
       return

@@ -1,13 +1,13 @@
 package handlers_test
 
 import (
-	"bytes"
-	"encoding/json"
-	"github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
-	"github.com/schulterklopfer/cyphernode_admin/transforms"
-	"io/ioutil"
-	"net/http"
-	"testing"
+  "bytes"
+  "encoding/json"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "io/ioutil"
+  "net/http"
+  "testing"
 )
 
 
@@ -44,7 +44,7 @@ func testGetApp(t *testing.T) {
   if app.Name != cyphernodeAdmin.ADMIN_APP_NAME ||
     app.Description != cyphernodeAdmin.ADMIN_APP_DESCRIPTION ||
     app.Hash != cyphernodeAdmin.ADMIN_APP_HASH ||
-  	app.ID != 1 ||
+    app.ID != 1 ||
 
     len(app.AvailableRoles) != 1 {
     t.Error( "error in get app" )
@@ -60,15 +60,15 @@ func testCreateApp(t *testing.T) {
   "hash": "01234567890123456789012345678912",
   "availableRoles": [
     {
-			"name": "admin",
-			"description": "admin",
-			"autoAssign": false
-		},
-		{
-			"name": "user",
-			"description": "user",
-			"autoAssign": true
-		}
+      "name": "admin",
+      "description": "admin",
+      "autoAssign": false
+    },
+    {
+      "name": "user",
+      "description": "user",
+      "autoAssign": true
+    }
   ]
 }
 `
@@ -92,7 +92,7 @@ func testCreateApp(t *testing.T) {
 
   if app.Name != "testApp" ||
       app.Hash != "01234567890123456789012345678912" ||
-			app.Description != "test app" ||
+      app.Description != "test app" ||
       len(app.AvailableRoles) != 2 {
     t.Error( "error in get app" )
   }
@@ -100,12 +100,12 @@ func testCreateApp(t *testing.T) {
 
 func testAppAddRole( t *testing.T ) {
   jsonInput := `[
-		{
-			"name": "additionalRole",
-			"description": "additional role",
-			"autoAssign": false
-		}
-	]`
+    {
+      "name": "additionalRole",
+      "description": "additional role",
+      "autoAssign": false
+    }
+  ]`
   res, err := testServer.Client().Post( testServer.URL+"/api/v0/apps/2/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
 
   if err != nil {
@@ -125,12 +125,12 @@ func testAppAddRole( t *testing.T ) {
   json.Unmarshal(body, &app)
 
 
-	if app.Name != "testApp" ||
-			app.Hash != "01234567890123456789012345678912" ||
-			app.Description != "test app" ||
-			len(app.AvailableRoles) != 3 {
-		t.Error( "error in app add role" )
-	}
+  if app.Name != "testApp" ||
+      app.Hash != "01234567890123456789012345678912" ||
+      app.Description != "test app" ||
+      len(app.AvailableRoles) != 3 {
+    t.Error( "error in app add role" )
+  }
 }
 
 func testAppRemoveRole( t *testing.T ) {
@@ -175,12 +175,12 @@ func testPatchApp(t *testing.T) {
   var app transforms.AppV0
   json.Unmarshal(body, &app)
 
-	if app.Name != "testApp2" ||
-			app.Hash != "01234567890123456789012345678912" ||
-			app.Description != "test app" ||
-			len(app.AvailableRoles) != 2 {
-		t.Error( "error in patch app" )
-	}
+  if app.Name != "testApp2" ||
+      app.Hash != "01234567890123456789012345678912" ||
+      app.Description != "test app" ||
+      len(app.AvailableRoles) != 2 {
+    t.Error( "error in patch app" )
+  }
 }
 
 type pagedApps struct {

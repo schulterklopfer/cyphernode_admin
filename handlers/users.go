@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-validator/validator"
-	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-	"github.com/schulterklopfer/cyphernode_admin/helpers"
-	"github.com/schulterklopfer/cyphernode_admin/models"
-	"github.com/schulterklopfer/cyphernode_admin/queries"
-	"github.com/schulterklopfer/cyphernode_admin/shared"
-	"github.com/schulterklopfer/cyphernode_admin/transforms"
-	"net/http"
-	"strconv"
-	"strings"
+  "github.com/gin-gonic/gin"
+  "github.com/go-validator/validator"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/shared"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "net/http"
+  "strconv"
+  "strings"
 )
 
 func GetUser(c *gin.Context) {

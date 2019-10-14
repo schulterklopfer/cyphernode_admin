@@ -1,12 +1,12 @@
 package handlers_test
 
 import (
-	"bytes"
-	"encoding/json"
-	"github.com/schulterklopfer/cyphernode_admin/transforms"
-	"io/ioutil"
-	"net/http"
-	"testing"
+  "bytes"
+  "encoding/json"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "io/ioutil"
+  "net/http"
+  "testing"
 )
 
 func testUserHandlers( t *testing.T ) {
