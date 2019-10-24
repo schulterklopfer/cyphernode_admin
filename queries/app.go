@@ -1,11 +1,11 @@
 package queries
 
 import (
-	"errors"
-	"github.com/go-validator/validator"
-	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-	"github.com/schulterklopfer/cyphernode_admin/dataSource"
-	"github.com/schulterklopfer/cyphernode_admin/models"
+  "errors"
+  "github.com/go-validator/validator"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 func CreateApp( app *models.AppModel ) error {
@@ -75,16 +75,16 @@ func CreateRoleForApp( app *models.AppModel, role *models.RoleModel ) error {
 }
 
 func GetAppIDByClientID( clientID string ) (uint, error) {
-	var hydraClients []models.HydraClientModel
-	err := Find( &hydraClients,  []interface{}{"client_id = ?", clientID }, "", 1,0,false)
+  var hydraClients []models.HydraClientModel
+  err := Find( &hydraClients,  []interface{}{"client_id = ?", clientID }, "", 1,0,false)
 
-	if err != nil {
-		return 0, err
-	}
+  if err != nil {
+    return 0, err
+  }
 
-	if len(hydraClients) == 0 {
-		return 0, cnaErrors.ErrNoSuchHydraClient
-	}
+  if len(hydraClients) == 0 {
+    return 0, cnaErrors.ErrNoSuchHydraClient
+  }
 
-	return hydraClients[0].AppID, nil
+  return hydraClients[0].AppID, nil
 }

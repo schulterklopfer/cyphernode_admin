@@ -19,20 +19,20 @@ const URLS_CALLBACK string = URL_HOST+ENDPOINTS_CALLBACK
 
 /** sql statements **/
 const SQL_STATEMENTS__ROLES_BY_USER_ID_AND_APP_ID string =
-		"SELECT " +
-		"role_models.id as id, " +
-		"role_models.app_id as app_id, " +
-		"role_models.auto_assign as auto_assign, " +
-		"role_models.name as name, " +
-		"role_models.description as description, " +
-		"role_models.created_at as created_at, " +
-		"role_models.updated_at as updated_at, " +
-		"role_models.deleted_at as deleted_at " +
-		"FROM role_models " +
-		"JOIN user_roles " +
-		"ON role_models.id = user_roles.role_model_id " +
-		"WHERE user_roles.user_model_id = ? " +
-		"AND role_models.app_id = ?"
+    "SELECT " +
+        "role_models.id as id, " +
+        "role_models.app_id as app_id, " +
+        "role_models.auto_assign as auto_assign, " +
+        "role_models.name as name, " +
+        "role_models.description as description, " +
+        "role_models.created_at as created_at, " +
+        "role_models.updated_at as updated_at, " +
+        "role_models.deleted_at as deleted_at " +
+        "FROM role_models " +
+        "JOIN user_roles " +
+        "ON role_models.id = user_roles.role_model_id " +
+        "WHERE user_roles.user_model_id = ? " +
+        "AND role_models.app_id = ?"
 
 /** roles **/
 const ROLES_ADMIN_ROLE = "admin"

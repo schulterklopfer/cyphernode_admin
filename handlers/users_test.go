@@ -40,10 +40,10 @@ func testGetUser(t *testing.T) {
   json.Unmarshal(body, &user)
 
   if user.Login != "admin" ||
-    user.Name != "admin" ||
-    user.EmailAddress != "email@email.com" ||
-    user.ID != 1 ||
-    len(user.Roles) != 1 {
+      user.Name != "admin" ||
+      user.EmailAddress != "email@email.com" ||
+      user.ID != 1 ||
+      len(user.Roles) != 1 {
     t.Error( "error in get user" )
   }
 }
@@ -199,13 +199,13 @@ func testFindUser(t *testing.T) {
   json.Unmarshal(body, &pagedResult)
 
   if pagedResult.Total != 2 ||
-    pagedResult.Page != 0 ||
-    len(pagedResult.Data) != 1 ||
-    pagedResult.Data[0].Login != "testUser2" ||
-    pagedResult.Data[0].Name != "name" ||
-    pagedResult.Data[0].EmailAddress != "email@test.com" ||
-    pagedResult.Data[0].ID != 2 ||
-    len(pagedResult.Data[0].Roles) != 1 {
+      pagedResult.Page != 0 ||
+      len(pagedResult.Data) != 1 ||
+      pagedResult.Data[0].Login != "testUser2" ||
+      pagedResult.Data[0].Name != "name" ||
+      pagedResult.Data[0].EmailAddress != "email@test.com" ||
+      pagedResult.Data[0].ID != 2 ||
+      len(pagedResult.Data[0].Roles) != 1 {
     t.Error( "error in find user" )
   }
 }

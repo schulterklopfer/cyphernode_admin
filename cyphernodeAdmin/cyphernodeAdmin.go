@@ -91,17 +91,17 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 func CheckSession() gin.HandlerFunc {
   return func(c *gin.Context) {
     if !helpers.EndpointIsPublic( c.Request.URL.Path ) {
-    	// fetch userinfo from hydra
-			user, err := oidc.GetUser( c.Writer, c.Request )
-			if err != nil {
-				c.Redirect( http.StatusTemporaryRedirect, globals.ENDPOINTS_LOGIN)
-				return
-			}
-			// all not public endpoints need the role "admin"
-			userIsAdmin := helpers.UserIsAdmin( &user )
-			print( userIsAdmin )
-			c.Set("user", user )
-		}
+      // fetch userinfo from hydra
+      user, err := oidc.GetUser( c.Writer, c.Request )
+      if err != nil {
+        c.Redirect( http.StatusTemporaryRedirect, globals.ENDPOINTS_LOGIN)
+        return
+      }
+      // all not public endpoints need the role "admin"
+      userIsAdmin := helpers.UserIsAdmin( &user )
+      print( userIsAdmin )
+      c.Set("user", user )
+    }
     c.Next()
   }
 }

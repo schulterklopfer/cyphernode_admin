@@ -3,8 +3,8 @@ package queries
 import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
-	"github.com/schulterklopfer/cyphernode_admin/globals"
-	"github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 func DeleteUser( id uint ) error {
@@ -62,8 +62,8 @@ func AddRoleToUser( user *models.UserModel, roleId uint ) error {
 }
 
 func GetRolesOfUserIDByAppID( userID uint, appID uint ) ( *[]*models.RoleModel, error) {
-	db := dataSource.GetDB()
-	var roles []*models.RoleModel
-	db.Raw(globals.SQL_STATEMENTS__ROLES_BY_USER_ID_AND_APP_ID, userID, appID ).Scan(&roles)
-	return &roles, db.Error
+  db := dataSource.GetDB()
+  var roles []*models.RoleModel
+  db.Raw(globals.SQL_STATEMENTS__ROLES_BY_USER_ID_AND_APP_ID, userID, appID ).Scan(&roles)
+  return &roles, db.Error
 }

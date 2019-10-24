@@ -1,18 +1,18 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
-	"github.com/ory/hydra/sdk/go/hydra/models"
-	hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
-	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-	"github.com/schulterklopfer/cyphernode_admin/globals"
-	"github.com/schulterklopfer/cyphernode_admin/helpers"
-	"github.com/schulterklopfer/cyphernode_admin/hydraAPI"
-	cnaModels "github.com/schulterklopfer/cyphernode_admin/models"
-	"github.com/schulterklopfer/cyphernode_admin/queries"
-	"github.com/schulterklopfer/cyphernode_admin/transforms"
-	"net/http"
+  "github.com/gin-gonic/gin"
+  hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
+  "github.com/ory/hydra/sdk/go/hydra/models"
+  hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/hydraAPI"
+  cnaModels "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "net/http"
 )
 
 func HydraConsentGet( c *gin.Context ) {
@@ -209,48 +209,48 @@ func HydraConsentPost( c *gin.Context ) {
 
     var user cnaModels.UserModel
 
-		err = queries.Find( &user,  []interface{}{"login = ?", login }, "", 1,0,false)
-		if err != nil {
-			c.Header("X-Status-Reason", err.Error() )
-			c.Status(http.StatusInternalServerError )
-			return
-		}
+    err = queries.Find( &user,  []interface{}{"login = ?", login }, "", 1,0,false)
+    if err != nil {
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusInternalServerError )
+      return
+    }
 
-		if user.ID == 0 {
-			c.Header("X-Status-Reason", cnaErrors.ErrNoSuchUser.Error() )
-			c.Status(http.StatusBadRequest )
-			return
-		}
+    if user.ID == 0 {
+      c.Header("X-Status-Reason", cnaErrors.ErrNoSuchUser.Error() )
+      c.Status(http.StatusBadRequest )
+      return
+    }
 
-		appID, err := queries.GetAppIDByClientID( clientID )
-		if err != nil {
-			c.Header("X-Status-Reason", err.Error() )
-			c.Status(http.StatusInternalServerError )
-			return
-		}
+    appID, err := queries.GetAppIDByClientID( clientID )
+    if err != nil {
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusInternalServerError )
+      return
+    }
 
-		roles, err := queries.GetRolesOfUserIDByAppID( user.ID, appID )
+    roles, err := queries.GetRolesOfUserIDByAppID( user.ID, appID )
 
-		if err != nil {
-			c.Header("X-Status-Reason", err.Error() )
-			c.Status(http.StatusInternalServerError )
-			return
-		}
+    if err != nil {
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusInternalServerError )
+      return
+    }
 
-		roleCount := len(*roles)
-		transformedRoles :=make( []*transforms.RoleV0, roleCount )
+    roleCount := len(*roles)
+    transformedRoles :=make( []*transforms.RoleV0, roleCount )
 
-		for i:=0; i<roleCount; i++ {
-			transformedRoles[i] = new(transforms.RoleV0)
-			transforms.Transform((*roles)[i], transformedRoles[i])
-		}
+    for i:=0; i<roleCount; i++ {
+      transformedRoles[i] = new(transforms.RoleV0)
+      transforms.Transform((*roles)[i], transformedRoles[i])
+    }
 
-		session.AccessToken = map[string]interface{}{
+    session.AccessToken = map[string]interface{}{
       "roles": transformedRoles,
     }
 
     session.IDToken = map[string]interface{}{
-			"roles": transformedRoles,
+      "roles": transformedRoles,
     }
 
     acceptConsentRequestParams.Body.Session = session

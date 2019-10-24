@@ -13,7 +13,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initDefaultHandlers() {
     cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_LOGIN, handlers.DefaultLogin )
     cyphernodeAdmin.routerGroups["default"].GET("/logout", handlers.DefaultLogout )
     cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
-		cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
+    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
 
   }
 }
@@ -26,7 +26,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initOIDCHandlers() {
     cyphernodeAdmin.routerGroups["oidc"].GET("/me", handlers.GetMe )
   }
 }
- */
+*/
 
 func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
   cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")

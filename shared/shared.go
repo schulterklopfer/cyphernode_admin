@@ -19,11 +19,11 @@ func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
 
       if hasSbjtTag && hasJsonTag && jsonTag == jsonFieldName {
         switch sbjtTag {
-          case "hashPassword":
-            if reflect.TypeOf(jsonFieldValue).Kind() == reflect.String {
-              hashedPassword, _ := password.HashPassword(jsonFieldValue.(string))
-              (*values)[jsonFieldName] = hashedPassword
-            }
+        case "hashPassword":
+          if reflect.TypeOf(jsonFieldValue).Kind() == reflect.String {
+            hashedPassword, _ := password.HashPassword(jsonFieldValue.(string))
+            (*values)[jsonFieldName] = hashedPassword
+          }
         }
       }
     }

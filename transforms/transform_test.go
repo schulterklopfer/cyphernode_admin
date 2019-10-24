@@ -30,17 +30,17 @@ func TestUserModelTransformV0( t* testing.T ) {
   transforms.Transform( userModel, &transformed )
 
   if userModel.ID != transformed.ID ||
-     userModel.Login != transformed.Login ||
-     userModel.Name != transformed.Name ||
-     userModel.EmailAddress != transformed.EmailAddress {
+      userModel.Login != transformed.Login ||
+      userModel.Name != transformed.Name ||
+      userModel.EmailAddress != transformed.EmailAddress {
     t.Error("Property mismatch")
   }
 
   for i := 0; i<2; i++ {
     if transformed.Roles[i].Name != userModel.Roles[i].Name ||
-       transformed.Roles[i].Description != userModel.Roles[i].Description ||
-       transformed.Roles[i].AutoAssign != userModel.Roles[i].AutoAssign ||
-       transformed.Roles[i].AppId != userModel.Roles[i].AppId {
+        transformed.Roles[i].Description != userModel.Roles[i].Description ||
+        transformed.Roles[i].AutoAssign != userModel.Roles[i].AutoAssign ||
+        transformed.Roles[i].AppId != userModel.Roles[i].AppId {
       t.Error("Property mismatch")
     }
   }
@@ -71,17 +71,17 @@ func TestAppModelTransformV0( t* testing.T ) {
   transforms.Transform(appModel, &transformed )
 
   if appModel.ID != transformed.ID ||
-     appModel.ClientSecret != transformed.Hash ||
-     appModel.Name != transformed.Name ||
-     appModel.Description != transformed.Description {
+      appModel.ClientSecret != transformed.Hash ||
+      appModel.Name != transformed.Name ||
+      appModel.Description != transformed.Description {
     t.Error("Property mismatch")
   }
 
   for i := 0; i<2; i++ {
     if transformed.AvailableRoles[i].Name != appModel.AvailableRoles[i].Name ||
-       transformed.AvailableRoles[i].Description != appModel.AvailableRoles[i].Description ||
-       transformed.AvailableRoles[i].AutoAssign != appModel.AvailableRoles[i].AutoAssign ||
-       transformed.AvailableRoles[i].AppId != appModel.AvailableRoles[i].AppId {
+        transformed.AvailableRoles[i].Description != appModel.AvailableRoles[i].Description ||
+        transformed.AvailableRoles[i].AutoAssign != appModel.AvailableRoles[i].AutoAssign ||
+        transformed.AvailableRoles[i].AppId != appModel.AvailableRoles[i].AppId {
       t.Error("Property mismatch")
     }
   }

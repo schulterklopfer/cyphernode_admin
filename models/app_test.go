@@ -37,7 +37,7 @@ func TestAppValidation(t *testing.T) {
 
   app.Name = "Test app"
   err = validator.Validate(app)
-  
+
   if err != nil {
     t.Error("Should validate" )
   }

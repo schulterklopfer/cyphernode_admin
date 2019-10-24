@@ -1,14 +1,14 @@
 package helpers
 
 import (
-	"crypto/rand"
-	"encoding/base32"
-	"github.com/markbates/goth"
-	"github.com/schulterklopfer/cyphernode_admin/globals"
-	"io"
-	"regexp"
-	"strings"
-	"time"
+  "crypto/rand"
+  "encoding/base32"
+  "github.com/markbates/goth"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
+  "io"
+  "regexp"
+  "strings"
+  "time"
 )
 
 func SliceIndex(limit int, predicate func(i int) bool) int {
@@ -71,21 +71,21 @@ func EndpointIsPublic( endpoint string ) bool {
 }
 
 func UserIsAdmin( user *goth.User ) bool {
-	if user == nil {
-		return false
-	}
-	if val, ok := user.RawData["roles"]; ok {
-		if roles, rolesAssertionOk := val.([]interface{}); rolesAssertionOk {
-			for i:=0; i<len(roles); i++ {
-				if role, roleAssertionOk := roles[i].(map[string]interface{}); roleAssertionOk {
-					if roleName, ok := role["name"]; ok && roleName.(string) == globals.ROLES_ADMIN_ROLE {
-						return true
-					}
-				}
-			}
-		}
-	}
-	return false
+  if user == nil {
+    return false
+  }
+  if val, ok := user.RawData["roles"]; ok {
+    if roles, rolesAssertionOk := val.([]interface{}); rolesAssertionOk {
+      for i:=0; i<len(roles); i++ {
+        if role, roleAssertionOk := roles[i].(map[string]interface{}); roleAssertionOk {
+          if roleName, ok := role["name"]; ok && roleName.(string) == globals.ROLES_ADMIN_ROLE {
+            return true
+          }
+        }
+      }
+    }
+  }
+  return false
 }
 
 func RandomString(length int) string {

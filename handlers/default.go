@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/schulterklopfer/cyphernode_admin/globals"
-	"github.com/schulterklopfer/cyphernode_admin/oidc"
-	"net/http"
+  "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/oidc"
+  "net/http"
 )
 
 func DefaultLogin( c *gin.Context ) {
@@ -31,11 +31,11 @@ func DefaultCallbackGet( c *gin.Context ) {
 
   gothUser, err := oidc.CompleteUserAuth( c.Writer, c.Request )
 
-	if err != nil {
-		c.Header("X-Status-Reason", err.Error() )
-		c.Status(http.StatusBadRequest )
-		return
-	}
+  if err != nil {
+    c.Header("X-Status-Reason", err.Error() )
+    c.Status(http.StatusBadRequest )
+    return
+  }
 
   c.Set("user", gothUser )
   c.Redirect( http.StatusTemporaryRedirect, globals.ENDPOINTS_HOME )
@@ -43,9 +43,9 @@ func DefaultCallbackGet( c *gin.Context ) {
 }
 
 func DefaultHome( c *gin.Context ) {
-	if user, exists :=  c.Get( "user"); exists {
-		c.JSON( http.StatusOK, &user )
-	}
+  if user, exists :=  c.Get( "user"); exists {
+    c.JSON( http.StatusOK, &user )
+  }
 }
 
 func DefaultLogout( c *gin.Context ) {
@@ -85,4 +85,4 @@ if err != nil {
 
 client := conf.Client(ctx, tok)
 client.Get("...")
- */
+*/

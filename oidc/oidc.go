@@ -238,49 +238,49 @@ func GetFromSession(key string, req *http.Request) (string, error) {
 }
 
 var GetUser = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-	if !keySet && defaultStore == Store {
-		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
-	}
+  if !keySet && defaultStore == Store {
+    fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+  }
 
-	provider, err := goth.GetProvider(providerName)
-	if err != nil {
-		return goth.User{}, err
-	}
+  provider, err := goth.GetProvider(providerName)
+  if err != nil {
+    return goth.User{}, err
+  }
 
-	value, err := GetFromSession(providerName, req)
-	if err != nil {
-		return goth.User{}, err
-	}
+  value, err := GetFromSession(providerName, req)
+  if err != nil {
+    return goth.User{}, err
+  }
 
-	sess, err := provider.UnmarshalSession(value)
-	if err != nil {
-		return goth.User{}, err
-	}
+  sess, err := provider.UnmarshalSession(value)
+  if err != nil {
+    return goth.User{}, err
+  }
 
-	user, err := provider.FetchUser(sess)
-	if err == nil {
-		// user can be found with existing session data
-		return user, err
-	}
+  user, err := provider.FetchUser(sess)
+  if err == nil {
+    // user can be found with existing session data
+    return user, err
+  }
 
-	// get new token and retry fetch
-	_, err = sess.Authorize(provider, req.URL.Query())
-	if err != nil {
-		return goth.User{}, err
-	}
+  // get new token and retry fetch
+  _, err = sess.Authorize(provider, req.URL.Query())
+  if err != nil {
+    return goth.User{}, err
+  }
 
-	err = StoreInSession(providerName, sess.Marshal(), req, res)
+  err = StoreInSession(providerName, sess.Marshal(), req, res)
 
-	if err != nil {
-		return goth.User{}, err
-	}
+  if err != nil {
+    return goth.User{}, err
+  }
 
-	gu, err := provider.FetchUser(sess)
-	return gu, err
+  gu, err := provider.FetchUser(sess)
+  return gu, err
 }
 
 func Client() *http.Client {
-	return goth.HTTPClientWithFallBack( http.DefaultClient )
+  return goth.HTTPClientWithFallBack( http.DefaultClient )
 }
 
 func getSessionValue(session *sessions.Session, key string) (string, error) {
@@ -290,39 +290,39 @@ func getSessionValue(session *sessions.Session, key string) (string, error) {
   }
 
   /*
-  rdata := strings.NewReader(value.(string))
-  r, err := gzip.NewReader(rdata)
-  if err != nil {
-    return "", err
-  }
-  s, err := ioutil.ReadAll(r)
-  if err != nil {
-    return "", err
-  }
+    rdata := strings.NewReader(value.(string))
+    r, err := gzip.NewReader(rdata)
+    if err != nil {
+      return "", err
+    }
+    s, err := ioutil.ReadAll(r)
+    if err != nil {
+      return "", err
+    }
 
-  return string(s), nil
+    return string(s), nil
   */
   return value.(string), nil
 }
 
 func updateSessionValue(session *sessions.Session, key, value string) error {
   /*
-  var b bytes.Buffer
-  gz := gzip.NewWriter(&b)
-  // TOOD: debug gzip compression... Probably is has sth to do with session serialisation. Maybe
-  // try sth other than json marshalling
-  if _, err := gz.Write([]byte(value)); err != nil {
-    return err
-  }
-  if err := gz.Flush(); err != nil {
-    return err
-  }
-  if err := gz.Close(); err != nil {
-    return err
-  }
+    var b bytes.Buffer
+    gz := gzip.NewWriter(&b)
+    // TOOD: debug gzip compression... Probably is has sth to do with session serialisation. Maybe
+    // try sth other than json marshalling
+    if _, err := gz.Write([]byte(value)); err != nil {
+      return err
+    }
+    if err := gz.Flush(); err != nil {
+      return err
+    }
+    if err := gz.Close(); err != nil {
+      return err
+    }
 
-  session.Values[key] = b.String()
-   */
+    session.Values[key] = b.String()
+  */
   session.Values[key] = value
   return nil
 }

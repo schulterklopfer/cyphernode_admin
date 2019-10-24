@@ -6,7 +6,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/password"
-	"github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_admin/queries"
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
@@ -19,8 +19,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
   db := dataSource.GetDB()
 
   _ = queries.Get( adminRole, 1, true )
-	_ = queries.Get( adminApp, 1, true )
-	_ = queries.Get( adminUser, 1, true )
+  _ = queries.Get( adminApp, 1, true )
+  _ = queries.Get( adminUser, 1, true )
 
   hashedPassword, err := password.HashPassword( cyphernodeAdmin.config.InitialAdminPassword )
   if err != nil {
@@ -56,16 +56,16 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   hasAdminRole := false
   for i:=0; i<len(adminApp.AvailableRoles); i++ {
-  	if adminApp.AvailableRoles[i].ID == adminRole.ID {
-  		hasAdminRole = true
-		}
-	}
+    if adminApp.AvailableRoles[i].ID == adminRole.ID {
+      hasAdminRole = true
+    }
+  }
 
   if !hasAdminRole {
-		tx.Model(&adminApp).Association("AvailableRoles").Append(adminRole)
-	}
+    tx.Model(&adminApp).Association("AvailableRoles").Append(adminRole)
+  }
 
-	if adminUser.ID != 1 {
+  if adminUser.ID != 1 {
     adminUser.ID = 1
     adminUser.Login = cyphernodeAdmin.config.InitialAdminLogin
     adminUser.Password = hashedPassword
@@ -74,16 +74,16 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     tx.Create(adminUser)
   }
 
-	hasAdminRole = false
-	for i:=0; i<len(adminUser.Roles); i++ {
-		if adminUser.Roles[i].ID == adminRole.ID {
-			hasAdminRole = true
-		}
-	}
+  hasAdminRole = false
+  for i:=0; i<len(adminUser.Roles); i++ {
+    if adminUser.Roles[i].ID == adminRole.ID {
+      hasAdminRole = true
+    }
+  }
 
-	if !hasAdminRole {
-		tx.Model(&adminUser).Association("Roles").Append(adminRole)
-	}
+  if !hasAdminRole {
+    tx.Model(&adminUser).Association("Roles").Append(adminRole)
+  }
 
   return tx.Commit().Error
 

@@ -32,12 +32,12 @@ func TestSetByJsonTag(t *testing.T) {
   shared.SetByJsonTag(  &target, &newValues )
 
   if target.Aint != 2 ||
-    target.Bint32 != 3 ||
-    target.Cint64 != 4 ||
-    target.Dstring != "bar" ||
-    target.Ebool != true ||
-    target.Ffloat32 != 2.0 ||
-    target.Gfloat64 != 3.0 {
+      target.Bint32 != 3 ||
+      target.Cint64 != 4 ||
+      target.Dstring != "bar" ||
+      target.Ebool != true ||
+      target.Ffloat32 != 2.0 ||
+      target.Gfloat64 != 3.0 {
     t.Error( "Set value failed")
   }
 
