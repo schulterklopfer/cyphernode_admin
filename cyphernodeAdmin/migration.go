@@ -1,9 +1,12 @@
 package cyphernodeAdmin
 
 import (
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/password"
+	"github.com/schulterklopfer/cyphernode_admin/queries"
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
@@ -15,9 +18,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   db := dataSource.GetDB()
 
-  db.Take(adminRole, 1 )
-  db.Take(adminApp, 1 )
-  db.Take(adminUser, 1 )
+  _ = queries.Get( adminRole, 1, true )
+	_ = queries.Get( adminApp, 1, true )
+	_ = queries.Get( adminUser, 1, true )
 
   hashedPassword, err := password.HashPassword( cyphernodeAdmin.config.InitialAdminPassword )
   if err != nil {
@@ -43,20 +46,44 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.ID = 1
     adminApp.Name = ADMIN_APP_NAME
     adminApp.Description = ADMIN_APP_DESCRIPTION
-    adminApp.Hash = ADMIN_APP_HASH
-    adminApp.AvailableRoles = roles
+    adminApp.ClientSecret = helpers.RandomString(32 )
+    adminApp.ClientID = helpers.RandomString(32 )
+    if adminApp.ClientSecret == "" || adminApp.ClientID == "" {
+      return cnaErrors.ErrMigrationFailed
+    }
     tx.Create(adminApp)
   }
 
-  if adminUser.ID != 1 {
+  hasAdminRole := false
+  for i:=0; i<len(adminApp.AvailableRoles); i++ {
+  	if adminApp.AvailableRoles[i].ID == adminRole.ID {
+  		hasAdminRole = true
+		}
+	}
+
+  if !hasAdminRole {
+		tx.Model(&adminApp).Association("AvailableRoles").Append(adminRole)
+	}
+
+	if adminUser.ID != 1 {
     adminUser.ID = 1
     adminUser.Login = cyphernodeAdmin.config.InitialAdminLogin
     adminUser.Password = hashedPassword
     adminUser.Name = cyphernodeAdmin.config.InitialAdminName
     adminUser.EmailAddress = cyphernodeAdmin.config.InitialAdminEmailAddress
-    adminUser.Roles = roles
     tx.Create(adminUser)
   }
+
+	hasAdminRole = false
+	for i:=0; i<len(adminUser.Roles); i++ {
+		if adminUser.Roles[i].ID == adminRole.ID {
+			hasAdminRole = true
+		}
+	}
+
+	if !hasAdminRole {
+		tx.Model(&adminUser).Association("Roles").Append(adminRole)
+	}
 
   return tx.Commit().Error
 

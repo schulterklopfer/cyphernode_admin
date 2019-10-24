@@ -39,7 +39,7 @@ func TestQueries(t *testing.T) {
   t.Run( "Hooks", func(t *testing.T) {
     app := new ( models.AppModel )
     app.Name = "App1"
-    app.Hash = "0123456789abcdef0123456789abcdef"
+    app.ClientSecret = "0123456789abcdef0123456789abcdef"
     app.Description = "Description"
     _ = queries.CreateApp(app)
 
@@ -64,7 +64,7 @@ func createApp( t *testing.T ) {
 
   app = new(models.AppModel)
   app.Name = "First app"
-  app.Hash = "0123456789abcdef0123456789abcdef"
+  app.ClientSecret = "0123456789abcdef0123456789abcdef"
   app.Description = "First app description"
 
   err := queries.CreateApp(app)
@@ -84,7 +84,7 @@ func createApp( t *testing.T ) {
 
   app = new(models.AppModel)
   app.Name = "Second app"
-  app.Hash = "fedcba9876543210fedcba9876543210"
+  app.ClientSecret = "fedcba9876543210fedcba9876543210"
   app.Description = "Second app description"
 
   _ = queries.CreateApp(app)

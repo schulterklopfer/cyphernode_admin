@@ -1,8 +1,32 @@
 package cyphernodeAdmin
 
 import (
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/handlers"
 )
+
+func (cyphernodeAdmin *CyphernodeAdmin) initDefaultHandlers() {
+  cyphernodeAdmin.routerGroups["default"] = cyphernodeAdmin.engine.Group("/")
+  {
+    // TODO: csrf protection
+    //cyphernodeAdmin.routerGroups["oidc"].StaticFile(".well-known/openid-configuration", "./static/well-known/openid-configuration" )
+    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_LOGIN, handlers.DefaultLogin )
+    cyphernodeAdmin.routerGroups["default"].GET("/logout", handlers.DefaultLogout )
+    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
+		cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
+
+  }
+}
+
+/*
+func (cyphernodeAdmin *CyphernodeAdmin) initOIDCHandlers() {
+  cyphernodeAdmin.routerGroups["oidc"] = cyphernodeAdmin.engine.Group("/oidc")
+  {
+    cyphernodeAdmin.routerGroups["oidc"].StaticFile("/jwks.json", "./static/jwks.json" )
+    cyphernodeAdmin.routerGroups["oidc"].GET("/me", handlers.GetMe )
+  }
+}
+ */
 
 func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
   cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")
@@ -35,7 +59,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
 func (cyphernodeAdmin *CyphernodeAdmin) initRolesHandlers() {
   cyphernodeAdmin.routerGroups["roles"] = cyphernodeAdmin.engine.Group("/api/v0/roles")
   {
-    cyphernodeAdmin.routerGroups["roles"].GET("/:hash/:username", handlers.GetRolesForApp)
+    cyphernodeAdmin.routerGroups["roles"].GET("/:clientID/:username", handlers.GetRolesForApp)
   }
 }
 
@@ -51,3 +75,4 @@ func (cyphernodeAdmin *CyphernodeAdmin) initHydraHandlers() {
     cyphernodeAdmin.routerGroups["hydra"].POST("/logout", handlers.HydraLogoutPost)
   }
 }
+

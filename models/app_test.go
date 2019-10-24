@@ -14,21 +14,21 @@ func TestAppValidation(t *testing.T) {
     t.Error("Should not validate" )
   }
 
-  app.Hash = "abc"
+  app.ClientSecret = "abc"
   err = validator.Validate(app)
 
   if err == nil {
     t.Error("Should not validate" )
   }
 
-  app.Hash = "000000000011111111112222222222"
+  app.ClientSecret = "000000000011111111112222222222"
   err = validator.Validate(app)
 
   if err == nil {
     t.Error("Should not validate" )
   }
 
-  app.Hash = "00000000001111111111222222222233"
+  app.ClientSecret = "00000000001111111111222222222233"
   err = validator.Validate(app)
 
   if err == nil {

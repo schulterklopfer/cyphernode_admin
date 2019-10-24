@@ -29,7 +29,7 @@ func Transform( in interface{}, out interface{} ) bool {
     switch in.(type) {
     case *models.AppModel:
       out.(*AppV0).ID = in.(*models.AppModel).ID
-      out.(*AppV0).Hash = in.(*models.AppModel).Hash
+      out.(*AppV0).Hash = in.(*models.AppModel).ClientSecret
       out.(*AppV0).Name = in.(*models.AppModel).Name
       out.(*AppV0).Description = in.(*models.AppModel).Description
 
@@ -51,7 +51,6 @@ func Transform( in interface{}, out interface{} ) bool {
       out.(*RoleV0).Name = in.(*models.RoleModel).Name
       out.(*RoleV0).Description = in.(*models.RoleModel).Description
       out.(*RoleV0).AutoAssign = in.(*models.RoleModel).AutoAssign
-      out.(*RoleV0).AppId = in.(*models.RoleModel).AppId
       transformed = true
     }
   }

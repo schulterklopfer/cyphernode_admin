@@ -1,14 +1,18 @@
 package handlers
 
 import (
-  "github.com/gin-gonic/gin"
-  hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
-  "github.com/ory/hydra/sdk/go/hydra/models"
-  hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
-  "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/hydraAPI"
-  "net/http"
+	"github.com/gin-gonic/gin"
+	hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
+	"github.com/ory/hydra/sdk/go/hydra/models"
+	hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
+	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+	"github.com/schulterklopfer/cyphernode_admin/globals"
+	"github.com/schulterklopfer/cyphernode_admin/helpers"
+	"github.com/schulterklopfer/cyphernode_admin/hydraAPI"
+	cnaModels "github.com/schulterklopfer/cyphernode_admin/models"
+	"github.com/schulterklopfer/cyphernode_admin/queries"
+	"github.com/schulterklopfer/cyphernode_admin/transforms"
+	"net/http"
 )
 
 func HydraConsentGet( c *gin.Context ) {
@@ -52,12 +56,13 @@ func HydraConsentGet( c *gin.Context ) {
     // is strictly limited to the app requesting the roles. You only receive your roles in the
     // requesting app
 
-    if helpers.SliceIndex( len(acceptConsentRequestParams.Body.GrantedScope), func(i int) bool {
-      return acceptConsentRequestParams.Body.GrantedScope[i] == globals.HYDRA_ROLES_SCOPE
-    } ) == -1 {
-      acceptConsentRequestParams.Body.GrantedScope = append(acceptConsentRequestParams.Body.GrantedScope, globals.HYDRA_ROLES_SCOPE )
+    for i := 0; i< len(globals.HYDRA_AUTO_SCOPES); i++ {
+      if helpers.SliceIndex( len(acceptConsentRequestParams.Body.GrantedScope), func(j int) bool {
+        return acceptConsentRequestParams.Body.GrantedScope[j] == globals.HYDRA_AUTO_SCOPES[i]
+      } ) == -1 {
+        acceptConsentRequestParams.Body.GrantedScope = append(acceptConsentRequestParams.Body.GrantedScope, globals.HYDRA_AUTO_SCOPES[i])
+      }
     }
-
 
     // ORY Hydra checks if requested audiences are allowed by the client, so we can simply echo this.
     acceptConsentRequestParams.Body.GrantedAudience = getConsentResponse.GetPayload().RequestedAudience
@@ -167,10 +172,12 @@ func HydraConsentPost( c *gin.Context ) {
     // is strictly limited to the app requesting the roles. You only receive your roles in the
     // requesting app
 
-    if helpers.SliceIndex( len(acceptConsentRequestParams.Body.GrantedScope), func(i int) bool {
-      return acceptConsentRequestParams.Body.GrantedScope[i] == globals.HYDRA_ROLES_SCOPE
-    } ) == -1 {
-      acceptConsentRequestParams.Body.GrantedScope = append(acceptConsentRequestParams.Body.GrantedScope, globals.HYDRA_ROLES_SCOPE )
+    for i := 0; i< len(globals.HYDRA_AUTO_SCOPES); i++ {
+      if helpers.SliceIndex( len(acceptConsentRequestParams.Body.GrantedScope), func(j int) bool {
+        return acceptConsentRequestParams.Body.GrantedScope[j] == globals.HYDRA_AUTO_SCOPES[i]
+      } ) == -1 {
+        acceptConsentRequestParams.Body.GrantedScope = append(acceptConsentRequestParams.Body.GrantedScope, globals.HYDRA_AUTO_SCOPES[i])
+      }
     }
 
     // ORY Hydra checks if requested audiences are allowed by the client, so we can simply echo this.
@@ -189,8 +196,64 @@ func HydraConsentPost( c *gin.Context ) {
 
     // This data will be available in the ID token.
     // id_token: { baz: 'bar' },
-    //session := new(models.ConsentRequestSessionData)
+    session := new(models.ConsentRequestSessionData)
     //acceptConsentRequestParams.Body.Session = session
+
+    login := getConsentResponse.GetPayload().Subject
+    clientID := getConsentResponse.GetPayload().Client.ClientID
+
+    // find user and find app
+    // get roles for the user in the app and
+    // save roles in the session, so it
+    // can be introspected later
+
+    var user cnaModels.UserModel
+
+		err = queries.Find( &user,  []interface{}{"login = ?", login }, "", 1,0,false)
+		if err != nil {
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusInternalServerError )
+			return
+		}
+
+		if user.ID == 0 {
+			c.Header("X-Status-Reason", cnaErrors.ErrNoSuchUser.Error() )
+			c.Status(http.StatusBadRequest )
+			return
+		}
+
+		appID, err := queries.GetAppIDByClientID( clientID )
+		if err != nil {
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusInternalServerError )
+			return
+		}
+
+		roles, err := queries.GetRolesOfUserIDByAppID( user.ID, appID )
+
+		if err != nil {
+			c.Header("X-Status-Reason", err.Error() )
+			c.Status(http.StatusInternalServerError )
+			return
+		}
+
+		roleCount := len(*roles)
+		transformedRoles :=make( []*transforms.RoleV0, roleCount )
+
+		for i:=0; i<roleCount; i++ {
+			transformedRoles[i] = new(transforms.RoleV0)
+			transforms.Transform((*roles)[i], transformedRoles[i])
+		}
+
+		session.AccessToken = map[string]interface{}{
+      "roles": transformedRoles,
+    }
+
+    session.IDToken = map[string]interface{}{
+			"roles": transformedRoles,
+    }
+
+    acceptConsentRequestParams.Body.Session = session
 
     acceptConsentResponse, err := hydraAPI.GetBackendClient().Admin.AcceptConsentRequest(acceptConsentRequestParams)
 

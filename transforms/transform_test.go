@@ -52,7 +52,7 @@ func TestAppModelTransformV0( t* testing.T ) {
   var transformed transforms.AppV0
 
   appModel.ID = 1
-  appModel.Hash = "hash"
+  appModel.ClientSecret = "hash"
   appModel.Name = "name"
   appModel.Description = "description"
 
@@ -71,7 +71,7 @@ func TestAppModelTransformV0( t* testing.T ) {
   transforms.Transform(appModel, &transformed )
 
   if appModel.ID != transformed.ID ||
-     appModel.Hash != transformed.Hash ||
+     appModel.ClientSecret != transformed.Hash ||
      appModel.Name != transformed.Name ||
      appModel.Description != transformed.Description {
     t.Error("Property mismatch")

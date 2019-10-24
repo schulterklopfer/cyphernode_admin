@@ -1,6 +1,6 @@
 package handlers
 
-var ALLOWED_APP_PROPERTIES = [3]string{ "id", "name", "hash" }
+var ALLOWED_APP_PROPERTIES = [3]string{ "id", "name", "client_id" }
 var ALLOWED_USER_PROPERTIES = [4]string{ "id", "name","login","email_address" }
 
 type PagingParams struct {

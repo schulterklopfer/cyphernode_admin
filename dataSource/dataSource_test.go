@@ -32,7 +32,7 @@ func TestDataSource(t *testing.T) {
 func testCreateApp(t *testing.T) {
 
   app1 := new(models.AppModel)
-  app1.Hash = "hash1"
+  app1.ClientSecret = "hash1"
   app1.Name = "app1"
   app1.Description = "description"
 

@@ -6,9 +6,13 @@ import (
 )
 
 func GetRolesForApp( c *gin.Context ) {
-  hash := c.Params[0].Value
+
+  // Resource endpoint. Need to check for tokens
+  // and scopes here
+
+  clientID := c.Params[0].Value
   username := c.Params[1].Value
-  if hash == "" || username == "" {
+  if clientID == "" || username == "" {
     c.Status( http.StatusNotFound )
     return
   }
@@ -16,5 +20,13 @@ func GetRolesForApp( c *gin.Context ) {
   // TODO: check if "roles" scope is set
   // TODO: return roles of user with username in app with given hash
 
-  println( hash, username )
+  //session := sessions.Default(c)
+  //accessToken := session.Get( globals.HYDRA_ACCESS_TOKEN_SESSION_KEY )
+
+  //introspectOAuth2TokenParams := admin.NewIntrospectOAuth2TokenParams()
+  //introspectOAuth2TokenParams.Context = hydraAPI
+
+  //hydraAPI.GetBackendClient().Admin.IntrospectOAuth2Token()
+
+  println( clientID, username )
 }

@@ -1,11 +1,11 @@
 package queries
 
 import (
-  "errors"
-  "github.com/go-validator/validator"
-  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/models"
+	"errors"
+	"github.com/go-validator/validator"
+	"github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+	"github.com/schulterklopfer/cyphernode_admin/dataSource"
+	"github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 func CreateApp( app *models.AppModel ) error {
@@ -16,7 +16,7 @@ func CreateApp( app *models.AppModel ) error {
   db := dataSource.GetDB()
 
   var existingApps []models.AppModel
-  db.Limit(1).Find( &existingApps, models.AppModel{Hash: app.Hash} )
+  db.Limit(1).Find( &existingApps, models.AppModel{ClientSecret: app.ClientSecret} )
 
   if len(existingApps) > 0 {
     return errors.New( "app with same hash already exists" )
@@ -72,4 +72,19 @@ func CreateRoleForApp( app *models.AppModel, role *models.RoleModel ) error {
 
   db.Model(app).Association("AvailableRoles").Append( role )
   return db.Error
+}
+
+func GetAppIDByClientID( clientID string ) (uint, error) {
+	var hydraClients []models.HydraClientModel
+	err := Find( &hydraClients,  []interface{}{"client_id = ?", clientID }, "", 1,0,false)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if len(hydraClients) == 0 {
+		return 0, cnaErrors.ErrNoSuchHydraClient
+	}
+
+	return hydraClients[0].AppID, nil
 }

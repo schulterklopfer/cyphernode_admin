@@ -32,7 +32,13 @@ func main() {
   appConfig.InitialAdminPassword = initialAdminPassword
   appConfig.InitialAdminName = initialAdminName
   appConfig.InitialAdminEmailAddress = initialAdminEmailAddress
+
   app := cyphernodeAdmin.NewCyphernodeAdmin( appConfig )
-  app.Init()
+  err := app.Init()
+
+  if err != nil {
+    println("Error in application init: ", err.Error() )
+    os.Exit(1)
+  }
   app.Start()
 }

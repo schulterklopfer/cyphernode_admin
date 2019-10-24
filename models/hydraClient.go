@@ -11,6 +11,7 @@ type HydraClientModel struct {
   AppID uint `json:"-" gorm:"DEFAULT:0" form:"-" validate:"-"`
   ClientID string `json:"-" gorm:"type:varchar(100)" form:"-" validate:"-"`
   Secret string `json:"-" gorm:"type:varchar(32)" form:"-" validate:"-"`
+  Synced bool `json:"-" gorm:"type:boolean;default:false" form:"-" validate:"-"`
 }
 
 func ( hydraClient *HydraClientModel ) BeforeDelete( tx *gorm.DB ) (err error) {

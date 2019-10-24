@@ -7,11 +7,12 @@ import (
 
 type AppModel struct {
   gorm.Model
-  Hash string `json:"hash" gorm:"type:varchar(32);unique_index;not null" validate:"regexp=^[a-fA-F0-9]{32}$"`
-  Name string `json:"name" gorm:"type:varchar(30);not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\- ]+$"`
-  Description string `json:"description" gorm:"type:varchar(255)"`
+  ClientSecret   string       `json:"clientSecret" gorm:"type:varchar(32);unique_index;not null" validate:"regexp=^[a-fA-F0-9]{32}$"`
+  ClientID       string       `json:"clientID" gorm:"type:varchar(32);unique_index;not null" validate:"regexp=^[a-fA-F0-9]{32}$"`
+  Name           string       `json:"name" gorm:"type:varchar(30);not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\- ]+$"`
+  Description    string       `json:"description" gorm:"type:varchar(255)"`
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
-  HydraClientID uint `json:"-" gorm:"DEFAULT:0" form:"-" validate:"-"`
+  HydraClientID  uint         `json:"-" gorm:"DEFAULT:0" form:"-" validate:"-"`
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {

@@ -1,10 +1,10 @@
 package dataSource
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/schulterklopfer/cyphernode_admin/logwrapper"
-	"github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/jinzhu/gorm"
+  _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 var db *gorm.DB
@@ -39,5 +39,10 @@ func AutoMigrate() {
     return
   }
   logwrapper.Logger().Info( "Migrating database")
-  db.AutoMigrate(&models.UserModel{},&models.AppModel{},&models.RoleModel{},&models.HydraClientModel{})
+  db.AutoMigrate(
+    &models.UserModel{},
+    &models.AppModel{},
+    &models.RoleModel{},
+    &models.HydraClientModel{},
+    &models.SessionModel{} )
 }

@@ -14,7 +14,6 @@ type (
     Name string `json:"name" form:"name"`
     Description string `json:"description" form:"description"`
     AutoAssign bool `json:"autoAssign" form:"autoAssign"`
-    AppId uint `json:"appId" form:"appId"`
   }
 
   // strange form names come from ng2_smart_table
