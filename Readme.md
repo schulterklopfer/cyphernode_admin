@@ -66,6 +66,16 @@ docker run --rm -it \
     --callbacks http://127.0.0.1:9010/callback
 ````
 
+### List oauth2 clients
+
+```bash
+docker run --rm -it \
+  --network hydra \
+  oryd/hydra:v1.0.0 \
+  clients list \
+    --endpoint http://hydra-test--hydra:4445
+```
+
 ### Delete oauth2 client
 
 ```bash
