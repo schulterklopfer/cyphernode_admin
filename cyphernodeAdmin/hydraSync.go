@@ -107,7 +107,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
     params := hydraAdmin.NewCreateOAuth2ClientParams()
     oauthClient.Secret = apps[i].ClientSecret
     oauthClient.ClientID = apps[i].ClientID
-    oauthClient.RedirectURIs = []string{ globals.URL_HOST+globals.ENDPOINTS_CALLBACK }
+    oauthClient.RedirectURIs = []string{ globals.URLS_CALLBACK }
     params.Body = &oauthClient
     _, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
 

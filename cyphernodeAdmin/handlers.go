@@ -5,85 +5,60 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/handlers"
 )
 
+func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
+  for i:=0; i<len( globals.ROUTER_GROUPS ); i++ {
+    cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[i]] = cyphernodeAdmin.engine.Group(globals.ROUTER_GROUPS_BASE_ENDPOINTS[i])
+  }
+}
+
+func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
+}
+
 func (cyphernodeAdmin *CyphernodeAdmin) initDefaultHandlers() {
-  cyphernodeAdmin.routerGroups["default"] = cyphernodeAdmin.engine.Group("/")
-  {
-    // TODO: csrf protection
-    //cyphernodeAdmin.routerGroups["oidc"].StaticFile(".well-known/openid-configuration", "./static/well-known/openid-configuration" )
-    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_LOGIN, handlers.DefaultLogin )
-    cyphernodeAdmin.routerGroups["default"].GET("/logout", handlers.DefaultLogout )
-    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
-    cyphernodeAdmin.routerGroups["default"].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
-
-  }
+  // TODO: csrf protection
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_DEFAULT].GET("/logout", handlers.DefaultLogout )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_DEFAULT].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
 }
-
-/*
-func (cyphernodeAdmin *CyphernodeAdmin) initOIDCHandlers() {
-  cyphernodeAdmin.routerGroups["oidc"] = cyphernodeAdmin.engine.Group("/oidc")
-  {
-    cyphernodeAdmin.routerGroups["oidc"].StaticFile("/jwks.json", "./static/jwks.json" )
-    cyphernodeAdmin.routerGroups["oidc"].GET("/me", handlers.GetMe )
-  }
-}
-*/
 
 func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
-  cyphernodeAdmin.routerGroups["users"] = cyphernodeAdmin.engine.Group("/api/v0/users")
-  {
-    cyphernodeAdmin.routerGroups["users"].GET("/", handlers.FindUsers)
-    cyphernodeAdmin.routerGroups["users"].POST("/", handlers.CreateUser)
-    cyphernodeAdmin.routerGroups["users"].GET("/:id", handlers.GetUser)
-    cyphernodeAdmin.routerGroups["users"].PUT("/:id", handlers.UpdateUser )
-    cyphernodeAdmin.routerGroups["users"].PATCH("/:id", handlers.PatchUser )
-    cyphernodeAdmin.routerGroups["users"].DELETE("/:id", handlers.DeleteUser )
-    cyphernodeAdmin.routerGroups["users"].POST("/:id/roles", handlers.UserAddRoles )
-    cyphernodeAdmin.routerGroups["users"].DELETE("/:id/roles/:roleId", handlers.UserRemoveRole )
-  }
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].GET("/", handlers.FindUsers)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].POST("/", handlers.CreateUser)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].GET("/:id", handlers.GetUser)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].PUT("/:id", handlers.UpdateUser )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].PATCH("/:id", handlers.PatchUser )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].DELETE("/:id", handlers.DeleteUser )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].POST("/:id/roles", handlers.UserAddRoles )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].DELETE("/:id/roles/:roleId", handlers.UserRemoveRole )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
-  cyphernodeAdmin.routerGroups["apps"] = cyphernodeAdmin.engine.Group("/api/v0/apps")
-  {
-    cyphernodeAdmin.routerGroups["apps"].GET("/", handlers.FindApps)
-    cyphernodeAdmin.routerGroups["apps"].POST("/", handlers.CreateApp)
-    cyphernodeAdmin.routerGroups["apps"].GET("/:id", handlers.GetApp)
-    cyphernodeAdmin.routerGroups["apps"].PUT("/:id", handlers.UpdateApp )
-    cyphernodeAdmin.routerGroups["apps"].PATCH("/:id", handlers.PatchApp )
-    cyphernodeAdmin.routerGroups["apps"].DELETE("/:id", handlers.DeleteApp )
-    cyphernodeAdmin.routerGroups["apps"].POST("/:id/roles", handlers.AppAddRoles )
-    cyphernodeAdmin.routerGroups["apps"].DELETE("/:id/roles/:roleId", handlers.AppRemoveRole )
-  }
-}
-
-func (cyphernodeAdmin *CyphernodeAdmin) initRolesHandlers() {
-  cyphernodeAdmin.routerGroups["roles"] = cyphernodeAdmin.engine.Group("/api/v0/roles")
-  {
-    cyphernodeAdmin.routerGroups["roles"].GET("/:clientID/:username", handlers.GetRolesForApp)
-  }
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].GET("/", handlers.FindApps)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].POST("/", handlers.CreateApp)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].GET("/:id", handlers.GetApp)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].PUT("/:id", handlers.UpdateApp )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].PATCH("/:id", handlers.PatchApp )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].DELETE("/:id", handlers.DeleteApp )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].POST("/:id/roles", handlers.AppAddRoles )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].DELETE("/:id/roles/:roleId", handlers.AppRemoveRole )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initHydraHandlers() {
-  cyphernodeAdmin.routerGroups["hydra"] = cyphernodeAdmin.engine.Group("/hydra")
-  {
-    // TODO: csrf protection
-    cyphernodeAdmin.routerGroups["hydra"].GET("/consent", handlers.HydraConsentGet)
-    cyphernodeAdmin.routerGroups["hydra"].GET("/login", handlers.HydraLoginGet)
-    cyphernodeAdmin.routerGroups["hydra"].GET("/logout", handlers.HydraLogoutGet)
-    cyphernodeAdmin.routerGroups["hydra"].POST("/consent", handlers.HydraConsentPost)
-    cyphernodeAdmin.routerGroups["hydra"].POST("/login", handlers.HydraLoginPost)
-    cyphernodeAdmin.routerGroups["hydra"].POST("/logout", handlers.HydraLogoutPost)
-  }
+  // TODO: csrf protection
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/consent", handlers.HydraConsentGet)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/login", handlers.HydraLoginGet)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/logout", handlers.HydraLogoutGet)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/consent", handlers.HydraConsentPost)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/login", handlers.HydraLoginPost)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/logout", handlers.HydraLogoutPost)
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initSessionHandlers() {
-  cyphernodeAdmin.routerGroups["sessions"] = cyphernodeAdmin.engine.Group("/sessions" )
-  {
-    cyphernodeAdmin.routerGroups["sessions"].GET("/:sessionID", handlers.GetSession )
-    cyphernodeAdmin.routerGroups["sessions"].PATCH("/:sessionID", handlers.PatchSession )
-    cyphernodeAdmin.routerGroups["sessions"].DELETE("/:sessionID", handlers.DeleteSession )
-    cyphernodeAdmin.routerGroups["sessions"].POST("/", handlers.CreateSession )
-  }
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_SESSIONS].GET("/:sessionID", handlers.GetSession )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_SESSIONS].PATCH("/:sessionID", handlers.PatchSession )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_SESSIONS].DELETE("/:sessionID", handlers.DeleteSession )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_SESSIONS].POST("/", handlers.CreateSession )
 }
 
 

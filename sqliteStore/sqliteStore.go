@@ -210,9 +210,7 @@ func (s JSONSerializer) Serialize(ss *gsessions.Session) ([]byte, error) {
 // Deserialize back to map[string]interface{}
 func (s JSONSerializer) Deserialize(d []byte, ss *gsessions.Session) error {
   m := make(map[string]interface{})
-  dStr := string(d)
 
-  println( dStr )
   err := json.Unmarshal(d, &m)
   if err != nil {
     fmt.Printf("redistore.JSONSerializer.deserialize() Error: %v", err)

@@ -15,7 +15,7 @@ import (
 
 
 // SessionName is the key used to access the session store.
-const SessionName = "_oidc_session"
+const SessionName = "_cna_session"
 const providerName = "openid-connect"
 
 // Store can/should be set by applications using gothic. The default is a cookie store.
