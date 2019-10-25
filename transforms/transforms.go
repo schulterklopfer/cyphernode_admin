@@ -53,6 +53,13 @@ func Transform( in interface{}, out interface{} ) bool {
       out.(*RoleV0).AutoAssign = in.(*models.RoleModel).AutoAssign
       transformed = true
     }
+  case *SessionV0:
+    switch in.(type) {
+    case *models.SessionModel:
+      out.(*SessionV0).SessionID = in.(*models.SessionModel).SessionID
+      out.(*SessionV0).Values = in.(*models.SessionModel).Values
+      transformed = true
+    }
   }
   return transformed
 }

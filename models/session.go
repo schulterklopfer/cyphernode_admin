@@ -7,8 +7,8 @@ import (
 
 type SessionModel struct {
   gorm.Model
-  SessionID string `json:"-" gorm:"type:varchar(48)"`
-  Values    string `json:"-" gorm:"type:text"`
+  SessionID string `json:"sessionID" gorm:"type:varchar(48)" validate:"regexp=^[a-zA-Z0-9_-]+$"`
+  Values    string `json:"values" gorm:"type:text"`
 }
 
 func ( session *SessionModel ) BeforeDelete( tx *gorm.DB ) (err error) {

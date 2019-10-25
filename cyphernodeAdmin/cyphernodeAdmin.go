@@ -78,9 +78,12 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
   cyphernodeAdmin.engine = gin.Default()
   cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")
-  cyphernodeAdmin.engine.Use(sessions.Sessions("_oidc_session", sqliteStore))
-  cyphernodeAdmin.engine.Use(CheckSession())
+  if !cyphernodeAdmin.config.DisableAuth {
+    cyphernodeAdmin.engine.Use(sessions.Sessions("_oidc_session", sqliteStore))
+    cyphernodeAdmin.engine.Use(CheckSession())
+  }
   cyphernodeAdmin.initDefaultHandlers()
+  cyphernodeAdmin.initSessionHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initRolesHandlers()

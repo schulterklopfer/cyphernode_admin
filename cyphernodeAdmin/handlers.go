@@ -76,3 +76,14 @@ func (cyphernodeAdmin *CyphernodeAdmin) initHydraHandlers() {
   }
 }
 
+func (cyphernodeAdmin *CyphernodeAdmin) initSessionHandlers() {
+  cyphernodeAdmin.routerGroups["sessions"] = cyphernodeAdmin.engine.Group("/sessions" )
+  {
+    cyphernodeAdmin.routerGroups["sessions"].GET("/:sessionID", handlers.GetSession )
+    cyphernodeAdmin.routerGroups["sessions"].PATCH("/:sessionID", handlers.PatchSession )
+    cyphernodeAdmin.routerGroups["sessions"].DELETE("/:sessionID", handlers.DeleteSession )
+    cyphernodeAdmin.routerGroups["sessions"].POST("/", handlers.CreateSession )
+  }
+}
+
+

@@ -25,4 +25,9 @@ type (
     EmailAddress string `json:"email_address" form:"email_address_like"`
     Roles []*RoleV0 `json:"roles" form:"roles"`
   }
+
+  SessionV0 struct {
+    SessionID string `json:"sessionID" form:"-"`
+    Values string `json:"values" form:"-"`
+  }
 )
