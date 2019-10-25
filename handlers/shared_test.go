@@ -28,6 +28,7 @@ func TestMain( m *testing.M ) {
   config.InitialAdminName = "admin"
   config.InitialAdminLogin = "admin"
   config.InitialAdminPassword = "test123"
+  config.DisableAuth = true
 
   cnAdmin := cyphernodeAdmin.NewCyphernodeAdmin( &config )
   cnAdmin.Init()
@@ -54,4 +55,5 @@ func TestMain( m *testing.M ) {
 func TestEveryting( t *testing.T ) {
   t.Run("apps", testAppHandlers )
   t.Run("users", testUserHandlers )
+  t.Run("sessions", testSessionHandlers )
 }

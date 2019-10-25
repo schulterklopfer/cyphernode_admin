@@ -30,6 +30,7 @@ type Config struct {
   InitialAdminPassword string
   InitialAdminName string
   InitialAdminEmailAddress string
+  DisableAuth bool
 }
 
 type CyphernodeAdmin struct {
