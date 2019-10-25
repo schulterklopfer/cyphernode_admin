@@ -39,11 +39,10 @@ func testGetApp(t *testing.T) {
   }
 
   var app transforms.AppV0
-  json.Unmarshal(body, &app)
+  _ = json.Unmarshal(body, &app)
 
   if app.Name != cyphernodeAdmin.ADMIN_APP_NAME ||
     app.Description != cyphernodeAdmin.ADMIN_APP_DESCRIPTION ||
-    app.Hash != cyphernodeAdmin.ADMIN_APP_HASH ||
     app.ID != 1 ||
 
     len(app.AvailableRoles) != 1 {
@@ -57,7 +56,8 @@ func testCreateApp(t *testing.T) {
 {
   "name": "testApp",
   "description": "test app",
-  "hash": "01234567890123456789012345678912",
+  "clientID": "01234567890123456789012345678912",
+  "clientSecret": "01234567890123456789012345678912",
   "availableRoles": [
     {
       "name": "admin",
@@ -91,7 +91,7 @@ func testCreateApp(t *testing.T) {
   json.Unmarshal(body, &app)
 
   if app.Name != "testApp" ||
-      app.Hash != "01234567890123456789012345678912" ||
+      app.ClientID != "01234567890123456789012345678912" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 2 {
     t.Error( "error in get app" )
@@ -126,7 +126,7 @@ func testAppAddRole( t *testing.T ) {
 
 
   if app.Name != "testApp" ||
-      app.Hash != "01234567890123456789012345678912" ||
+      app.ClientID != "01234567890123456789012345678912" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 3 {
     t.Error( "error in app add role" )
@@ -176,7 +176,7 @@ func testPatchApp(t *testing.T) {
   json.Unmarshal(body, &app)
 
   if app.Name != "testApp2" ||
-      app.Hash != "01234567890123456789012345678912" ||
+      app.ClientID != "01234567890123456789012345678912" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 2 {
     t.Error( "error in patch app" )
