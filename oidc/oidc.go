@@ -279,10 +279,6 @@ var GetUser = func(res http.ResponseWriter, req *http.Request) (goth.User, error
   return gu, err
 }
 
-func Client() *http.Client {
-  return goth.HTTPClientWithFallBack( http.DefaultClient )
-}
-
 func getSessionValue(session *sessions.Session, key string) (string, error) {
   value := session.Values[key]
   if value == nil {
