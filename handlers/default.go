@@ -25,7 +25,7 @@ func DefaultLogin( c *gin.Context ) {
   }
 }
 
-func DefaultCallbackGet( c *gin.Context ) {
+func DefaultCallback( c *gin.Context ) {
 
   gothUser, err := oidc.CompleteUserAuth( c.Writer, c.Request )
 
@@ -46,8 +46,21 @@ func DefaultHome( c *gin.Context ) {
   }
 }
 
+func DefaultByeBye( c *gin.Context ) {
+  c.JSON( http.StatusOK, map[string]string{ "message": "bye bye!" })
+}
+
 func DefaultLogout( c *gin.Context ) {
   print( "logout")
+  if _, exists := c.Get("user"); exists {
+    err := oidc.Logout( c.Writer, c.Request )
+    if err != nil {
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusBadRequest )
+    }
+    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
+  }
+  c.Status( http.StatusNotFound )
 }
 
 

@@ -191,6 +191,11 @@ func validateState(state string, sess goth.Session) error {
 
 // Logout invalidates a user session.
 func Logout(res http.ResponseWriter, req *http.Request) error {
+
+  if Store == nil {
+    return cnaErrors.ErrNoSessionStore
+  }
+
   session, err := Store.Get(req, SessionName)
   if err != nil {
     return err

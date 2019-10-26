@@ -14,7 +14,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET("/", handlers.DefaultRoot )
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_CALLBACK, handlers.DefaultCallback)
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_BYEBYE, handlers.DefaultByeBye )
+
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {

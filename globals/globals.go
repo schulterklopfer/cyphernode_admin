@@ -30,6 +30,7 @@ const ROUTER_GROUPS_BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const URL_HOST string = "http://127.0.0.1:3030"
 const PUBLIC_ENDPOINTS_LOGIN string = "/login"
 const PUBLIC_ENDPOINTS_CALLBACK string = "/callback"
+const PUBLIC_ENDPOINTS_BYEBYE string = "/byebye"
 const PRIVATE_ENDPOINTS_HOME string = "/home"
 
 const URLS_OIDC_DISCOVERY string = "http://127.0.0.1:9000/.well-known/openid-configuration"
