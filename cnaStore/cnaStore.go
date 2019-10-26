@@ -222,7 +222,7 @@ func (cnaStore *CNAStore) save(session *gsessions.Session) error {
 
 func (cnaStore *CNAStore) delete(session *gsessions.Session) error {
 
-  req, err := http.NewRequest("DELETE", cnaStore.url,nil)
+  req, err := http.NewRequest("DELETE", cnaStore.url+session.ID,nil)
 
   if err != nil {
     return err
