@@ -105,13 +105,15 @@ func CheckSession() gin.HandlerFunc {
   return func(c *gin.Context) {
     if !helpers.EndpointIsPublic( c.Request.URL.Path ) {
       // fetch userinfo from hydra
-      user, err := oidc.GetUser( c.Writer, c.Request )
-      if err != nil {
-        c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
-        return
+      if _, exists := c.Get("user"); !exists {
+        user, err := oidc.GetUser(c.Writer, c.Request)
+        if err != nil {
+          c.Redirect(http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
+          return
+        }
+        // put it in gin context for other handlers
+        c.Set("user", user)
       }
-      // all not public endpoints need the role "admin"
-      c.Set("user", user )
     }
     c.Next()
   }
