@@ -8,7 +8,8 @@ import (
 )
 
 func DefaultRoot( c *gin.Context ) {
-  if _, exists :=  c.Get( "user"); exists {
+  if user, err := oidc.GetUser( c.Writer, c.Request ); err == nil {
+    c.Set("user", user )
     c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
   } else {
     c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
@@ -16,16 +17,12 @@ func DefaultRoot( c *gin.Context ) {
 }
 
 func DefaultLogin( c *gin.Context ) {
-  //url := oauth2.Get().Config.AuthCodeURL(helpers.RandomString(16 ), xoauth2.AccessTypeOffline)
-  //fmt.Printf("redirecting to: %v", url)
-  //c.Redirect( http.StatusTemporaryRedirect, url )
-
-  //if gothUser, err := oidc.CompleteUserAuth(c.Writer, c.Request); err == nil {
-  //  println( &gothUser )
-  //} else {
-  oidc.BeginAuthHandler(c.Writer, c.Request)
-  //}
-
+  if user, err := oidc.GetUser( c.Writer, c.Request ); err == nil {
+    c.Set("user", user )
+    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
+  } else {
+    oidc.BeginAuthHandler(c.Writer, c.Request)
+  }
 }
 
 func DefaultCallbackGet( c *gin.Context ) {
