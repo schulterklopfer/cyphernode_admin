@@ -180,6 +180,7 @@ func (cnaStore *CNAStore) save(session *gsessions.Session) error {
     }
     // patch
     req, err := http.NewRequest("PATCH", cnaStore.url+session.ID, bytes.NewBuffer(body) )
+    req.Header.Set("Content-Type", "application/json")
     if err != nil {
       return err
     }
