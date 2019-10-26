@@ -142,7 +142,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
     return goth.User{}, err
   }
 
-  err = validateState(req, sess)
+  err = validateState(req.URL.Query().Get("state"), sess)
   if err != nil {
     return goth.User{}, err
   }
@@ -171,7 +171,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 
 // validateState ensures that the state token param from the original
 // AuthURL matches the one included in the current (callback) request.
-func validateState(req *http.Request, sess goth.Session) error {
+func validateState(state string, sess goth.Session) error {
   rawAuthURL, err := sess.GetAuthURL()
   if err != nil {
     return err
@@ -183,7 +183,7 @@ func validateState(req *http.Request, sess goth.Session) error {
   }
 
   originalState := authURL.Query().Get("state")
-  if originalState != "" && (originalState != req.URL.Query().Get("state")) {
+  if originalState != "" && (originalState != state ) {
     return errors.New("state token mismatch")
   }
   return nil
