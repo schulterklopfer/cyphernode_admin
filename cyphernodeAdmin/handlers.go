@@ -12,14 +12,14 @@ func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET("/", handlers.DefaultRoot )
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_CALLBACK, handlers.DefaultCallbackGet)
 }
 
-func (cyphernodeAdmin *CyphernodeAdmin) initDefaultHandlers() {
-  // TODO: csrf protection
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_DEFAULT].GET("/logout", handlers.DefaultLogout )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_DEFAULT].GET( globals.ENDPOINTS_HOME, handlers.DefaultHome )
+func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PRIVATE].GET("/logout", handlers.DefaultLogout )
+  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PRIVATE].GET( globals.PRIVATE_ENDPOINTS_HOME, handlers.DefaultHome )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {

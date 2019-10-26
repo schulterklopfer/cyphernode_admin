@@ -7,32 +7,22 @@ import (
   "fmt"
   "github.com/gorilla/sessions"
   "github.com/markbates/goth"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "io"
   "net/http"
   "net/url"
-  "os"
 )
 
 
 // SessionName is the key used to access the session store.
-const SessionName = "_cna_session"
+const SessionName = globals.SESSION_COOKIE_NAME
 const providerName = "openid-connect"
 
 // Store can/should be set by applications using gothic. The default is a cookie store.
 var Store sessions.Store
-var defaultStore sessions.Store
-
-var keySet = false
-
-func init() {
-  key := []byte(os.Getenv("SESSION_SECRET"))
-  keySet = len(key) != 0
-
-  cookieStore := sessions.NewCookieStore([]byte(key))
-  cookieStore.Options.HttpOnly = true
-  Store = cookieStore
-  defaultStore = Store
-}
+//var defaultStore sessions.Store
+//var keySet = false
 
 /*
 BeginAuthHandler is a convenience handler for starting the authentication process.
@@ -96,8 +86,8 @@ I would recommend using the BeginAuthHandler instead of doing all of these steps
 yourself, but that's entirely up to you.
 */
 func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
-  if !keySet && defaultStore == Store {
-    fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+  if Store == nil {
+    return "", cnaErrors.ErrNoSessionStore
   }
 
   provider, err := goth.GetProvider(providerName)
@@ -133,8 +123,8 @@ as either "provider" or ":provider".
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
 var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-  if !keySet && defaultStore == Store {
-    fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+  if Store == nil {
+    return goth.User{}, cnaErrors.ErrNoSessionStore
   }
 
   provider, err := goth.GetProvider(providerName)
@@ -238,8 +228,8 @@ func GetFromSession(key string, req *http.Request) (string, error) {
 }
 
 var GetUser = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-  if !keySet && defaultStore == Store {
-    fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+  if Store == nil {
+    return goth.User{}, cnaErrors.ErrNoSessionStore
   }
 
   provider, err := goth.GetProvider(providerName)

@@ -1,7 +1,6 @@
 package cyphernodeAdmin
 
 import (
-  "github.com/gin-contrib/sessions"
   "github.com/gin-gonic/gin"
   "github.com/markbates/goth"
   "github.com/markbates/goth/providers/openidConnect"
@@ -49,8 +48,9 @@ func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   //sessionStore := sqliteStore.NewSqliteStore( []byte("secret") )
-  sessionStore := cnaStore.NewCNAStore( "http://127.0.0.1:3030/sessions/", "127.0.0.1", []byte("secret") )
+  sessionStore := cnaStore.NewCNAStore( "http://127.0.0.1:3030/sessions/", "127.0.0.1",  []byte(os.Getenv("SESSION_SECRET")) )
 
+  oidc.Store = sessionStore
   dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
   hydraAPI.Init()
 
@@ -75,7 +75,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   if openidConnect != nil {
     goth.UseProviders(openidConnect)
   }
-  oidc.Store = sessionStore
 
   cyphernodeAdmin.engine = gin.Default()
   cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")
@@ -84,20 +83,20 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   // add session checks b4 other handlers so they are handled first
   // order is important here
   if !cyphernodeAdmin.config.DisableAuth {
-    for i:=0; i<len( globals.PROTECTED_ROUTER_GROUPS ); i++ {
-      cyphernodeAdmin.routerGroups[globals.PROTECTED_ROUTER_GROUPS[i]].Use( sessions.Sessions("_cna_session", sessionStore), CheckSession() )
+    for i:=0; i<len( globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
+      //cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use(
+      //  sessions.Sessions(globals.SESSION_COOKIE_NAME, sessionStore), CheckSession() )
+      cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use( CheckSession() )
     }
   }
 
   // create handlers for public and private endpoints
   cyphernodeAdmin.initPublicHandlers()
-  cyphernodeAdmin.initDefaultHandlers()
+  cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initSessionHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initHydraHandlers()
-
-  cyphernodeAdmin.engine.Use( HandleUnhandled() )
 
   return nil
 }
@@ -115,12 +114,6 @@ func CheckSession() gin.HandlerFunc {
       c.Set("user", user )
     }
     c.Next()
-  }
-}
-
-func HandleUnhandled() gin.HandlerFunc {
-  return func(c *gin.Context) {
-    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
   }
 }
 

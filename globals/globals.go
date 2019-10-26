@@ -1,5 +1,7 @@
 package globals
 
+const SESSION_COOKIE_NAME string = "_cna_session"
+
 /** env keys **/
 const HYDRA_ADMIN_URL_ENV_KEY string = "CNA_HYDRA_ADMIN_URL"
 const HYDRA_DISABLE_SYNC_ENV_KEY string = "CNA_DISABLE_HYDRA_SYNC"
@@ -9,16 +11,16 @@ const HYDRA_SCOPE_OFFLINE string = "offline"
 const HYDRA_SCOPE_OPEN_ID string = "openid"
 
 /** router group names **/
-const ROUTER_GROUPS_DEFAULT string = "default"
 const ROUTER_GROUPS_PUBLIC string = "public"
+const ROUTER_GROUPS_PRIVATE string = "private"
 const ROUTER_GROUPS_HYDRA string = "hydra"
 const ROUTER_GROUPS_SESSIONS string = "sessions"
 const ROUTER_GROUPS_USERS string = "users"
 const ROUTER_GROUPS_APPS string = "apps"
 
 /** router groups endpoint bases **/
-const ROUTER_GROUPS_BASE_ENDPOINT_DEFAULT string = "/"
-const ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC string = "/public"
+const ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC string = ""
+const ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE string = "/_"
 const ROUTER_GROUPS_BASE_ENDPOINT_HYDRA string = "/hydra"
 const ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS string = "/sessions"
 const ROUTER_GROUPS_BASE_ENDPOINT_USERS string = "/api/v0/users"
@@ -28,7 +30,7 @@ const ROUTER_GROUPS_BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const URL_HOST string = "http://127.0.0.1:3030"
 const PUBLIC_ENDPOINTS_LOGIN string = "/login"
 const PUBLIC_ENDPOINTS_CALLBACK string = "/callback"
-const ENDPOINTS_HOME string = "/home"
+const PRIVATE_ENDPOINTS_HOME string = "/home"
 
 const URLS_OIDC_DISCOVERY string = "http://127.0.0.1:9000/.well-known/openid-configuration"
 const URLS_CALLBACK string = URL_HOST+ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+PUBLIC_ENDPOINTS_CALLBACK
@@ -62,19 +64,23 @@ var HYDRA_AUTO_SCOPES = [...]string{ HYDRA_SCOPE_OFFLINE, HYDRA_SCOPE_OPEN_ID }
 var ENDPOINTS_PUBLIC_PATTERNS = [...]string{ ".*/+favicon.ico$" }
 
 var ROUTER_GROUPS = [...]string{
-  ROUTER_GROUPS_DEFAULT,
+  /* public */
   ROUTER_GROUPS_PUBLIC,
   ROUTER_GROUPS_HYDRA,
   ROUTER_GROUPS_SESSIONS,
+  /* protected */
+  ROUTER_GROUPS_PRIVATE,
   ROUTER_GROUPS_APPS,
   ROUTER_GROUPS_USERS,
 }
 var ROUTER_GROUPS_BASE_ENDPOINTS = [...]string{
-  ROUTER_GROUPS_BASE_ENDPOINT_DEFAULT,
+  /* public */
   ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC,
   ROUTER_GROUPS_BASE_ENDPOINT_HYDRA,
   ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS,
+  /* protected */
+  ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE,
   ROUTER_GROUPS_BASE_ENDPOINT_APPS,
   ROUTER_GROUPS_BASE_ENDPOINT_USERS,
 }
-var PROTECTED_ROUTER_GROUPS = [...]string{ ROUTER_GROUPS_DEFAULT, ROUTER_GROUPS_APPS, ROUTER_GROUPS_USERS }
+var PROTECTED_ROUTER_GROUPS_INDICES = [...]int{ 3,4,5 }

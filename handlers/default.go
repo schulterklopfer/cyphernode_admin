@@ -7,6 +7,14 @@ import (
   "net/http"
 )
 
+func DefaultRoot( c *gin.Context ) {
+  if _, exists :=  c.Get( "user"); exists {
+    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
+  } else {
+    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
+  }
+}
+
 func DefaultLogin( c *gin.Context ) {
   //url := oauth2.Get().Config.AuthCodeURL(helpers.RandomString(16 ), xoauth2.AccessTypeOffline)
   //fmt.Printf("redirecting to: %v", url)
@@ -20,13 +28,6 @@ func DefaultLogin( c *gin.Context ) {
 
 }
 
-type callbackData struct {
-  Code string `form:"code"`
-  Scope string `form:"scope"`
-  State string `form:"state"`
-  Error string `form:"error"`
-}
-
 func DefaultCallbackGet( c *gin.Context ) {
 
   gothUser, err := oidc.CompleteUserAuth( c.Writer, c.Request )
@@ -38,7 +39,7 @@ func DefaultCallbackGet( c *gin.Context ) {
   }
 
   c.Set("user", gothUser )
-  c.Redirect( http.StatusTemporaryRedirect, globals.ENDPOINTS_HOME )
+  c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
 
 }
 
