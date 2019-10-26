@@ -122,7 +122,7 @@ as either "provider" or ":provider".
 
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
-var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request, state string) (goth.User, error) {
+var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
   if Store == nil {
     return goth.User{}, cnaErrors.ErrNoSessionStore
   }
@@ -142,11 +142,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request, state st
     return goth.User{}, err
   }
 
-  if state == "" {
-    state = req.URL.Query().Get("state")
-  }
-
-  err = validateState(state, sess)
+  err = validateState(req.URL.Query().Get("state"), sess)
   if err != nil {
     return goth.User{}, err
   }
