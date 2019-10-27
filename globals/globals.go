@@ -4,7 +4,10 @@ const SESSION_COOKIE_NAME string = "_cna_session"
 
 /** env keys **/
 const HYDRA_ADMIN_URL_ENV_KEY string = "CNA_HYDRA_ADMIN_URL"
+const OIDC_SESSION_COOKIE_SECRET_ENV_KEY string = "OIDC_SESSION_COOKIE_SECRET"
 const HYDRA_DISABLE_SYNC_ENV_KEY string = "CNA_DISABLE_HYDRA_SYNC"
+const OIDC_DISCOVERY_URL_ENV_KEY string = "OIDC_DISCOVERY_URL"
+const BASE_URL_ENV_KEY string = "BASE_URL"
 
 /** general hydra stuff **/
 const HYDRA_SCOPE_OFFLINE string = "offline"
@@ -27,14 +30,13 @@ const ROUTER_GROUPS_BASE_ENDPOINT_USERS string = "/api/v0/users"
 const ROUTER_GROUPS_BASE_ENDPOINT_APPS string = "/api/v0/apps"
 
 /** urls and endpoints **/
-const URL_HOST string = "http://127.0.0.1:3030"
 const PUBLIC_ENDPOINTS_LOGIN string = "/login"
 const PUBLIC_ENDPOINTS_CALLBACK string = "/callback"
 const PUBLIC_ENDPOINTS_BYEBYE string = "/byebye"
 const PRIVATE_ENDPOINTS_HOME string = "/home"
 
-const URLS_OIDC_DISCOVERY string = "http://127.0.0.1:9000/.well-known/openid-configuration"
-const URLS_CALLBACK string = URL_HOST+ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+PUBLIC_ENDPOINTS_CALLBACK
+//const URLS_OIDC_DISCOVERY string = "http://127.0.0.1:9000/.well-known/openid-configuration"
+const URLS_CALLBACK string = ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+PUBLIC_ENDPOINTS_CALLBACK
 
 
 

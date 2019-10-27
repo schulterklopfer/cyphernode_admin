@@ -7,7 +7,6 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
-  "github.com/schulterklopfer/cyphernode_admin/shared"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
   "strconv"
@@ -55,7 +54,7 @@ func CreateApp(c *gin.Context) {
   }
 
   var app models.AppModel
-  shared.SetByJsonTag( &app, input )
+  helpers.SetByJsonTag( &app, input )
 
   // just to be sure
   err = queries.Create(&app)
@@ -115,7 +114,7 @@ func UpdateApp(c *gin.Context) {
 
   var newUser models.AppModel
 
-  shared.SetByJsonTag( &newUser, input )
+  helpers.SetByJsonTag( &newUser, input )
 
   newUser.ID = app.ID
   err = queries.Update( &newUser )
@@ -175,7 +174,7 @@ func PatchApp(c *gin.Context) {
 
   err = c.Bind( &input )
 
-  shared.SetByJsonTag( &app, input )
+  helpers.SetByJsonTag( &app, input )
 
   err = queries.Update( &app )
 

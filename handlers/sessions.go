@@ -2,9 +2,9 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
-  "github.com/schulterklopfer/cyphernode_admin/shared"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
 )
@@ -50,7 +50,7 @@ func CreateSession(c *gin.Context) {
 
   var session models.SessionModel
 
-  shared.SetByJsonTag( &session, input )
+  helpers.SetByJsonTag( &session, input )
 
   err = queries.Update( &session )
 
@@ -94,7 +94,7 @@ func PatchSession(c *gin.Context) {
 
   err = c.Bind( &input )
 
-  shared.SetByJsonTag( &session, input )
+  helpers.SetByJsonTag( &session, input )
 
   err = queries.Update( &session )
 

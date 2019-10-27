@@ -3,9 +3,13 @@ package helpers
 import (
   "crypto/rand"
   "encoding/base32"
-  "github.com/markbates/goth"
+  "encoding/json"
+  "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
   "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/password"
   "io"
+  "os"
+  "reflect"
   "regexp"
   "strings"
   "time"
@@ -70,7 +74,7 @@ func EndpointIsPublic( endpoint string ) bool {
   return false
 }
 
-func UserIsAdmin( user *goth.User ) bool {
+func UserIsAdmin( user *cnaOIDC.User ) bool {
   if user == nil {
     return false
   }
@@ -96,3 +100,45 @@ func RandomString(length int) string {
   return strings.TrimRight( base32.StdEncoding.EncodeToString( randomBytes), "=" )
 }
 
+func AbsoluteURL( path string ) string {
+  host := os.Getenv( globals.BASE_URL_ENV_KEY )
+  for strings.HasSuffix( host,"/") {
+    // remove last character
+    host = host[:len(host)-1]
+  }
+
+  for strings.HasPrefix( path,"/") {
+    // remove last character
+    path = path[1:len(path)]
+  }
+
+  return host+"/"+path
+}
+
+func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
+
+  // evaluate sbjt tag actions like hashing passwords
+  structType := reflect.TypeOf(obj).Elem()
+  //mutableObject := reflect.ValueOf(obj).Elem()
+  for jsonFieldName, jsonFieldValue := range *values {
+    for i := 0; i < structType.NumField(); i++ {
+      field := structType.Field(i)
+      jsonTag, hasJsonTag := field.Tag.Lookup("json")
+      sbjtTag, hasSbjtTag := field.Tag.Lookup("sbjt")
+
+      if hasSbjtTag && hasJsonTag && jsonTag == jsonFieldName {
+        switch sbjtTag {
+        case "hashPassword":
+          if reflect.TypeOf(jsonFieldValue).Kind() == reflect.String {
+            hashedPassword, _ := password.HashPassword(jsonFieldValue.(string))
+            (*values)[jsonFieldName] = hashedPassword
+          }
+        }
+      }
+    }
+  }
+
+  jsonStringBytes, _ := json.Marshal( values )
+  _ = json.Unmarshal( jsonStringBytes, obj )
+
+}

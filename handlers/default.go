@@ -2,13 +2,13 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/oidc"
   "net/http"
 )
 
 func DefaultRoot( c *gin.Context ) {
-  if user, err := oidc.GetUser( c.Writer, c.Request ); err == nil {
+  if user, err := cnaOIDC.GetUser( c.Writer, c.Request ); err == nil {
     c.Set("user", user )
     c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
   } else {
@@ -17,17 +17,17 @@ func DefaultRoot( c *gin.Context ) {
 }
 
 func DefaultLogin( c *gin.Context ) {
-  if user, err := oidc.GetUser( c.Writer, c.Request ); err == nil {
+  if user, err := cnaOIDC.GetUser( c.Writer, c.Request ); err == nil {
     c.Set("user", user )
     c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE+globals.PRIVATE_ENDPOINTS_HOME)
   } else {
-    oidc.BeginAuthHandler(c.Writer, c.Request)
+    cnaOIDC.BeginAuthHandler(c.Writer, c.Request)
   }
 }
 
 func DefaultCallback( c *gin.Context ) {
 
-  gothUser, err := oidc.CompleteUserAuth( c.Writer, c.Request )
+  gothUser, err := cnaOIDC.CompleteUserAuth( c.Writer, c.Request )
 
   if err != nil {
     c.Header("X-Status-Reason", err.Error() )
@@ -53,7 +53,7 @@ func DefaultByeBye( c *gin.Context ) {
 func DefaultLogout( c *gin.Context ) {
   print( "logout")
   if _, exists := c.Get("user"); exists {
-    err := oidc.Logout( c.Writer, c.Request )
+    err := cnaOIDC.Logout( c.Writer, c.Request )
     if err != nil {
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )

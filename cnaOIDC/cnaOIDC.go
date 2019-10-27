@@ -1,4 +1,8 @@
-package oidc
+package cnaOIDC
+
+/**
+  based on https://github.com/markbates/goth. Thanks a lot! :D
+ **/
 
 import (
   "crypto/rand"
@@ -6,8 +10,8 @@ import (
   "errors"
   "fmt"
   "github.com/gorilla/sessions"
-  "github.com/markbates/goth"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/cnaSessionStore"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "io"
   "net/http"
@@ -17,23 +21,38 @@ import (
 
 // SessionName is the key used to access the session store.
 const SessionName = globals.SESSION_COOKIE_NAME
-const providerName = "openid-connect"
+const sessionDataKey = "oidc"
 
-// Store can/should be set by applications using gothic. The default is a cookie store.
-var Store sessions.Store
-//var defaultStore sessions.Store
-//var keySet = false
+var sessionStore sessions.Store
+var provider *Flow
 
-/*
-BeginAuthHandler is a convenience handler for starting the authentication process.
-It expects to be able to get the name of the provider from the query parameters
-as either "provider" or ":provider".
+type InitParams struct {
+  ClientID string
+  ClientSecret string
+  CallbackURL string
+  OIDCDiscoveryURL string
+  SessionsEndpoint string
+  CookieSecret []byte
+  CookieDomain string
+}
 
-BeginAuthHandler will redirect the user to the appropriate authentication end-point
-for the requested provider.
+func NewInitParams( clientID string, clientSecret string, callbackURL string, OIDCDiscoveryURL string, sessionsEndpoint string, sessionStoreCookieSecret []byte, cookieDomain string ) *InitParams {
+  return &InitParams{
+    ClientID:                 clientID,
+    ClientSecret:             clientSecret,
+    CallbackURL:              callbackURL,
+    OIDCDiscoveryURL:         OIDCDiscoveryURL,
+    SessionsEndpoint:         sessionsEndpoint,
+    CookieSecret:             sessionStoreCookieSecret,
+    CookieDomain:             cookieDomain,
+  }
+}
 
-See https://github.com/markbates/goth/examples/main.go to see this in action.
-*/
+func Init( params *InitParams ) {
+  provider, _ =  NewFlow(params.ClientID, params.ClientSecret, params.CallbackURL, params.OIDCDiscoveryURL )
+  sessionStore = cnaSessionStore.NewCNASessionStore( params.SessionsEndpoint, params.CookieDomain, params.CookieSecret )
+}
+
 func BeginAuthHandler(res http.ResponseWriter, req *http.Request) {
   url, err := GetAuthURL(res, req)
   if err != nil {
@@ -75,25 +94,11 @@ var GetState = func(req *http.Request) string {
   return req.URL.Query().Get("state")
 }
 
-/*
-GetAuthURL starts the authentication process with the requested provided.
-It will return a URL that should be used to send users to.
-
-It expects to be able to get the name of the provider from the query parameters
-as either "provider" or ":provider".
-
-I would recommend using the BeginAuthHandler instead of doing all of these steps
-yourself, but that's entirely up to you.
-*/
 func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
-  if Store == nil {
+  if sessionStore == nil {
     return "", cnaErrors.ErrNoSessionStore
   }
 
-  provider, err := goth.GetProvider(providerName)
-  if err != nil {
-    return "", err
-  }
   sess, err := provider.BeginAuth(SetState(req))
   if err != nil {
     return "", err
@@ -104,7 +109,7 @@ func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
     return "", err
   }
 
-  err = StoreInSession(providerName, sess.Marshal(), req, res)
+  err = StoreInSession(sessionDataKey, sess.Marshal(), req, res)
 
   if err != nil {
     return "", err
@@ -113,38 +118,24 @@ func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
   return url, err
 }
 
-/*
-CompleteUserAuth does what it says on the tin. It completes the authentication
-process and fetches all of the basic information about the user from the provider.
-
-It expects to be able to get the name of the provider from the query parameters
-as either "provider" or ":provider".
-
-See https://github.com/markbates/goth/examples/main.go to see this in action.
-*/
-var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-  if Store == nil {
-    return goth.User{}, cnaErrors.ErrNoSessionStore
+var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (User, error) {
+  if sessionStore == nil {
+    return User{}, cnaErrors.ErrNoSessionStore
   }
 
-  provider, err := goth.GetProvider(providerName)
+  value, err := GetFromSession(sessionDataKey, req)
   if err != nil {
-    return goth.User{}, err
-  }
-
-  value, err := GetFromSession(providerName, req)
-  if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   sess, err := provider.UnmarshalSession(value)
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   err = validateState(req.URL.Query().Get("state"), sess)
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   user, err := provider.FetchUser(sess)
@@ -156,13 +147,13 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
   // get new token and retry fetch
   _, err = sess.Authorize(provider, req.URL.Query())
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
-  err = StoreInSession(providerName, sess.Marshal(), req, res)
+  err = StoreInSession(sessionDataKey, sess.Marshal(), req, res)
 
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   gu, err := provider.FetchUser(sess)
@@ -171,7 +162,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 
 // validateState ensures that the state token param from the original
 // AuthURL matches the one included in the current (callback) request.
-func validateState(state string, sess goth.Session) error {
+func validateState(state string, sess *Session) error {
   rawAuthURL, err := sess.GetAuthURL()
   if err != nil {
     return err
@@ -192,11 +183,11 @@ func validateState(state string, sess goth.Session) error {
 // Logout invalidates a user session.
 func Logout(res http.ResponseWriter, req *http.Request) error {
 
-  if Store == nil {
+  if sessionStore == nil {
     return cnaErrors.ErrNoSessionStore
   }
 
-  session, err := Store.Get(req, SessionName)
+  session, err := sessionStore.Get(req, SessionName)
   if err != nil {
     return err
   }
@@ -211,7 +202,7 @@ func Logout(res http.ResponseWriter, req *http.Request) error {
 
 // StoreInSession stores a specified key/value pair in the session.
 func StoreInSession(key string, value string, req *http.Request, res http.ResponseWriter) error {
-  session, _ := Store.New(req, SessionName)
+  session, _ := sessionStore.New(req, SessionName)
 
   if err := updateSessionValue(session, key, value); err != nil {
     return err
@@ -223,7 +214,7 @@ func StoreInSession(key string, value string, req *http.Request, res http.Respon
 // GetFromSession retrieves a previously-stored value from the session.
 // If no value has previously been stored at the specified key, it will return an error.
 func GetFromSession(key string, req *http.Request) (string, error) {
-  session, _ := Store.Get(req, SessionName)
+  session, _ := sessionStore.Get(req, SessionName)
   value, err := getSessionValue(session, key)
   if err != nil {
     return "", errors.New("could not find a matching session for this request")
@@ -232,24 +223,19 @@ func GetFromSession(key string, req *http.Request) (string, error) {
   return value, nil
 }
 
-var GetUser = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-  if Store == nil {
-    return goth.User{}, cnaErrors.ErrNoSessionStore
+var GetUser = func(res http.ResponseWriter, req *http.Request) (User, error) {
+  if sessionStore == nil {
+    return User{}, cnaErrors.ErrNoSessionStore
   }
 
-  provider, err := goth.GetProvider(providerName)
+  value, err := GetFromSession(sessionDataKey, req)
   if err != nil {
-    return goth.User{}, err
-  }
-
-  value, err := GetFromSession(providerName, req)
-  if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   sess, err := provider.UnmarshalSession(value)
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   user, err := provider.FetchUser(sess)
@@ -261,13 +247,13 @@ var GetUser = func(res http.ResponseWriter, req *http.Request) (goth.User, error
   // get new token and retry fetch
   _, err = sess.Authorize(provider, req.URL.Query())
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
-  err = StoreInSession(providerName, sess.Marshal(), req, res)
+  err = StoreInSession(sessionDataKey, sess.Marshal(), req, res)
 
   if err != nil {
-    return goth.User{}, err
+    return User{}, err
   }
 
   gu, err := provider.FetchUser(sess)

@@ -47,6 +47,7 @@ docker run -d \
   -e URLS_SELF_ISSUER=http://127.0.0.1:9000/ \
   -e URLS_CONSENT=http://127.0.0.1:3030/hydra/consent \
   -e URLS_LOGIN=http://127.0.0.1:3030/hydra/login \
+  -e URLS_LOGOUT=http://127.0.0.1:3030/hydra/logout \
   oryd/hydra:v1.0.0 serve all --dangerous-force-http
 ```
 

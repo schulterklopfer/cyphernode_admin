@@ -3,6 +3,7 @@ package cyphernodeAdmin
 import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/password"
@@ -48,6 +49,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.Description = ADMIN_APP_DESCRIPTION
     adminApp.ClientSecret = helpers.RandomString(32 )
     adminApp.ClientID = helpers.RandomString(32 )
+    adminApp.CallbackURL = helpers.AbsoluteURL( globals.URLS_CALLBACK )
     if adminApp.ClientSecret == "" || adminApp.ClientID == "" {
       return cnaErrors.ErrMigrationFailed
     }

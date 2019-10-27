@@ -4,7 +4,6 @@ import (
   hydraAdmin "github.com/ory/hydra/sdk/go/hydra/client/admin"
   hydraModels "github.com/ory/hydra/sdk/go/hydra/models"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/hydraAPI"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
@@ -76,7 +75,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) syncHydraClients() {
       var oauthClient hydraModels.Client
       oauthClient.Secret = hydraClient.Secret
       oauthClient.ClientID = hydraClient.ClientID
-      oauthClient.RedirectURIs = []string{ globals.URLS_CALLBACK }
+      oauthClient.RedirectURIs = []string{ hydraClient.CallbackURL }
 
       params.Body = &oauthClient
       result, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
@@ -107,7 +106,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
     params := hydraAdmin.NewCreateOAuth2ClientParams()
     oauthClient.Secret = apps[i].ClientSecret
     oauthClient.ClientID = apps[i].ClientID
-    oauthClient.RedirectURIs = []string{ globals.URLS_CALLBACK }
+    oauthClient.RedirectURIs = []string{ apps[i].CallbackURL }
     params.Body = &oauthClient
     _, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
 
@@ -115,6 +114,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
       hydraClient.AppID = apps[i].ID
       hydraClient.ClientID = oauthClient.ClientID
       hydraClient.Secret = apps[i].ClientSecret
+      hydraClient.CallbackURL = apps[i].CallbackURL
       hydraClient.Synced = true
       tx := db.Begin()
       tx.Save( &hydraClient )

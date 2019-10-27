@@ -6,6 +6,7 @@ type (
     ClientID string `json:"clientID" form:"clientid_like"`
     Name string `json:"name" form:"name_like"`
     Description string `json:"description" form:"description"`
+    CallbackURL string `json:"callbackURL" form:"callbackURL"`
     AvailableRoles []*RoleV0 `json:"availableRoles" form:"availableRoles"`
   }
 
