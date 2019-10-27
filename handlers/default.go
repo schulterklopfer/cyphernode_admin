@@ -57,8 +57,10 @@ func DefaultLogout( c *gin.Context ) {
     if err != nil {
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
+      return
     }
     c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
+    return
   }
   c.Status( http.StatusNotFound )
 }
