@@ -5,7 +5,7 @@ import (
   "github.com/markbates/goth"
   "github.com/markbates/goth/providers/openidConnect"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-  "github.com/schulterklopfer/cyphernode_admin/cnaStore"
+  "github.com/schulterklopfer/cyphernode_admin/cnaSessionStore"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
@@ -48,7 +48,7 @@ func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   //sessionStore := sqliteStore.NewSqliteStore( []byte("secret") )
-  sessionStore := cnaStore.NewCNAStore( "http://127.0.0.1:3030/sessions/", "127.0.0.1",  []byte(os.Getenv("SESSION_SECRET")) )
+  sessionStore := cnaSessionStore.NewCNASessionStore( "http://127.0.0.1:3030/sessions/", "127.0.0.1",  []byte(os.Getenv("SESSION_SECRET")) )
 
   oidc.Store = sessionStore
   dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
