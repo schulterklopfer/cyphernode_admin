@@ -76,7 +76,7 @@ func (cnaSessionStore *CNASessionStore) New(r *http.Request, name string) (*gses
   )
   session := gsessions.NewSession(cnaSessionStore, name)
   // make a copy
-  session.Options = cnaSessionStore.options
+  session.Options = cnaSessionStore.CloneOptions()
   session.IsNew = true
   if c, errCookie := r.Cookie(name); errCookie == nil {
     err = securecookie.DecodeMulti(name, c.Value, &session.ID, cnaSessionStore.Codecs...)
@@ -237,7 +237,17 @@ func (cnaSessionStore *CNASessionStore) delete(session *gsessions.Session) error
   return nil
 }
 
-func (cnaSessionStore *CNASessionStore) Options(options sessions.Options) {
+func (cnaSessionStore *CNASessionStore) CloneOptions() *gsessions.Options {
+  return &gsessions.Options{
+    Path:     cnaSessionStore.options.Path,
+    Domain:   cnaSessionStore.options.Domain,
+    MaxAge:   cnaSessionStore.options.MaxAge,
+    Secure:   cnaSessionStore.options.Secure,
+    HttpOnly: cnaSessionStore.options.HttpOnly,
+  }
+}
+
+func (cnaSessionStore *CNASessionStore) Options(options *sessions.Options) {
   cnaSessionStore.options = &gsessions.Options{
     Path:     options.Path,
     Domain:   options.Domain,

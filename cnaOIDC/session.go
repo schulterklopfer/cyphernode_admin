@@ -13,7 +13,7 @@ import (
   "time"
 )
 
-// Session stores data during the auth process with the OpenID Connect provider.
+// Session stores data during the auth process with the OpenID Connect flow.
 type Session struct {
   AuthURL      string
   AccessToken  string
@@ -22,7 +22,7 @@ type Session struct {
   IDToken      string
 }
 
-// GetAuthURL will return the URL set by calling the `BeginAuth` function on the OpenID Connect provider.
+// GetAuthURL will return the URL set by calling the `BeginAuth` function on the OpenID Connect flow.
 func (s Session) GetAuthURL() (string, error) {
   if s.AuthURL == "" {
     return "", errors.New("an AuthURL has not be set")
@@ -30,7 +30,7 @@ func (s Session) GetAuthURL() (string, error) {
   return s.AuthURL, nil
 }
 
-// Authorize the session with the OpenID Connect provider and return the access token to be stored for future use.
+// Authorize the session with the OpenID Connect flow and return the access token to be stored for future use.
 func (s *Session) Authorize(provider *Flow, params url.Values) (string, error) {
   p := provider
   token, err := p.config.Exchange(oauth2.NoContext, params.Get("code"))
@@ -39,7 +39,7 @@ func (s *Session) Authorize(provider *Flow, params url.Values) (string, error) {
   }
 
   if !token.Valid() {
-    return "", errors.New("Invalid token received from provider")
+    return "", errors.New("Invalid token received from flow")
   }
 
   s.AccessToken = token.AccessToken

@@ -4,6 +4,7 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
   "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "net/http"
 )
 
@@ -23,6 +24,20 @@ func DefaultLogin( c *gin.Context ) {
   } else {
     cnaOIDC.BeginAuthHandler(c.Writer, c.Request)
   }
+}
+
+func DefaultLogout( c *gin.Context ) {
+  if _, exists := c.Get("user"); exists {
+    err := cnaOIDC.Logout( c.Writer, c.Request, helpers.AbsoluteURL(globals.URLS_BYEBYE) )
+    if err != nil {
+      c.Header("X-Status-Reason", err.Error() )
+      c.Status(http.StatusBadRequest )
+      return
+    }
+    //c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
+    //return
+  }
+  //c.Status( http.StatusNotFound )
 }
 
 func DefaultCallback( c *gin.Context ) {
@@ -48,21 +63,6 @@ func DefaultHome( c *gin.Context ) {
 
 func DefaultByeBye( c *gin.Context ) {
   c.JSON( http.StatusOK, map[string]string{ "message": "bye bye!" })
-}
-
-func DefaultLogout( c *gin.Context ) {
-  print( "logout")
-  if _, exists := c.Get("user"); exists {
-    err := cnaOIDC.Logout( c.Writer, c.Request )
-    if err != nil {
-      c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusBadRequest )
-      return
-    }
-    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
-    return
-  }
-  c.Status( http.StatusNotFound )
 }
 
 

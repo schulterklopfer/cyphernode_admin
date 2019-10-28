@@ -44,7 +44,6 @@ func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
-  //sessionStore := sqliteStore.NewSqliteStore( []byte("secret") )
 
   dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
   hydraAPI.Init()
@@ -73,20 +72,19 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     os.Getenv( globals.OIDC_DISCOVERY_URL_ENV_KEY ),
     helpers.AbsoluteURL( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS ),
     []byte(os.Getenv( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY) ),
-    "127.0.0.1") )
+    os.Getenv( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY )) )
 
   cyphernodeAdmin.engine = gin.Default()
   cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")
   cyphernodeAdmin.createRouterGroups()
-
   // add session checks b4 other handlers so they are handled first
   // order is important here
   if !cyphernodeAdmin.config.DisableAuth {
-    for i:=0; i<len( globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
-      cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use( CheckSession() )
+    for i := 0; i < len(globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
+      cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use(CheckSession())
     }
+    //cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].Use(sessions.Sessions(globals.SESSION_COOKIE_NAME, cnaOIDC.SessionStore ) )
   }
-
   // create handlers for public and private endpoints
   cyphernodeAdmin.initPublicHandlers()
   cyphernodeAdmin.initPrivateHandlers()

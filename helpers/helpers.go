@@ -2,9 +2,7 @@ package helpers
 
 import (
   "crypto/rand"
-  "encoding/base32"
   "encoding/json"
-  "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/password"
   "io"
@@ -74,30 +72,12 @@ func EndpointIsPublic( endpoint string ) bool {
   return false
 }
 
-func UserIsAdmin( user *cnaOIDC.User ) bool {
-  if user == nil {
-    return false
-  }
-  if val, ok := user.RawData["roles"]; ok {
-    if roles, rolesAssertionOk := val.([]interface{}); rolesAssertionOk {
-      for i:=0; i<len(roles); i++ {
-        if role, roleAssertionOk := roles[i].(map[string]interface{}); roleAssertionOk {
-          if roleName, ok := role["name"]; ok && roleName.(string) == globals.ROLES_ADMIN_ROLE {
-            return true
-          }
-        }
-      }
-    }
-  }
-  return false
-}
-
-func RandomString(length int) string {
+func RandomString(length int, encodeToString func([]byte) string ) string {
   randomBytes := make([]byte, length)
   if _, err := io.ReadFull(rand.Reader, randomBytes); err != nil {
     return ""
   }
-  return strings.TrimRight( base32.StdEncoding.EncodeToString( randomBytes), "=" )
+  return strings.TrimRight( encodeToString( randomBytes), "=" )
 }
 
 func AbsoluteURL( path string ) string {

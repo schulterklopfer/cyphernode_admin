@@ -13,6 +13,7 @@ import (
   "golang.org/x/oauth2"
   "io/ioutil"
   "net/http"
+  "net/url"
   "strings"
   "time"
 )
@@ -111,7 +112,7 @@ func (flow *Flow) Client() *http.Client {
 // Debug is a no-op for the openidConnect package.
 func (flow *Flow) Debug(debug bool) {}
 
-// BeginAuth asks the OpenID Connect provider for an authentication end-point.
+// BeginAuth asks the OpenID Connect flow for an authentication end-point.
 func (flow *Flow) BeginAuth(state string) (*Session, error) {
   url := flow.config.AuthCodeURL(state)
   session := &Session{
@@ -161,7 +162,7 @@ func (flow *Flow) FetchUser(session *Session) (User, error) {
   return user, err
 }
 
-//RefreshTokenAvailable refresh token is provided by auth provider or not
+//RefreshTokenAvailable refresh token is provided by auth flow or not
 func (flow *Flow) RefreshTokenAvailable() bool {
   return true
 }
@@ -175,6 +176,33 @@ func (flow *Flow) RefreshToken(refreshToken string) (*oauth2.Token, error) {
     return nil, err
   }
   return newToken, err
+}
+
+func (flow *Flow) Logout( session *Session, postLogoutRedirectURL string ) error {
+
+  logoutURL, err := url.Parse( flow.openIDConfig.LogoutEndpoint )
+
+  if err != nil {
+    return err
+  }
+
+
+  query := logoutURL.Query()
+
+  //query.Add( "state", createState() )
+  query.Add( "id_token_hint", session.IDToken )
+  query.Add( "post_logout_redirect_uri", postLogoutRedirectURL)
+
+  logoutURL.RawQuery = query.Encode()
+
+
+  _, err = flow.Client().Get( logoutURL.String() )
+
+  if err != nil {
+    return err
+  }
+
+  return nil
 }
 
 // validate according to standard, returns expiry

@@ -5,7 +5,6 @@ package cnaOIDC
  **/
 
 import (
-  "crypto/rand"
   "encoding/base64"
   "errors"
   "fmt"
@@ -13,7 +12,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/cnaSessionStore"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "io"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "net/http"
   "net/url"
 )
@@ -23,8 +22,8 @@ import (
 const SessionName = globals.SESSION_COOKIE_NAME
 const sessionDataKey = "oidc"
 
-var sessionStore sessions.Store
-var provider *Flow
+var SessionStore *cnaSessionStore.CNASessionStore
+var flow *Flow
 
 type InitParams struct {
   ClientID string
@@ -49,8 +48,8 @@ func NewInitParams( clientID string, clientSecret string, callbackURL string, OI
 }
 
 func Init( params *InitParams ) {
-  provider, _ =  NewFlow(params.ClientID, params.ClientSecret, params.CallbackURL, params.OIDCDiscoveryURL )
-  sessionStore = cnaSessionStore.NewCNASessionStore( params.SessionsEndpoint, params.CookieDomain, params.CookieSecret )
+  flow, _ =  NewFlow(params.ClientID, params.ClientSecret, params.CallbackURL, params.OIDCDiscoveryURL )
+  SessionStore = cnaSessionStore.NewCNASessionStore( params.SessionsEndpoint, params.CookieDomain, params.CookieSecret )
 }
 
 func BeginAuthHandler(res http.ResponseWriter, req *http.Request) {
@@ -66,7 +65,7 @@ func BeginAuthHandler(res http.ResponseWriter, req *http.Request) {
 
 // SetState sets the state string associated with the given request.
 // If no state string is associated with the request, one will be generated.
-// This state is sent to the provider and can be retrieved during the
+// This state is sent to the flow and can be retrieved during the
 // callback.
 var SetState = func(req *http.Request) string {
   state := req.URL.Query().Get("state")
@@ -79,15 +78,14 @@ var SetState = func(req *http.Request) string {
   // is unguessable, preventing CSRF attacks, as described in
   //
   // https://auth0.com/docs/protocols/oauth2/oauth-state#keep-reading
-  nonceBytes := make([]byte, 64)
-  _, err := io.ReadFull(rand.Reader, nonceBytes)
-  if err != nil {
-    panic("oidc: source of randomness unavailable: " + err.Error())
-  }
-  return base64.URLEncoding.EncodeToString(nonceBytes)
+  return createState()
 }
 
-// GetState gets the state returned by the provider during the callback.
+func createState() string {
+  return helpers.RandomString(64, base64.URLEncoding.EncodeToString )
+}
+
+// GetState gets the state returned by the flow during the callback.
 // This is used to prevent CSRF attacks, see
 // http://tools.ietf.org/html/rfc6749#section-10.12
 var GetState = func(req *http.Request) string {
@@ -95,11 +93,11 @@ var GetState = func(req *http.Request) string {
 }
 
 func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
-  if sessionStore == nil {
+  if SessionStore == nil {
     return "", cnaErrors.ErrNoSessionStore
   }
 
-  sess, err := provider.BeginAuth(SetState(req))
+  sess, err := flow.BeginAuth(SetState(req))
   if err != nil {
     return "", err
   }
@@ -119,7 +117,7 @@ func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
 }
 
 var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (User, error) {
-  if sessionStore == nil {
+  if SessionStore == nil {
     return User{}, cnaErrors.ErrNoSessionStore
   }
 
@@ -128,7 +126,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (User, e
     return User{}, err
   }
 
-  sess, err := provider.UnmarshalSession(value)
+  sess, err := flow.UnmarshalSession(value)
   if err != nil {
     return User{}, err
   }
@@ -138,14 +136,14 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (User, e
     return User{}, err
   }
 
-  user, err := provider.FetchUser(sess)
+  user, err := flow.FetchUser(sess)
   if err == nil {
     // user can be found with existing session data
     return user, err
   }
 
   // get new token and retry fetch
-  _, err = sess.Authorize(provider, req.URL.Query())
+  _, err = sess.Authorize(flow, req.URL.Query())
   if err != nil {
     return User{}, err
   }
@@ -156,7 +154,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (User, e
     return User{}, err
   }
 
-  gu, err := provider.FetchUser(sess)
+  gu, err := flow.FetchUser(sess)
   return gu, err
 }
 
@@ -181,13 +179,34 @@ func validateState(state string, sess *Session) error {
 }
 
 // Logout invalidates a user session.
-func Logout(res http.ResponseWriter, req *http.Request) error {
+func Logout( res http.ResponseWriter, req *http.Request, postLogoutRedirectURL string ) error {
 
-  if sessionStore == nil {
+  if SessionStore == nil {
     return cnaErrors.ErrNoSessionStore
   }
 
-  session, err := sessionStore.Get(req, SessionName)
+  value, err := GetFromSession(sessionDataKey, req)
+  if err != nil {
+    return err
+  }
+
+  sess, err := flow.UnmarshalSession(value)
+  if err != nil {
+    return err
+  }
+
+  // back channel logout
+  err = flow.Logout( sess, postLogoutRedirectURL)
+  if err != nil {
+    return err
+  }
+
+  if SessionStore == nil {
+    return cnaErrors.ErrNoSessionStore
+  }
+
+  // front channel logout
+  session, err := SessionStore.Get(req, SessionName)
   if err != nil {
     return err
   }
@@ -202,7 +221,7 @@ func Logout(res http.ResponseWriter, req *http.Request) error {
 
 // StoreInSession stores a specified key/value pair in the session.
 func StoreInSession(key string, value string, req *http.Request, res http.ResponseWriter) error {
-  session, _ := sessionStore.New(req, SessionName)
+  session, _ := SessionStore.New(req, SessionName)
 
   if err := updateSessionValue(session, key, value); err != nil {
     return err
@@ -214,7 +233,7 @@ func StoreInSession(key string, value string, req *http.Request, res http.Respon
 // GetFromSession retrieves a previously-stored value from the session.
 // If no value has previously been stored at the specified key, it will return an error.
 func GetFromSession(key string, req *http.Request) (string, error) {
-  session, _ := sessionStore.Get(req, SessionName)
+  session, _ := SessionStore.Get(req, SessionName)
   value, err := getSessionValue(session, key)
   if err != nil {
     return "", errors.New("could not find a matching session for this request")
@@ -224,7 +243,7 @@ func GetFromSession(key string, req *http.Request) (string, error) {
 }
 
 var GetUser = func(res http.ResponseWriter, req *http.Request) (User, error) {
-  if sessionStore == nil {
+  if SessionStore == nil {
     return User{}, cnaErrors.ErrNoSessionStore
   }
 
@@ -233,19 +252,19 @@ var GetUser = func(res http.ResponseWriter, req *http.Request) (User, error) {
     return User{}, err
   }
 
-  sess, err := provider.UnmarshalSession(value)
+  sess, err := flow.UnmarshalSession(value)
   if err != nil {
     return User{}, err
   }
 
-  user, err := provider.FetchUser(sess)
+  user, err := flow.FetchUser(sess)
   if err == nil {
     // user can be found with existing session data
     return user, err
   }
 
   // get new token and retry fetch
-  _, err = sess.Authorize(provider, req.URL.Query())
+  _, err = sess.Authorize(flow, req.URL.Query())
   if err != nil {
     return User{}, err
   }
@@ -256,7 +275,7 @@ var GetUser = func(res http.ResponseWriter, req *http.Request) (User, error) {
     return User{}, err
   }
 
-  gu, err := provider.FetchUser(sess)
+  gu, err := flow.FetchUser(sess)
   return gu, err
 }
 

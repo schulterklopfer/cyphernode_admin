@@ -76,6 +76,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) syncHydraClients() {
       oauthClient.Secret = hydraClient.Secret
       oauthClient.ClientID = hydraClient.ClientID
       oauthClient.RedirectURIs = []string{ hydraClient.CallbackURL }
+      oauthClient.PostLogoutRedirectURIs = []string{ hydraClient.PostLogoutCallbackURL }
 
       params.Body = &oauthClient
       result, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
@@ -107,6 +108,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
     oauthClient.Secret = apps[i].ClientSecret
     oauthClient.ClientID = apps[i].ClientID
     oauthClient.RedirectURIs = []string{ apps[i].CallbackURL }
+    oauthClient.PostLogoutRedirectURIs = []string{ apps[i].PostLogoutCallbackURL }
+
     params.Body = &oauthClient
     _, err := hydraAPI.GetBackendClient().Admin.CreateOAuth2Client( params )
 
@@ -115,6 +118,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) addNewHydraClients() {
       hydraClient.ClientID = oauthClient.ClientID
       hydraClient.Secret = apps[i].ClientSecret
       hydraClient.CallbackURL = apps[i].CallbackURL
+      hydraClient.PostLogoutCallbackURL = apps[i].PostLogoutCallbackURL
       hydraClient.Synced = true
       tx := db.Begin()
       tx.Save( &hydraClient )

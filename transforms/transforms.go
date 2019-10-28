@@ -33,6 +33,7 @@ func Transform( in interface{}, out interface{} ) bool {
       out.(*AppV0).Name = in.(*models.AppModel).Name
       out.(*AppV0).Description = in.(*models.AppModel).Description
       out.(*AppV0).CallbackURL = in.(*models.AppModel).CallbackURL
+      out.(*AppV0).PostLogoutCallbackURL = in.(*models.AppModel).PostLogoutCallbackURL
 
       roleCount := len(in.(*models.AppModel).AvailableRoles)
       transformedAvailableRoles :=make( []*RoleV0, roleCount )

@@ -1,6 +1,7 @@
 package cyphernodeAdmin
 
 import (
+  "encoding/base32"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/globals"
@@ -47,9 +48,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.ID = 1
     adminApp.Name = ADMIN_APP_NAME
     adminApp.Description = ADMIN_APP_DESCRIPTION
-    adminApp.ClientSecret = helpers.RandomString(32 )
-    adminApp.ClientID = helpers.RandomString(32 )
+    adminApp.ClientSecret = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
+    adminApp.ClientID = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
     adminApp.CallbackURL = helpers.AbsoluteURL( globals.URLS_CALLBACK )
+    adminApp.PostLogoutCallbackURL = helpers.AbsoluteURL( globals.URLS_BYEBYE )
     if adminApp.ClientSecret == "" || adminApp.ClientID == "" {
       return cnaErrors.ErrMigrationFailed
     }
