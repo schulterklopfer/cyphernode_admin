@@ -7,8 +7,12 @@ import (
 
 func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
   for i:=0; i<len( globals.ROUTER_GROUPS ); i++ {
-    cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[i]] = cyphernodeAdmin.engine.Group(globals.ROUTER_GROUPS_BASE_ENDPOINTS[i])
+    cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[i]] = cyphernodeAdmin.engineExternal.Group(globals.ROUTER_GROUPS_BASE_ENDPOINTS[i])
   }
+}
+
+func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
+  cyphernodeAdmin.engineInternal.GET( globals.INTERNAL_ENDPOINTS_REGISTER_APP, handlers.InternalRegisterApp )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {

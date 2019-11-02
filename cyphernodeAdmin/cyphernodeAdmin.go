@@ -9,8 +9,10 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/hydraAPI"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
+  "golang.org/x/sync/errgroup"
   "net/http"
   "os"
 )
@@ -32,7 +34,8 @@ type Config struct {
 
 type CyphernodeAdmin struct {
   config       *Config
-  engine       *gin.Engine
+  engineInternal *gin.Engine
+  engineExternal *gin.Engine
   routerGroups map[string]*gin.RouterGroup
 }
 
@@ -75,8 +78,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     []byte(helpers.GetenvOrDefault( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY, globals.DEFAULTS_OIDC_SESSION_COOKIE_SECRET ) ),
     helpers.GetenvOrDefault( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY, globals.DEFAULTS_OIDC_SSO_COOKIE_DOMAIN )) )
 
-  cyphernodeAdmin.engine = gin.Default()
-  cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")
+  cyphernodeAdmin.engineInternal = gin.New()
+  cyphernodeAdmin.engineExternal = gin.New()
+  cyphernodeAdmin.engineExternal.LoadHTMLGlob("templates/**/*.tmpl")
   cyphernodeAdmin.createRouterGroups()
   // add session checks b4 other handlers so they are handled first
   // order is important here
@@ -84,9 +88,9 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     for i := 0; i < len(globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
       cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use(CheckSession())
     }
-    //cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].Use(sessions.Sessions(globals.SESSION_COOKIE_NAME, cnaOIDC.SessionStore ) )
   }
   // create handlers for public and private endpoints
+  cyphernodeAdmin.initInternalHandlers()
   cyphernodeAdmin.initPublicHandlers()
   cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initSessionHandlers()
@@ -117,12 +121,28 @@ func CheckSession() gin.HandlerFunc {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
-  return cyphernodeAdmin.engine
+  return cyphernodeAdmin.engineExternal
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
   if os.Getenv(globals.HYDRA_DISABLE_SYNC_ENV_KEY) == "" {
     helpers.SetInterval(cyphernodeAdmin.checkHydraClients, 1000, false)
   }
-  cyphernodeAdmin.engine.Run("0.0.0.0:3030")
+
+  var g errgroup.Group
+
+  // internal interface, only available to cypherapps
+  g.Go(func() error {
+    return cyphernodeAdmin.engineInternal.Run(":3031")
+  })
+
+  // external interface behind treaefik
+  g.Go(func() error {
+    return  cyphernodeAdmin.engineExternal.Run(":3030")
+  })
+
+  if err := g.Wait(); err != nil {
+    logwrapper.Logger().Fatal(err)
+  }
+
 }
