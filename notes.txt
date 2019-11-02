@@ -1,15 +1,15 @@
 Registration process:
 
-Only apps with a hash in the /apps/whitelist.txt file can register.
-Hashes will be written into this file in two ways:
+Only apps with a client id in the /apps/whitelist.txt file can register.
+The client ids will be written into this file in two ways:
 
 1) start.sh script will check the apps.txt and install the apps in that file
    (Sources can be github://user/repo, file:///path/to/your/app)
    Installation will be the following:
     * download app template in case of github
-    * generate hash for app and create app directory with that hash as a name
+    * generate client id for app and create app directory with that client id as a name
     * copy template files into app directory
-   For every hash in the base app folder an entry in whitelist.txt will be created with
+   For every client id in the base app folder an entry in whitelist.txt will be created with
    the postfix ":cyphernode"
      (01234567890123456789012345678912:cyphernode)
    You will be able to register your app calling the registration url
@@ -18,8 +18,10 @@ Hashes will be written into this file in two ways:
      or their own app folder )
 
 2) add your own external app id u dont want to run inside cyphernode
-   edit whitelist.txt and add your app-hash with the postfix ":external"
+   edit whitelist.txt and add your client id with the postfix ":external"
    Now you will be able to register your app calling the registration
    url
 
 
+Docs:
+* https://gohugo.io/templates/views/
