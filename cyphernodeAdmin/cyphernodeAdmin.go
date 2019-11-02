@@ -2,6 +2,7 @@ package cyphernodeAdmin
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/appWhitelist"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
@@ -92,6 +93,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initHydraHandlers()
+  appWhitelist.Init( helpers.GetenvOrDefault( globals.CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_APP_WHITELIST_FILE ) )
 
   return nil
 }

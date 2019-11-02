@@ -14,6 +14,7 @@ const CNA_ADMIN_PASSWORD_ENV_KEY string = "CNA_ADMIN_PASSWORD"
 const CNA_ADMIN_NAME_ENV_KEY string = "CNA_ADMIN_NAME"
 const CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY string = "CNA_ADMIN_EMAIL_ADDRESS"
 const CNA_ADMIN_DATABASE_FILE_ENV_KEY string = "CNA_ADMIN_DATABASE_FILE"
+const CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY = "CNA_ADMIN_APP_WHITELIST_FILE"
 
 /** defaults **/
 const DEFAULTS_BASE_URL string = "http://127.0.0.1:3030"
@@ -25,6 +26,7 @@ const DEFAULTS_CNA_ADMIN_PASSWORD string = "admin"
 const DEFAULTS_CNA_ADMIN_NAME string = "admin"
 const DEFAULTS_CNA_ADMIN_EMAIL_ADDRESS string = "admin@admin.com"
 const DEFAULTS_CNA_ADMIN_DATABASE_FILE string = "/data/db.sqlite3"
+const DEFAULTS_CNA_ADMIN_APP_WHITELIST_FILE string = "./apps.txt"
 
 /** general hydra stuff **/
 const HYDRA_SCOPE_OFFLINE string = "offline"
