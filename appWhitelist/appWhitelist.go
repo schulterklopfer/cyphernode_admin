@@ -62,10 +62,10 @@ func (appWhitelist *AppWhitelist) ContainsClientID( clientID string ) bool {
     return false
   }
 
-  for i:=0; i<len(appWhitelist.entries); i++ {
-    if appWhitelist.entries[i].ClientID == clientID {
-      return true
-    }
+  if helpers.SliceIndex( len(appWhitelist.entries), func(i int) bool {
+    return appWhitelist.entries[i].ClientID == clientID
+  } ) >= 0 {
+    return true
   }
   return false
 }
@@ -87,7 +87,10 @@ func (appWhitelist *AppWhitelist) load() error {
       continue
     }
     arr := strings.Split(line,":")
-    if len(arr) == 2 && !appWhitelist.ContainsClientID( arr[0] ) {
+
+    if len(arr) == 2 && helpers.SliceIndex( len(appWhitelist.entries), func(i int) bool {
+      return appWhitelist.entries[i].ClientID == arr[0]
+    } ) == -1 {
       appWhitelist.entries = append( appWhitelist.entries, &AppWhitelistEntry{ClientID:arr[0], AppType:arr[1]})
     }
   }
