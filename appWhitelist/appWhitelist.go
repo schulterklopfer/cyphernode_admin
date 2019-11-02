@@ -3,6 +3,7 @@ package appWhitelist
 import (
   "bufio"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "os"
   "strings"
   "sync"
@@ -45,7 +46,10 @@ func (appWhitelist *AppWhitelist) checkForWhitelistChange() {
   if appWhitelist.LastFileInfo != nil && (
       appWhitelist.LastFileInfo.Size() != fileInfo.Size() ||
       appWhitelist.LastFileInfo.ModTime().Before( fileInfo.ModTime() ) ) {
-    appWhitelist.load()
+    err := appWhitelist.load()
+    if err != nil {
+      logwrapper.Logger().Errorf( "Failed to load whitelist: %s", err.Error() )
+    }
     appWhitelist.LastUpate = time.Now()
   }
   appWhitelist.LastFileInfo = fileInfo
