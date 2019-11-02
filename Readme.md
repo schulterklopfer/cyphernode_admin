@@ -42,6 +42,8 @@ docker run -d \
   --network hydra \
   -p 9000:4444 \
   -p 9001:4445 \
+  -e LOG_LEVEL=debug \
+  -e OAUTH2_EXPOSE_INTERNAL_ERRORS=true \
   -e SECRETS_SYSTEM=$SECRETS_SYSTEM \
   -e DSN=$DSN \
   -e URLS_SELF_ISSUER=http://127.0.0.1:9000/ \

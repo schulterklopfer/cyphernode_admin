@@ -14,7 +14,6 @@ type AppModel struct {
   AvailableRoles []*RoleModel `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
   HydraClientID  uint         `json:"-" gorm:"DEFAULT:0" form:"-" validate:"-"`
   CallbackURL    string       `json:"callbackURL" gorm:"type:varchar(255);not null" form:"-" validate:"required"`
-  PostLogoutCallbackURL string `json:"postLogoutCallbackURL" gorm:"type:varchar(255);not null" form:"-" validate:"required"`
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {

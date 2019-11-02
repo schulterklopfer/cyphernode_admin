@@ -13,7 +13,6 @@ import (
   "golang.org/x/oauth2"
   "io/ioutil"
   "net/http"
-  "net/url"
   "strings"
   "time"
 )
@@ -176,33 +175,6 @@ func (flow *Flow) RefreshToken(refreshToken string) (*oauth2.Token, error) {
     return nil, err
   }
   return newToken, err
-}
-
-func (flow *Flow) Logout( session *Session, postLogoutRedirectURL string ) error {
-
-  logoutURL, err := url.Parse( flow.openIDConfig.LogoutEndpoint )
-
-  if err != nil {
-    return err
-  }
-
-
-  query := logoutURL.Query()
-
-  //query.Add( "state", createState() )
-  query.Add( "id_token_hint", session.IDToken )
-  query.Add( "post_logout_redirect_uri", postLogoutRedirectURL)
-
-  logoutURL.RawQuery = query.Encode()
-
-
-  _, err = flow.Client().Get( logoutURL.String() )
-
-  if err != nil {
-    return err
-  }
-
-  return nil
 }
 
 // validate according to standard, returns expiry

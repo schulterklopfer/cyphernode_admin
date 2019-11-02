@@ -34,10 +34,10 @@ func DefaultLogout( c *gin.Context ) {
       c.Status(http.StatusBadRequest )
       return
     }
-    //c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
-    //return
+    c.Redirect( http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_BYEBYE)
+    return
   }
-  //c.Status( http.StatusNotFound )
+  c.Status( http.StatusNotFound )
 }
 
 func DefaultCallback( c *gin.Context ) {

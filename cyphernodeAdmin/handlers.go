@@ -50,10 +50,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) initHydraHandlers() {
   // TODO: csrf protection
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/consent", handlers.HydraConsentGet)
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/login", handlers.HydraLoginGet)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/logout", handlers.HydraLogoutGet)
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/consent", handlers.HydraConsentPost)
   cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/login", handlers.HydraLoginPost)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/logout", handlers.HydraLogoutPost)
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initSessionHandlers() {

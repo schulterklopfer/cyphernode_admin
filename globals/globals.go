@@ -9,6 +9,22 @@ const HYDRA_DISABLE_SYNC_ENV_KEY string = "CNA_DISABLE_HYDRA_SYNC"
 const OIDC_DISCOVERY_URL_ENV_KEY string = "OIDC_DISCOVERY_URL"
 const BASE_URL_ENV_KEY string = "BASE_URL"
 const OIDC_SSO_COOKIE_DOMAIN_ENV_KEY string = "OIDC_SSO_COOKIE_DOMAIN"
+const CNA_ADMIN_LOGIN_ENV_KEY string = "CNA_ADMIN_LOGIN"
+const CNA_ADMIN_PASSWORD_ENV_KEY string = "CNA_ADMIN_PASSWORD"
+const CNA_ADMIN_NAME_ENV_KEY string = "CNA_ADMIN_NAME"
+const CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY string = "CNA_ADMIN_EMAIL_ADDRESS"
+const CNA_ADMIN_DATABASE_FILE_ENV_KEY string = "CNA_ADMIN_DATABASE_FILE"
+
+/** defaults **/
+const DEFAULTS_BASE_URL string = "http://127.0.0.1:3030"
+const DEFAULTS_OIDC_DISCOVERY_URL string = "http://127.0.0.1:9000/.well-known/openid-configuration"
+const DEFAULTS_OIDC_SESSION_COOKIE_SECRET string = "secret"
+const DEFAULTS_OIDC_SSO_COOKIE_DOMAIN string = "127.0.0.1"
+const DEFAULTS_CNA_ADMIN_LOGIN string = "admin"
+const DEFAULTS_CNA_ADMIN_PASSWORD string = "admin"
+const DEFAULTS_CNA_ADMIN_NAME string = "admin"
+const DEFAULTS_CNA_ADMIN_EMAIL_ADDRESS string = "admin@admin.com"
+const DEFAULTS_CNA_ADMIN_DATABASE_FILE string = "/data/db.sqlite3"
 
 /** general hydra stuff **/
 const HYDRA_SCOPE_OFFLINE string = "offline"

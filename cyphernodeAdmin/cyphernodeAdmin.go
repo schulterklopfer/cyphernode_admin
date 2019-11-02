@@ -69,10 +69,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     thisApp.ClientID,
     thisApp.ClientSecret,
     helpers.AbsoluteURL(globals.URLS_CALLBACK),
-    os.Getenv( globals.OIDC_DISCOVERY_URL_ENV_KEY ),
+    helpers.GetenvOrDefault( globals.OIDC_DISCOVERY_URL_ENV_KEY, globals.DEFAULTS_OIDC_DISCOVERY_URL ),
     helpers.AbsoluteURL( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS ),
-    []byte(os.Getenv( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY) ),
-    os.Getenv( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY )) )
+    []byte(helpers.GetenvOrDefault( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY, globals.DEFAULTS_OIDC_SESSION_COOKIE_SECRET ) ),
+    helpers.GetenvOrDefault( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY, globals.DEFAULTS_OIDC_SSO_COOKIE_DOMAIN )) )
 
   cyphernodeAdmin.engine = gin.Default()
   cyphernodeAdmin.engine.LoadHTMLGlob("templates/**/*.tmpl")

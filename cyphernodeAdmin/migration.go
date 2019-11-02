@@ -51,7 +51,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.ClientSecret = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
     adminApp.ClientID = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
     adminApp.CallbackURL = helpers.AbsoluteURL( globals.URLS_CALLBACK )
-    adminApp.PostLogoutCallbackURL = helpers.AbsoluteURL( globals.URLS_BYEBYE )
     if adminApp.ClientSecret == "" || adminApp.ClientID == "" {
       return cnaErrors.ErrMigrationFailed
     }

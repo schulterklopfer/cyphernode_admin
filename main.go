@@ -2,40 +2,20 @@ package main
 
 import (
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
   "os"
 )
 func main() {
-  appConfig := new( cyphernodeAdmin.Config )
-  initialAdminLogin := os.Getenv("CNA_ADMIN_LOGIN")
-  initialAdminPassword := os.Getenv("CNA_ADMIN_PASSWORD")
-  initialAdminName := os.Getenv("CNA_ADMIN_NAME")
-  initialAdminEmailAddress := os.Getenv("CNA_ADMIN_EMAIL_ADDRESS")
-
-  if initialAdminLogin == "" {
-    initialAdminLogin = "admin"
-  }
-
-  if initialAdminPassword == "" {
-    initialAdminPassword = "admin"
-  }
-
-  if initialAdminName == "" {
-    initialAdminName = "Administrator"
-  }
-
-  if initialAdminEmailAddress == "" {
-    initialAdminEmailAddress = "admin@admin.rocks"
-  }
-
-  appConfig.DatabaseFile = "/tmp/test.sqlite3"
-  appConfig.InitialAdminLogin = initialAdminLogin
-  appConfig.InitialAdminPassword = initialAdminPassword
-  appConfig.InitialAdminName = initialAdminName
-  appConfig.InitialAdminEmailAddress = initialAdminEmailAddress
-
-  app := cyphernodeAdmin.NewCyphernodeAdmin( appConfig )
+  app := cyphernodeAdmin.NewCyphernodeAdmin( &cyphernodeAdmin.Config{
+      DatabaseFile: helpers.GetenvOrDefault(globals.CNA_ADMIN_DATABASE_FILE_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_DATABASE_FILE ),
+      InitialAdminLogin: helpers.GetenvOrDefault( globals.CNA_ADMIN_LOGIN_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_LOGIN ),
+      InitialAdminPassword: helpers.GetenvOrDefault(globals.CNA_ADMIN_PASSWORD_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_PASSWORD ),
+      InitialAdminName: helpers.GetenvOrDefault(globals.CNA_ADMIN_NAME_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_NAME ),
+      InitialAdminEmailAddress: helpers.GetenvOrDefault(globals.CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_EMAIL_ADDRESS ),
+    },
+  )
   err := app.Init()
-
   if err != nil {
     println("Error in application init: ", err.Error() )
     os.Exit(1)

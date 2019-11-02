@@ -12,7 +12,6 @@ type HydraClientModel struct {
   ClientID string `json:"-" gorm:"type:varchar(100)" form:"-" validate:"-"`
   Secret string `json:"-" gorm:"type:varchar(32)" form:"-" validate:"-"`
   CallbackURL string `json:"-" gorm:"type:varchar(255)" form:"-" validate:"-"`
-  PostLogoutCallbackURL string `json:"-" gorm:"type:varchar(255)" form:"-" validate:"-"`
   Synced bool `json:"-" gorm:"type:boolean;default:false" form:"-" validate:"-"`
 }
 

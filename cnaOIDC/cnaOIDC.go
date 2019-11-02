@@ -185,27 +185,10 @@ func Logout( res http.ResponseWriter, req *http.Request, postLogoutRedirectURL s
     return cnaErrors.ErrNoSessionStore
   }
 
-  value, err := GetFromSession(sessionDataKey, req)
-  if err != nil {
-    return err
-  }
-
-  sess, err := flow.UnmarshalSession(value)
-  if err != nil {
-    return err
-  }
-
-  // back channel logout
-  err = flow.Logout( sess, postLogoutRedirectURL)
-  if err != nil {
-    return err
-  }
-
   if SessionStore == nil {
     return cnaErrors.ErrNoSessionStore
   }
 
-  // front channel logout
   session, err := SessionStore.Get(req, SessionName)
   if err != nil {
     return err

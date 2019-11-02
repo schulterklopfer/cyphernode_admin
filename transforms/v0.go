@@ -7,7 +7,6 @@ type (
     Name string `json:"name" form:"name_like"`
     Description string `json:"description" form:"description"`
     CallbackURL string `json:"callbackURL" form:"callbackURL"`
-    PostLogoutCallbackURL string `json:"postLogoutCallbackURL" form:"callbackURL"`
     AvailableRoles []*RoleV0 `json:"availableRoles" form:"availableRoles"`
   }
 
