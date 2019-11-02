@@ -52,6 +52,8 @@ func (appWhitelist *AppWhitelist) checkForWhitelistChange() {
 }
 
 func (appWhitelist *AppWhitelist) ContainsClientID( clientID string ) bool {
+  appWhitelist.mutex.Lock()
+  defer appWhitelist.mutex.Unlock()
   if len(appWhitelist.entries) == 0 {
     return false
   }
