@@ -47,7 +47,7 @@ func TestSetByJsonTag(t *testing.T) {
 
 func TestAbsoluteURL( t *testing.T ) {
 
-  _ = os.Setenv( globals.BASE_URL_ENV_KEY, "http://www.foo.com")
+  _ = os.Setenv( globals.BASE_URL_EXTERNAL_ENV_KEY, "http://www.foo.com")
 
   a := helpers.AbsoluteURL( "bar" )
 
@@ -67,7 +67,7 @@ func TestAbsoluteURL( t *testing.T ) {
     t.Errorf( "%s should be %s", a, "http://www.foo.com/bar" )
   }
 
-  _ = os.Setenv( globals.BASE_URL_ENV_KEY, "http://www.foo.com/")
+  _ = os.Setenv( globals.BASE_URL_EXTERNAL_ENV_KEY, "http://www.foo.com/")
 
   a = helpers.AbsoluteURL( "bar" )
 
@@ -87,7 +87,7 @@ func TestAbsoluteURL( t *testing.T ) {
     t.Errorf( "%s should be %s", a, "http://www.foo.com/bar" )
   }
 
-  _ = os.Setenv( globals.BASE_URL_ENV_KEY, "http://www.foo.com//")
+  _ = os.Setenv( globals.BASE_URL_EXTERNAL_ENV_KEY, "http://www.foo.com//")
 
   a = helpers.AbsoluteURL( "bar" )
 

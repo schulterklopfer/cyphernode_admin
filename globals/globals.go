@@ -7,7 +7,8 @@ const HYDRA_ADMIN_URL_ENV_KEY string = "CNA_HYDRA_ADMIN_URL"
 const OIDC_SESSION_COOKIE_SECRET_ENV_KEY string = "OIDC_SESSION_COOKIE_SECRET"
 const HYDRA_DISABLE_SYNC_ENV_KEY string = "CNA_DISABLE_HYDRA_SYNC"
 const OIDC_DISCOVERY_URL_ENV_KEY string = "OIDC_DISCOVERY_URL"
-const BASE_URL_ENV_KEY string = "BASE_URL"
+const BASE_URL_EXTERNAL_ENV_KEY string = "BASE_URL_EXTERNAL"
+const BASE_URL_INTERNAL_ENV_KEY string = "BASE_URL_INTERNAL"
 const OIDC_SSO_COOKIE_DOMAIN_ENV_KEY string = "OIDC_SSO_COOKIE_DOMAIN"
 const CNA_ADMIN_LOGIN_ENV_KEY string = "CNA_ADMIN_LOGIN"
 const CNA_ADMIN_PASSWORD_ENV_KEY string = "CNA_ADMIN_PASSWORD"
@@ -15,18 +16,6 @@ const CNA_ADMIN_NAME_ENV_KEY string = "CNA_ADMIN_NAME"
 const CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY string = "CNA_ADMIN_EMAIL_ADDRESS"
 const CNA_ADMIN_DATABASE_FILE_ENV_KEY string = "CNA_ADMIN_DATABASE_FILE"
 const CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY = "CNA_ADMIN_APP_WHITELIST_FILE"
-
-/** defaults **/
-const DEFAULTS_BASE_URL string = "http://127.0.0.1:3030"
-const DEFAULTS_OIDC_DISCOVERY_URL string = "http://127.0.0.1:9000/.well-known/openid-configuration"
-const DEFAULTS_OIDC_SESSION_COOKIE_SECRET string = "secret"
-const DEFAULTS_OIDC_SSO_COOKIE_DOMAIN string = "127.0.0.1"
-const DEFAULTS_CNA_ADMIN_LOGIN string = "admin"
-const DEFAULTS_CNA_ADMIN_PASSWORD string = "admin"
-const DEFAULTS_CNA_ADMIN_NAME string = "admin"
-const DEFAULTS_CNA_ADMIN_EMAIL_ADDRESS string = "admin@admin.com"
-const DEFAULTS_CNA_ADMIN_DATABASE_FILE string = "/data/db.sqlite3"
-const DEFAULTS_CNA_ADMIN_APP_WHITELIST_FILE string = "./apps.txt"
 
 /** general hydra stuff **/
 const HYDRA_SCOPE_OFFLINE string = "offline"
@@ -36,7 +25,6 @@ const HYDRA_SCOPE_OPEN_ID string = "openid"
 const ROUTER_GROUPS_PUBLIC string = "public"
 const ROUTER_GROUPS_PRIVATE string = "private"
 const ROUTER_GROUPS_HYDRA string = "hydra"
-const ROUTER_GROUPS_SESSIONS string = "sessions"
 const ROUTER_GROUPS_USERS string = "users"
 const ROUTER_GROUPS_APPS string = "apps"
 
@@ -44,9 +32,9 @@ const ROUTER_GROUPS_APPS string = "apps"
 const ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC string = ""
 const ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE string = "/_"
 const ROUTER_GROUPS_BASE_ENDPOINT_HYDRA string = "/hydra"
-const ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS string = "/sessions"
 const ROUTER_GROUPS_BASE_ENDPOINT_USERS string = "/api/v0/users"
 const ROUTER_GROUPS_BASE_ENDPOINT_APPS string = "/api/v0/apps"
+const ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS string = "/api/v0/sessions"
 
 /** urls and endpoints **/
 const PUBLIC_ENDPOINTS_LOGIN string = "/login"
@@ -91,7 +79,6 @@ var ROUTER_GROUPS = [...]string{
   /* public */
   ROUTER_GROUPS_PUBLIC,
   ROUTER_GROUPS_HYDRA,
-  ROUTER_GROUPS_SESSIONS,
   /* protected */
   ROUTER_GROUPS_PRIVATE,
   ROUTER_GROUPS_APPS,
@@ -102,10 +89,27 @@ var ROUTER_GROUPS_BASE_ENDPOINTS = [...]string{
   /* public */
   ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC,
   ROUTER_GROUPS_BASE_ENDPOINT_HYDRA,
-  ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS,
   /* protected */
   ROUTER_GROUPS_BASE_ENDPOINT_PRIVATE,
   ROUTER_GROUPS_BASE_ENDPOINT_APPS,
   ROUTER_GROUPS_BASE_ENDPOINT_USERS,
 }
-var PROTECTED_ROUTER_GROUPS_INDICES = [...]int{ 3,4,5 }
+var PROTECTED_ROUTER_GROUPS_INDICES = [...]int{ 2,3,4 }
+
+/** defaults **/
+
+var DEFAULTS = map[string]string{
+  HYDRA_ADMIN_URL_ENV_KEY:              "http://127.0.0.1:9000/",
+  OIDC_SESSION_COOKIE_SECRET_ENV_KEY:   "secret",
+  HYDRA_DISABLE_SYNC_ENV_KEY:           "CNA_DISABLE_HYDRA_SYNC",
+  OIDC_DISCOVERY_URL_ENV_KEY:           "http://127.0.0.1:9000/.well-known/openid-configuration",
+  BASE_URL_EXTERNAL_ENV_KEY:            "http://127.0.0.1:3030",
+  BASE_URL_INTERNAL_ENV_KEY:            "http://127.0.0.1:3031",
+  OIDC_SSO_COOKIE_DOMAIN_ENV_KEY:       "127.0.0.1",
+  CNA_ADMIN_LOGIN_ENV_KEY:              "admin",
+  CNA_ADMIN_PASSWORD_ENV_KEY:           "admin",
+  CNA_ADMIN_NAME_ENV_KEY:               "admin",
+  CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY:      "admin@admin.com",
+  CNA_ADMIN_DATABASE_FILE_ENV_KEY:      "/data/db.sqlite3",
+  CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY: "/data/apps.txt",
+}

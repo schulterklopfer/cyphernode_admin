@@ -81,7 +81,14 @@ func RandomString(length int, encodeToString func([]byte) string ) string {
 }
 
 func AbsoluteURL( path string ) string {
-  host := GetenvOrDefault( globals.BASE_URL_ENV_KEY, globals.DEFAULTS_BASE_URL )
+  return AbsoluteURLFromHostEnvKey( globals.BASE_URL_EXTERNAL_ENV_KEY, path )
+}
+
+func AbsoluteURLFromHostEnvKey( hostEnvKEy string, path string ) string {
+  return AbsoluteURLFromHost( GetenvOrDefault( hostEnvKEy ), path )
+}
+
+func AbsoluteURLFromHost( host string, path string ) string {
   for strings.HasSuffix( host,"/") {
     // remove last character
     host = host[:len(host)-1]
@@ -94,6 +101,7 @@ func AbsoluteURL( path string ) string {
 
   return host+"/"+path
 }
+
 
 func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
 
@@ -123,9 +131,10 @@ func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
 
 }
 
-func GetenvOrDefault( key string, defaultValue string ) string {
+func GetenvOrDefault( key string ) string {
   value := os.Getenv( key )
   if value == "" {
+    defaultValue, _ := globals.DEFAULTS[key]
     return defaultValue
   }
   return value

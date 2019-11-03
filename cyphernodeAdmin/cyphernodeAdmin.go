@@ -73,10 +73,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     thisApp.ClientID,
     thisApp.ClientSecret,
     helpers.AbsoluteURL(globals.URLS_CALLBACK),
-    helpers.GetenvOrDefault( globals.OIDC_DISCOVERY_URL_ENV_KEY, globals.DEFAULTS_OIDC_DISCOVERY_URL ),
-    helpers.AbsoluteURL( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS ),
-    []byte(helpers.GetenvOrDefault( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY, globals.DEFAULTS_OIDC_SESSION_COOKIE_SECRET ) ),
-    helpers.GetenvOrDefault( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY, globals.DEFAULTS_OIDC_SSO_COOKIE_DOMAIN )) )
+    helpers.GetenvOrDefault( globals.OIDC_DISCOVERY_URL_ENV_KEY ),
+    helpers.AbsoluteURLFromHostEnvKey( globals.BASE_URL_INTERNAL_ENV_KEY, globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS ),
+    []byte(helpers.GetenvOrDefault( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY ) ),
+    helpers.GetenvOrDefault( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY )) )
 
   cyphernodeAdmin.engineInternal = gin.New()
   cyphernodeAdmin.engineExternal = gin.New()
@@ -93,11 +93,10 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   cyphernodeAdmin.initInternalHandlers()
   cyphernodeAdmin.initPublicHandlers()
   cyphernodeAdmin.initPrivateHandlers()
-  cyphernodeAdmin.initSessionHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initHydraHandlers()
-  appWhitelist.Init( helpers.GetenvOrDefault( globals.CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY, globals.DEFAULTS_CNA_ADMIN_APP_WHITELIST_FILE ) )
+  appWhitelist.Init( helpers.GetenvOrDefault( globals.CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY ) )
 
   return nil
 }
