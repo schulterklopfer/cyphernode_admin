@@ -18,3 +18,5 @@ curl -v 'http://localhost:8080/api/v0/users/1' -XGET -H "Content-type: applicati
 curl -v 'http://localhost:9001/clients' -XGET -H "Content-type: application/json" -H "Accept: application/json" --compressed
 
 curl -v 'http://localhost:9001/clients' -XPOST -H "Content-type: application/json" -H "Accept: application/json" --data-binary '{}' --compressed
+
+ curl -v 'http://localhost:3031/api/v0/apps/register' -XPOST -H "Content-type: application/json" -H "Accept: application/json" --data-binary '{ "clientID": "01234567890123456789012345678901", "clientSecret": "01234567890123456789012345678901", "name": "name", "callbackURL": "http://127.0.0.1/callback", "availableRoles": [{ "name": "user", "autoAssign": true, "description": "foo"}] }' --compressed

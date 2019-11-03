@@ -1,7 +1,6 @@
 package models_test
 
 import (
-  "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "testing"
 )

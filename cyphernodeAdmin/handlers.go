@@ -12,7 +12,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
-  cyphernodeAdmin.engineInternal.GET( globals.INTERNAL_ENDPOINTS_REGISTER_APP, handlers.InternalRegisterApp )
+  cyphernodeAdmin.engineInternal.POST( globals.INTERNAL_ENDPOINTS_REGISTER_APP, handlers.InternalRegisterApp )
   cyphernodeAdmin.engineInternal.GET( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
   cyphernodeAdmin.engineInternal.PATCH( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.PatchSession )
   cyphernodeAdmin.engineInternal.DELETE( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.DeleteSession )

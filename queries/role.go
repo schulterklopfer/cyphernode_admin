@@ -2,9 +2,9 @@ package queries
 
 import (
   "errors"
-  "github.com/go-validator/validator"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
+  "gopkg.in/validator.v2"
 )
 
 func CreateRole( role *models.RoleModel ) error {
