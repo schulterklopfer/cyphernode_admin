@@ -71,6 +71,12 @@ func (appWhitelist *AppWhitelist) ContainsClientID( clientID string ) bool {
 }
 
 func (appWhitelist *AppWhitelist) load() error {
+
+  /*** Some thoughts:
+    *   Do we need a mechanism to remove already registered apps
+    *   when removed from the whitelist?
+    ***/
+
   appWhitelist.mutex.Lock()
   defer appWhitelist.mutex.Unlock()
   file, err := os.Open( appWhitelist.Path )
@@ -78,7 +84,8 @@ func (appWhitelist *AppWhitelist) load() error {
     return err
   }
   defer file.Close()
-
+  // clear entries
+  appWhitelist.entries = appWhitelist.entries[:0]
   scanner := bufio.NewScanner(file)
   for scanner.Scan() {
     line := scanner.Text()
