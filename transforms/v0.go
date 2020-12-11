@@ -3,18 +3,27 @@ package transforms
 type (
   AppV0 struct {
     ID uint   `json:"id" form:"id"`
-    ClientID string `json:"clientID" form:"clientid_like"`
+    Hash string `json:"hash" form:"clientid_like"`
+    MountPoint string `json:"mountPoint" form:"mountpoint_like"`
     Name string `json:"name" form:"name_like"`
     Description string `json:"description" form:"description"`
-    CallbackURL string `json:"callbackURL" form:"callbackURL"`
     AvailableRoles []*RoleV0 `json:"availableRoles" form:"availableRoles"`
+    AccessPolicies []*AccessPolicyV0 `json:"accessPolicies" form:"availableRoles"`
   }
 
   RoleV0 struct {
     ID uint   `json:"id" form:"id"`
+    AppId uint `json:"appId" form:"appId"`
     Name string `json:"name" form:"name"`
     Description string `json:"description" form:"description"`
     AutoAssign bool `json:"autoAssign" form:"autoAssign"`
+  }
+
+  AccessPolicyV0 struct {
+    Roles []string `json:"roles"`
+    Patterns []string `json:"resources"`
+    Effect string `json:"effect"`
+    Actions []string `json:"actions"`
   }
 
   // strange form names come from ng2_smart_table

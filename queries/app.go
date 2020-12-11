@@ -16,7 +16,7 @@ func CreateApp( app *models.AppModel ) error {
   db := dataSource.GetDB()
 
   var existingApps []models.AppModel
-  db.Limit(1).Find( &existingApps, models.AppModel{ClientSecret: app.ClientSecret} )
+  db.Limit(1).Find( &existingApps, models.AppModel{Hash: app.Hash} )
 
   if len(existingApps) > 0 {
     return errors.New( "app with same hash already exists" )
@@ -34,6 +34,9 @@ func DeleteApp( id uint ) error {
   if id == 0 {
     return errors.New("no such app")
   }
+  if id == 1 {
+    return cnaErrors.ErrActionForbidden
+  }
   db := dataSource.GetDB()
   var app models.AppModel
   db.Take( &app, id )
@@ -45,6 +48,9 @@ func DeleteApp( id uint ) error {
 }
 
 func RemoveRoleFromApp(  app *models.AppModel, roleId uint ) error {
+  if roleId == 1 && app.ID == 1 {
+    return cnaErrors.ErrActionForbidden
+  }
   db := dataSource.GetDB()
 
   var role models.RoleModel
@@ -74,17 +80,42 @@ func CreateRoleForApp( app *models.AppModel, role *models.RoleModel ) error {
   return db.Error
 }
 
-func GetAppIDByClientID( clientID string ) (uint, error) {
-  var hydraClients []models.HydraClientModel
-  err := Find( &hydraClients,  []interface{}{"client_id = ?", clientID }, "", 1,0,false)
+func GetAppByHash( hash string ) (*models.AppModel, error) {
+  var apps []*models.AppModel
+  err := Find( &apps,  []interface{}{"hash = ?", hash}, "", 1,0,false)
 
   if err != nil {
-    return 0, err
+    return nil, err
   }
 
-  if len(hydraClients) == 0 {
-    return 0, cnaErrors.ErrNoSuchHydraClient
+  if len(apps) == 0 {
+    return nil, nil
   }
 
-  return hydraClients[0].AppID, nil
+  err = LoadRoles( apps[0] )
+  if err != nil {
+    return nil, err
+  }
+
+  return apps[0], nil
+}
+
+func GetAppByMountPoint( mountPoint string ) (*models.AppModel, error) {
+  var apps []*models.AppModel
+  err := Find( &apps,  []interface{}{"mount_point = ?", mountPoint}, "", 1,0,false)
+
+  if err != nil {
+    return nil, err
+  }
+
+  if len(apps) == 0 {
+    return nil, cnaErrors.ErrNoSuchApp
+  }
+
+  err = LoadRoles( apps[0] )
+  if err != nil {
+    return nil, err
+  }
+
+  return apps[0], nil
 }

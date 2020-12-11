@@ -1,6 +1,9 @@
 package transforms
 
-import "github.com/schulterklopfer/cyphernode_admin/models"
+import (
+  "github.com/SatoshiPortal/cam/storage"
+  "github.com/schulterklopfer/cyphernode_admin/models"
+)
 
 // transform from database model to api object
 func Transform( in interface{}, out interface{} ) bool {
@@ -29,10 +32,10 @@ func Transform( in interface{}, out interface{} ) bool {
     switch in.(type) {
     case *models.AppModel:
       out.(*AppV0).ID = in.(*models.AppModel).ID
-      out.(*AppV0).ClientID = in.(*models.AppModel).ClientID
+      out.(*AppV0).Hash = in.(*models.AppModel).Hash
+      out.(*AppV0).MountPoint = in.(*models.AppModel).MountPoint
       out.(*AppV0).Name = in.(*models.AppModel).Name
       out.(*AppV0).Description = in.(*models.AppModel).Description
-      out.(*AppV0).CallbackURL = in.(*models.AppModel).CallbackURL
 
       roleCount := len(in.(*models.AppModel).AvailableRoles)
       transformedAvailableRoles :=make( []*RoleV0, roleCount )
@@ -41,17 +44,36 @@ func Transform( in interface{}, out interface{} ) bool {
         transformedAvailableRoles[i] = new(RoleV0)
         Transform(in.(*models.AppModel).AvailableRoles[i], transformedAvailableRoles[i])
       }
-
       out.(*AppV0).AvailableRoles = transformedAvailableRoles
+
+      accessPolicyCount := len(in.(*models.AppModel).AccessPolicies)
+      transformedAccessPolicies :=make( []*AccessPolicyV0, accessPolicyCount )
+
+      for i:=0; i<accessPolicyCount; i++ {
+        transformedAccessPolicies[i] = new(AccessPolicyV0)
+        Transform(in.(*models.AppModel).AccessPolicies[i], transformedAccessPolicies[i])
+      }
+
+      out.(*AppV0).AccessPolicies = transformedAccessPolicies
       transformed = true
     }
   case *RoleV0:
     switch in.(type) {
     case *models.RoleModel:
       out.(*RoleV0).ID = in.(*models.RoleModel).ID
+      out.(*RoleV0).AppId = in.(*models.RoleModel).AppId
       out.(*RoleV0).Name = in.(*models.RoleModel).Name
       out.(*RoleV0).Description = in.(*models.RoleModel).Description
       out.(*RoleV0).AutoAssign = in.(*models.RoleModel).AutoAssign
+      transformed = true
+    }
+  case *AccessPolicyV0:
+    switch in.(type) {
+    case *storage.AccessPolicy:
+      out.(*AccessPolicyV0).Effect = in.(*storage.AccessPolicy).Effect
+      out.(*AccessPolicyV0).Actions = in.(*storage.AccessPolicy).Actions
+      out.(*AccessPolicyV0).Roles = in.(*storage.AccessPolicy).Roles
+      out.(*AccessPolicyV0).Patterns = in.(*storage.AccessPolicy).Patterns
       transformed = true
     }
   case *SessionV0:

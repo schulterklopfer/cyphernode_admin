@@ -1,0 +1,32 @@
+// Here you can add other styles
+
+.cna-role {
+  background-color: $black;
+}
+
+.cna-role.cna-role-hover:hover {
+  background-color: $danger;
+}
+
+.cna-role.cna-role-gray {
+  background-color: $gray-100;
+}
+
+.role-suggestions-active {
+  margin: 0px;
+  padding-left: 10px;
+}
+
+.role-suggestions-disabled {
+
+}
+
+.role-suggestions-role-selected {
+  color: #f9b115;
+}
+
+.role-suggestions-role-selected-name {
+  background-color: peachpuff;
+}
+
+

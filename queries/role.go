@@ -2,6 +2,7 @@ package queries
 
 import (
   "errors"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "gopkg.in/validator.v2"
@@ -27,6 +28,9 @@ func DeleteRole( id uint ) error {
   if id == 0 {
     return errors.New("no such role")
   }
+  if id == 1 {
+    return cnaErrors.ErrActionForbidden
+  }
   db := dataSource.GetDB()
   var role models.RoleModel
   db.Take( &role, id )
@@ -35,5 +39,14 @@ func DeleteRole( id uint ) error {
   }
   db.Unscoped().Delete( &role)
   role.ID = 0
+  return nil
+}
+
+func UsersForRole( users *[]*models.UserModel, role *models.RoleModel ) error {
+  if role == nil {
+    return errors.New("no such role")
+  }
+  db := dataSource.GetDB()
+  db.Model(role).Association("Users").Find( users )
   return nil
 }

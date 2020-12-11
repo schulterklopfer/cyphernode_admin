@@ -1,11 +1,11 @@
 package cyphernodeAdmin
 
 import (
-  "encoding/base32"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/password"
   "github.com/schulterklopfer/cyphernode_admin/queries"
@@ -24,16 +24,15 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
   _ = queries.Get( adminApp, 1, true )
   _ = queries.Get( adminUser, 1, true )
 
-  hashedPassword, err := password.HashPassword( cyphernodeAdmin.config.InitialAdminPassword )
+  hashedPassword, err := password.HashPassword( cyphernodeAdmin.Config.InitialAdminPassword )
   if err != nil {
     return err
   }
 
-  roles := make( []*models.RoleModel, 1 )
-
   tx := db.Begin()
 
   if adminRole.ID != 1 {
+    logwrapper.Logger().Info("adding admin role")
     adminRole.ID = 1
     adminRole.Name = ADMIN_APP_ADMIN_ROLE_NAME
     adminRole.Description = ADMIN_APP_ADMIN_ROLE_DESCRIPTION
@@ -42,16 +41,54 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     tx.Create(adminRole)
   }
 
-  roles[0]= adminRole
-
   if adminApp.ID != 1 {
+    logwrapper.Logger().Info("adding admin app")
     adminApp.ID = 1
     adminApp.Name = ADMIN_APP_NAME
     adminApp.Description = ADMIN_APP_DESCRIPTION
-    adminApp.ClientSecret = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
-    adminApp.ClientID = helpers.RandomString(32, base32.StdEncoding.EncodeToString )
-    adminApp.CallbackURL = helpers.AbsoluteURL( globals.URLS_CALLBACK )
-    if adminApp.ClientSecret == "" || adminApp.ClientID == "" {
+    adminApp.Hash = buildAdminHash( adminApp.Name, globals.CYPHERAPPS_REPO )
+    adminApp.MountPoint = "admin"
+    adminApp.AccessPolicies = models.AccessPolicies{
+      /* General stuff */
+      {
+        Patterns: []string{".+"},
+        Roles: []string{"*"},
+        Actions: []string{"options"},
+        Effect: "allow",
+      },
+      {
+        Patterns: []string{"favicon.ico$"},
+        Roles: []string{"*"},
+        Actions: []string{"get", "options"},
+        Effect: "allow",
+      },
+      /* API endpoints */
+      {
+        Patterns: []string{"^\\/api\\/v0\\/login$"},
+        Roles: []string{"*"},
+        Actions: []string{"post"},
+        Effect: "allow",
+      },
+      {
+        Patterns: []string{"^\\/api\\/v0\\/users"},
+        Roles: []string{"admin"},
+        Actions: []string{"get","post","patch","delete"},
+        Effect: "allow",
+      },
+      {
+        Patterns: []string{"^\\/api\\/v0\\/apps"},
+        Roles: []string{"*"},
+        Actions: []string{"get"},
+        Effect: "allow",
+      },
+      {
+        Patterns: []string{"^\\/api\\/v0\\/apps"},
+        Roles: []string{"admin"},
+        Actions: []string{"post","patch"},
+        Effect: "allow",
+      },
+    }
+    if adminApp.Hash == "" {
       return cnaErrors.ErrMigrationFailed
     }
     tx.Create(adminApp)
@@ -69,11 +106,12 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
   }
 
   if adminUser.ID != 1 {
+    logwrapper.Logger().Info("adding admin user")
     adminUser.ID = 1
-    adminUser.Login = cyphernodeAdmin.config.InitialAdminLogin
+    adminUser.Login = cyphernodeAdmin.Config.InitialAdminLogin
     adminUser.Password = hashedPassword
-    adminUser.Name = cyphernodeAdmin.config.InitialAdminName
-    adminUser.EmailAddress = cyphernodeAdmin.config.InitialAdminEmailAddress
+    adminUser.Name = cyphernodeAdmin.Config.InitialAdminName
+    adminUser.EmailAddress = cyphernodeAdmin.Config.InitialAdminEmailAddress
     tx.Create(adminUser)
   }
 
@@ -90,5 +128,12 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   return tx.Commit().Error
 
+}
+
+func buildAdminHash( label string, sourceLocation string ) string {
+  bytes := make( []byte, 0 )
+  bytes = append( bytes, []byte(label)... )
+  bytes = append( bytes, []byte(sourceLocation)... )
+  return helpers.TrimmedRipemd160Hash( &bytes )
 }
 

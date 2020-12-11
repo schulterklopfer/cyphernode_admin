@@ -2,9 +2,11 @@ package helpers
 
 import (
   "crypto/rand"
+  "encoding/base64"
   "encoding/json"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/password"
+  "golang.org/x/crypto/ripemd160"
   "io"
   "os"
   "reflect"
@@ -138,4 +140,10 @@ func GetenvOrDefault( key string ) string {
     return defaultValue
   }
   return value
+}
+
+func TrimmedRipemd160Hash( bytes *[]byte ) string {
+  hasher := ripemd160.New()
+  hasher.Write(*bytes)
+  return strings.Trim(base64.URLEncoding.EncodeToString(hasher.Sum(nil)), "=" )
 }

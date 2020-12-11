@@ -79,13 +79,17 @@ func (cnaSessionStore *CNASessionStore) New(r *http.Request, name string) (*gses
   session.Options = cnaSessionStore.CloneOptions()
   session.IsNew = true
   if c, errCookie := r.Cookie(name); errCookie == nil {
-    err = securecookie.DecodeMulti(name, c.Value, &session.ID, cnaSessionStore.Codecs...)
+    err = cnaSessionStore.DecodeMulti( name, c.Value, &session.ID )
     if err == nil {
       ok, err = cnaSessionStore.load(session)
       session.IsNew = !(err == nil && ok) // not new if no error and data available
     }
   }
   return session, err
+}
+
+func (cnaSessionStore *CNASessionStore) DecodeMulti( name string, sessionID string, decodedSessionID *string ) error {
+  return securecookie.DecodeMulti(name, sessionID, decodedSessionID, cnaSessionStore.Codecs...)
 }
 
 // Save should persist session to the underlying store implementation.

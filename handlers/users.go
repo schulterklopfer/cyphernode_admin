@@ -1,6 +1,8 @@
 package handlers
 
 import (
+  "encoding/json"
+  "fmt"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
@@ -175,11 +177,23 @@ func PatchUser(c *gin.Context) {
 
   input := new( map[string]interface{} )
 
+
   err = c.Bind( &input )
 
-  helpers.SetByJsonTag( &user, input )
+  b, err := json.MarshalIndent(&input, "", "  ")
+  if err != nil {
+    fmt.Println("error:", err)
+  }
+  fmt.Println(string(b))
 
+  helpers.SetByJsonTag( &user, input )
   err = queries.Update( &user )
+
+  b, err = json.MarshalIndent(&user, "", "  ")
+  if err != nil {
+    fmt.Println("error:", err)
+  }
+  fmt.Println(string(b))
 
   if err != nil {
     switch err {

@@ -1,18 +1,25 @@
-FROM golang:1.12-alpine as builder
+FROM golang:1.14-alpine as builder
 
-RUN apk add git
+RUN apk --update add alpine-sdk bash curl
 
 COPY . /src
 
 WORKDIR /src
+
+RUN mkdir -p /Users/jash/go/src/github.com/SatoshiPortal/
+
+ADD build_context/Users/jash/go/src/github.com/SatoshiPortal/cam /Users/jash/go/src/github.com/SatoshiPortal/cam
+
 RUN go generate
 #ENV VERSION=0.1
 #ENV CODENAME=cyphernodeadmin
 #RUN export DATE=$(date)
-RUN CGO_ENABLED=0 GOGC=off go build -ldflags "-s" -a
+#RUN CGO_ENABLED=1 GOGC=off go build -ldflags "-s" -a
+RUN go build
 
-FROM scratch
+RUN apk --update del alpine-sdk
 
-COPY --from=builder /src/cyphernode_admin /cyphernode_admin
+RUN mkdir -p /data
+WORKDIR /data
 
-CMD ["/cyphernode_admin"]
+CMD ["/src/cyphernode_admin"]

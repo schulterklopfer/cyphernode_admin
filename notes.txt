@@ -1,27 +1,11 @@
-Registration process:
-
-Only apps with a client id in the /apps/whitelist.txt file can register.
-The client ids will be written into this file in two ways:
-
-1) start.sh script will check the apps.txt and install the apps in that file
-   (Sources can be github://user/repo, file:///path/to/your/app)
-   Installation will be the following:
-    * download app template in case of github
-    * generate client id for app and create app directory with that client id as a name
-    * copy template files into app directory
-   For every client id in the base app folder an entry in whitelist.txt will be created with
-   the postfix ":cyphernode"
-     (01234567890123456789012345678912:cyphernode)
-   You will be able to register your app calling the registration url
-
-   ( Note: mounts of all apps will be checked to make sure they mount only allowed files
-     or their own app folder )
-
-2) add your own external app id u dont want to run inside cyphernode
-   edit whitelist.txt and add your client id with the postfix ":external"
-   Now you will be able to register your app calling the registration
-   url
-
 
 Docs:
 * https://gohugo.io/templates/views/
+
+
+https://www.ory.sh/docs/oathkeeper/configure-deploy
+https://www.ory.sh/docs/keto/configure-deploy
+https://medium.com/@eyasu.kifle/ip-port-whitelisting-for-docker-containers-6c15aa89e7e9
+https://dev.to/andre/docker-restricting-in--and-outbound-network-traffic-67p  #iptables
+
+https://github.com/c-bata/go-prompt

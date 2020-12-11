@@ -36,3 +36,6 @@
 # System Files
 .DS_Store
 Thumbs.db
+_dummyWebserver
+
+node_modules

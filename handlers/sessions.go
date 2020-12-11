@@ -2,12 +2,33 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "net/http"
 )
+
+
+func CheckSession(c *gin.Context) {
+
+  sessionid, _ := c.Cookie(globals.SESSION_COOKIE_NAME)
+
+  println( sessionid )
+
+  //user, err := cnaOIDC.GetUser(c.Writer, c.Request)
+  //if err != nil  {
+  //  c.Header("X-Status-Reason", err.Error() )
+  //  c.Status(http.StatusUnauthorized)
+  //  return
+  //}
+
+  //c.JSON(200, map[string]interface{}{
+  //  "subject" : user.UserID,
+  //  "extra" : user,
+  //})
+}
 
 func GetSession(c *gin.Context) {
   // param 0 is first param in url pattern

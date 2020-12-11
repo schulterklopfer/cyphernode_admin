@@ -4,9 +4,14 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/sirupsen/logrus"
   "os"
 )
 func main() {
+
+  logwrapper.Logger().SetLevel(logrus.TraceLevel)
+
   app := cyphernodeAdmin.NewCyphernodeAdmin( &cyphernodeAdmin.Config{
       DatabaseFile: helpers.GetenvOrDefault(globals.CNA_ADMIN_DATABASE_FILE_ENV_KEY ),
       InitialAdminLogin: helpers.GetenvOrDefault( globals.CNA_ADMIN_LOGIN_ENV_KEY ),

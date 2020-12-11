@@ -3,13 +3,15 @@ package queries
 import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
 
 func DeleteUser( id uint ) error {
   if id == 0 {
     return cnaErrors.ErrNoSuchUser
+  }
+  if id == 1 {
+    return cnaErrors.ErrActionForbidden
   }
   db := dataSource.GetDB()
   var user models.UserModel
@@ -18,6 +20,10 @@ func DeleteUser( id uint ) error {
 }
 
 func RemoveRoleFromUser(  user *models.UserModel, roleId uint ) error {
+  if roleId == 1 && user.ID == 1 {
+    return cnaErrors.ErrActionForbidden
+  }
+
   db := dataSource.GetDB()
 
   var role models.RoleModel
@@ -61,9 +67,9 @@ func AddRoleToUser( user *models.UserModel, roleId uint ) error {
   return db.Error
 }
 
-func GetRolesOfUserIDByAppID( userID uint, appID uint ) ( *[]*models.RoleModel, error) {
+func GetRolesOfUser( user *models.UserModel ) ( []*models.RoleModel, error) {
   db := dataSource.GetDB()
   var roles []*models.RoleModel
-  db.Raw(globals.SQL_STATEMENTS__ROLES_BY_USER_ID_AND_APP_ID, userID, appID ).Scan(&roles)
-  return &roles, db.Error
+  db.Model( user ).Association( "Roles" ).Find(&roles)
+  return roles, db.Error
 }

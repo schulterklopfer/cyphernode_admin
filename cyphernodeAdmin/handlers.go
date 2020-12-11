@@ -5,59 +5,43 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/handlers"
 )
 
-func (cyphernodeAdmin *CyphernodeAdmin) createRouterGroups() {
-  for i:=0; i<len( globals.ROUTER_GROUPS ); i++ {
-    cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[i]] = cyphernodeAdmin.engineExternal.Group(globals.ROUTER_GROUPS_BASE_ENDPOINTS[i])
-  }
+func (cyphernodeAdmin *CyphernodeAdmin) initForwardAuthHandlers() {
+  cyphernodeAdmin.engineForwardAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, handlers.ForwardAuthAuth )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
-  cyphernodeAdmin.engineInternal.POST( globals.INTERNAL_ENDPOINTS_REGISTER_APP, handlers.InternalRegisterApp )
-  cyphernodeAdmin.engineInternal.GET( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
-  cyphernodeAdmin.engineInternal.PATCH( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.PatchSession )
-  cyphernodeAdmin.engineInternal.DELETE( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.DeleteSession )
-  cyphernodeAdmin.engineInternal.POST( globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS+"/", handlers.CreateSession )
+  cyphernodeAdmin.engineInternal.GET( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
+  cyphernodeAdmin.engineInternal.PATCH( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.PatchSession )
+  cyphernodeAdmin.engineInternal.DELETE( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.DeleteSession )
+  cyphernodeAdmin.engineInternal.POST( globals.BASE_ENDPOINT_SESSIONS+"", handlers.CreateSession )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET("/", handlers.DefaultRoot )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_CALLBACK, handlers.DefaultCallback)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PUBLIC].GET( globals.PUBLIC_ENDPOINTS_BYEBYE, handlers.DefaultByeBye )
-
+  cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PRIVATE].GET("/logout", handlers.DefaultLogout )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_PRIVATE].GET( globals.PRIVATE_ENDPOINTS_HOME, handlers.DefaultHome )
+  cyphernodeAdmin.engineExternal.GET(globals.PRIVATE_ENDPOINTS_LOGOUT, handlers.DefaultLogout )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].GET("/", handlers.FindUsers)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].POST("/", handlers.CreateUser)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].GET("/:id", handlers.GetUser)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].PUT("/:id", handlers.UpdateUser )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].PATCH("/:id", handlers.PatchUser )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].DELETE("/:id", handlers.DeleteUser )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].POST("/:id/roles", handlers.UserAddRoles )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_USERS].DELETE("/:id/roles/:roleId", handlers.UserRemoveRole )
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_USERS+"", handlers.FindUsers)
+  cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_USERS+"", handlers.CreateUser)
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_USERS+"/:id", handlers.GetUser)
+  cyphernodeAdmin.engineExternal.PUT(globals.BASE_ENDPOINT_USERS+"/:id", handlers.UpdateUser )
+  cyphernodeAdmin.engineExternal.PATCH(globals.BASE_ENDPOINT_USERS+"/:id", handlers.PatchUser )
+  cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_USERS+"/:id", handlers.DeleteUser )
+  cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_USERS+"/:id/roles", handlers.UserAddRoles )
+  cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_USERS+"/:id/roles/:roleId", handlers.UserRemoveRole )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].GET("/", handlers.FindApps)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].POST("/", handlers.CreateApp)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].GET("/:id", handlers.GetApp)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].PUT("/:id", handlers.UpdateApp )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].PATCH("/:id", handlers.PatchApp )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].DELETE("/:id", handlers.DeleteApp )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].POST("/:id/roles", handlers.AppAddRoles )
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_APPS].DELETE("/:id/roles/:roleId", handlers.AppRemoveRole )
-}
-
-func (cyphernodeAdmin *CyphernodeAdmin) initHydraHandlers() {
-  // TODO: csrf protection
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/consent", handlers.HydraConsentGet)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].GET("/login", handlers.HydraLoginGet)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/consent", handlers.HydraConsentPost)
-  cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS_HYDRA].POST("/login", handlers.HydraLoginPost)
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_APPS+"", handlers.FindApps)
+  cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_APPS+"", handlers.CreateApp)
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_APPS+"/:id", handlers.GetApp)
+  cyphernodeAdmin.engineExternal.PUT(globals.BASE_ENDPOINT_APPS+"/:id", handlers.UpdateApp )
+  cyphernodeAdmin.engineExternal.PATCH(globals.BASE_ENDPOINT_APPS+"/:id", handlers.PatchApp )
+  cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_APPS+"/:id", handlers.DeleteApp )
+  cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_APPS+"/:id/roles", handlers.AppAddRoles )
+  cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_APPS+"/:id/roles/:roleId", handlers.AppRemoveRole )
 }

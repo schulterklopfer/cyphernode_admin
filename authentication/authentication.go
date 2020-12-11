@@ -7,21 +7,21 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/queries"
 )
 
-func CheckUserPassword( login string, pwString string ) error {
-  var users []models.UserModel
+func CheckUserPassword( login string, pwString string ) (*models.UserModel, error) {
+  var users []*models.UserModel
   err := queries.Find( &users,  []interface{}{"login = ?", login }, "", 1,0,true)
 
   if err != nil {
-    return err
+    return nil,err
   }
 
   if len(users) != 1 {
-    return cnaErrors.ErrNoSuchUser
+    return nil, cnaErrors.ErrNoSuchUser
   }
 
   if !password.CheckPasswordHash( pwString, users[0].Password ) {
-    return cnaErrors.ErrLoginOrPasswordWrong
+    return nil, cnaErrors.ErrLoginOrPasswordWrong
   }
 
-  return nil
+  return users[0], nil
 }

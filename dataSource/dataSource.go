@@ -3,6 +3,7 @@ package dataSource
 import (
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
 )
@@ -13,17 +14,22 @@ func GetDB() *gorm.DB {
   return db
 }
 
-func Init( databaseFile string ) {
+func Init( databaseFile string ) error {
   if db != nil {
-    return
+    return nil
   }
   var err error
-  logwrapper.Logger().Info( "Opening database")
+  logwrapper.Logger().Info( "Opening database "+databaseFile)
   db, err = gorm.Open("sqlite3", databaseFile )
   if err != nil {
-    logwrapper.Logger().Panic("failed to connect to database" )
+    logwrapper.Logger().Panic("failed to connect to database "+err.Error() )
+    return err
   }
-  AutoMigrate()
+  err = AutoMigrate()
+  if err != nil {
+    return err
+  }
+  return nil
 }
 
 func Close() {
@@ -34,15 +40,14 @@ func Close() {
   db = nil
 }
 
-func AutoMigrate() {
+func AutoMigrate() error {
   if db == nil {
-    return
+    return cnaErrors.ErrDatabaseNotInitialised
   }
   logwrapper.Logger().Info( "Migrating database")
-  db.AutoMigrate(
+  return db.AutoMigrate(
     &models.UserModel{},
     &models.AppModel{},
     &models.RoleModel{},
-    &models.HydraClientModel{},
-    &models.SessionModel{} )
+    &models.SessionModel{} ).Error
 }

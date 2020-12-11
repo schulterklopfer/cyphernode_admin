@@ -1,20 +1,14 @@
 package cyphernodeAdmin
 
 import (
+  "github.com/gin-contrib/cors"
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/appWhitelist"
-  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-  "github.com/schulterklopfer/cyphernode_admin/cnaOIDC"
+  "github.com/schulterklopfer/cyphernode_admin/appList"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/hydraAPI"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
   "golang.org/x/sync/errgroup"
-  "net/http"
-  "os"
 )
 
 const ADMIN_APP_NAME string = "Cyphernode Admin"
@@ -33,74 +27,77 @@ type Config struct {
 }
 
 type CyphernodeAdmin struct {
-  config       *Config
-  engineInternal *gin.Engine
-  engineExternal *gin.Engine
-  routerGroups map[string]*gin.RouterGroup
+  Config            *Config
+  engineInternal    *gin.Engine
+  engineExternal    *gin.Engine
+  engineForwardAuth *gin.Engine
+  routerGroups      map[string]*gin.RouterGroup
+  ClientID          string
+  Secret            string
 }
 
 var instance *CyphernodeAdmin
 
 func NewCyphernodeAdmin(config *Config) *CyphernodeAdmin {
-  cyphernodeAdmin := new(CyphernodeAdmin)
-  cyphernodeAdmin.config = config
-  return cyphernodeAdmin
+  instance = new(CyphernodeAdmin)
+  instance.Config = config
+  return instance
+}
+
+func Get() *CyphernodeAdmin {
+  return instance
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
-  dataSource.Init(cyphernodeAdmin.config.DatabaseFile)
-  hydraAPI.Init()
+  err := dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
+  if err != nil {
+    logwrapper.Logger().Error("Failed to create database" )
+    return err
+  }
 
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
-  err := cyphernodeAdmin.migrate()
+  err = cyphernodeAdmin.migrate()
   if err != nil {
+    logwrapper.Logger().Error("Failed to init database" )
     return err
   }
 
-  var thisApp models.AppModel
-  err = queries.Get( &thisApp, 1, true )
-
-  if err != nil {
-    return err
-  }
-
-  if thisApp.ID == 0 {
-    return cnaErrors.ErrNoSuchApp
-  }
-
-  cnaOIDC.Init( cnaOIDC.NewInitParams(
-    thisApp.ClientID,
-    thisApp.ClientSecret,
-    helpers.AbsoluteURL(globals.URLS_CALLBACK),
-    helpers.GetenvOrDefault( globals.OIDC_DISCOVERY_URL_ENV_KEY ),
-    helpers.AbsoluteURLFromHostEnvKey( globals.BASE_URL_INTERNAL_ENV_KEY, globals.ROUTER_GROUPS_BASE_ENDPOINT_SESSIONS ),
-    []byte(helpers.GetenvOrDefault( globals.OIDC_SESSION_COOKIE_SECRET_ENV_KEY ) ),
-    helpers.GetenvOrDefault( globals.OIDC_SSO_COOKIE_DOMAIN_ENV_KEY )) )
-
+  cyphernodeAdmin.engineForwardAuth = gin.New()
   cyphernodeAdmin.engineInternal = gin.New()
   cyphernodeAdmin.engineExternal = gin.New()
-  cyphernodeAdmin.engineExternal.LoadHTMLGlob("templates/**/*.tmpl")
-  cyphernodeAdmin.createRouterGroups()
+
+  cyphernodeAdmin.engineExternal.Use(cors.New(cors.Config{
+    AllowMethods: []string{"POST", "GET", "OPTIONS", "PATCH", "DELETE"},
+    AllowAllOrigins: true,
+    AllowHeaders: []string{"Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"},
+  }))
+
   // add session checks b4 other handlers so they are handled first
   // order is important here
-  if !cyphernodeAdmin.config.DisableAuth {
+  /*
+  if !cyphernodeAdmin.Config.DisableAuth {
     for i := 0; i < len(globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
       cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use(CheckSession())
     }
   }
+  */
   // create handlers for public and private endpoints
   cyphernodeAdmin.initInternalHandlers()
   cyphernodeAdmin.initPublicHandlers()
   cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
-  cyphernodeAdmin.initHydraHandlers()
-  appWhitelist.Init( helpers.GetenvOrDefault( globals.CNA_ADMIN_APP_WHITELIST_FILE_ENV_KEY ) )
-
+  cyphernodeAdmin.initForwardAuthHandlers()
+  err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )
+  if err != nil {
+    logwrapper.Logger().Error("Failed to init applist" )
+    return err
+  }
   return nil
 }
 
+/*
 func CheckSession() gin.HandlerFunc {
   return func(c *gin.Context) {
     if !helpers.EndpointIsPublic( c.Request.URL.Path ) {
@@ -118,17 +115,20 @@ func CheckSession() gin.HandlerFunc {
     c.Next()
   }
 }
+ */
 
 func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
   return cyphernodeAdmin.engineExternal
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
-  if os.Getenv(globals.HYDRA_DISABLE_SYNC_ENV_KEY) == "" {
-    helpers.SetInterval(cyphernodeAdmin.checkHydraClients, 1000, false)
-  }
 
   var g errgroup.Group
+
+  // oathkeeper session checker
+  g.Go(func() error {
+    return  cyphernodeAdmin.engineForwardAuth.Run(":3032")
+  })
 
   // internal interface, only available to cypherapps
   g.Go(func() error {
@@ -137,7 +137,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Start() {
 
   // external interface behind treaefik
   g.Go(func() error {
-    return  cyphernodeAdmin.engineExternal.Run(":3030")
+    return cyphernodeAdmin.engineExternal.Run(":3030")
   })
 
   if err := g.Wait(); err != nil {
