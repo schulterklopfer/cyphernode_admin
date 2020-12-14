@@ -14,7 +14,7 @@ import {
   CInputGroup,
   CInput,
   CInputGroupAppend,
-  CInputGroupText, CCardHeader, CModalFooter, CButton
+  CInputGroupText, CCardHeader, CModalFooter, CButton, CBadge
 } from '@coreui/react'
 import UserDetails from "./UserDetails";
 import {CIcon} from "@coreui/icons-react";
@@ -33,6 +33,7 @@ const Users = () => {
 
   const [userToEdit, setUserToEdit] = React.useState({id: -1});
   const [userIdToDelete, setUserIdToDelete] = React.useState(0);
+  const [appLookup, setAppLookup] = React.useState({});
 
   const loginRef = useRef("");
   const nameRef = useRef("");
@@ -49,7 +50,6 @@ const Users = () => {
       if (ignore) {
         return;
       }
-      const appLookup = {};
       let appListResponse;
 
       try {
@@ -57,18 +57,23 @@ const Users = () => {
       } catch (e) {
         console.log( e );
       }
-
+      const alu = {}
       if ( appListResponse && appListResponse.status === 200) {
         const al = appListResponse.body;
         const rs = [];
         for (const app of al.data) {
-          appLookup[app.id] = app;
+          alu[app.id] = app;
           for (const role of app.availableRoles) {
-            rs.push({id: role.id, name: app.name + " - " + role.name});
+            rs.push({
+              id: role.id,
+              appId: role.appId,
+              name: app.name+" - "+role.name
+            });
           }
         }
         setRoleSuggestions(rs);
         setAppList(al);
+        setAppLookup(alu);
       }
 
       let userListResponse;
@@ -85,9 +90,7 @@ const Users = () => {
         for (const user of ul.data) {
           const localAppList = [];
           for (const role of user.roles) {
-            let app = appLookup[role.appId];
-            role.localName = role.name;
-            role.name = app.name + " - " + role.name;
+            let app = alu[role.appId];
             if (localAppList.indexOf(app) === -1) {
               localAppList.push(app);
             }
@@ -106,7 +109,7 @@ const Users = () => {
       // component unmount
       ignore = true
     }
-  }, [context.session])
+  }, [])
 
   const clearUserToEdit = () => {
     setUserIdToDelete(0);
@@ -127,7 +130,6 @@ const Users = () => {
       emailAddressRef.current.value === userToEdit.email_address &&
       passwordRef.current.value === "" &&
       rolesAreEqual(newRoles, userToEdit.roles)) {
-      alert("nothing changed");
       clearUserToEdit();
       return;
     }
@@ -135,29 +137,51 @@ const Users = () => {
     try {
       if (userToEdit.id === 0) {
         // create new user in backend
-        const userCreateResponse = await requests.createUser( {
+        const createData = {
           login: loginRef.current.value,
           name: nameRef.current.value,
           email_address: emailAddressRef.current.value,
-          password: passwordRef.current.value
-        }, context.session );
+          password: passwordRef.current.value,
+          roles: newRoles
+        };
 
+        const userCreateResponse = await requests.createUser( createData, context.session );
         const patchedUser = userCreateResponse.body;
-
         userList.data.push( patchedUser );
         userList.data.sort( (a,b) => a.login>b.login?1:-1 );
         setUserList(userList);
 
       } else {
         // patch user in backend if changed
-        const userPatchResponse = await requests.patchUser( userToEdit.id, {
-          login: loginRef.current.value,
-          name: nameRef.current.value,
-          email_address: emailAddressRef.current.value
-        }, context.session );
+        const patchData = {
+        };
+
+        if ( loginRef.current.value !== userToEdit.login ) {
+          patchData.login = loginRef.current.value;
+        }
+
+        if ( nameRef.current.value !== userToEdit.name ) {
+          patchData.name = nameRef.current.value;
+        }
+
+        if ( emailAddressRef.current.value !== userToEdit.email_address ) {
+          patchData.email_address = emailAddressRef.current.value;
+        }
+
+        if ( passwordRef.current.value !== "" ) {
+          patchData.password = passwordRef.current.value;
+        }
+
+        if ( !rolesAreEqual(newRoles, userToEdit.roles)) {
+          // check which roles are new and which ones
+          // we need to delete
+          patchData.roles = newRoles;
+        }
+
+        const userPatchResponse = await requests.patchUser( userToEdit.id, patchData, context.session );
 
         const patchedUser = userPatchResponse.body;
-
+        console.log( patchedUser );
         const userIndex = userList.data.findIndex( user => user.id === patchedUser.id );
         if ( userIndex !== -1 ) {
           userList.data[userIndex]=patchedUser;
@@ -297,9 +321,22 @@ const Users = () => {
                 <CCardBody>
                   <div style={{width: "100%"}}>
                     <ReactTags
+                      foo={"bar"}
+                      removeButtonText="Click to remove role"
+                      tagComponent={(props) => (
+                        React.createElement( 'button', { type: 'button', className: props.classNames.selectedTag, title: props.removeButtonText, onClick: props.onDelete },
+                          React.createElement( 'span', { className: props.classNames.selectedTagName }, ((appLookup[props.tag.appId] || {}).name || "") + " - "  + props.tag.name )
+                        )
+                      )}
                       onAddition={(e) => {
                         if (newRoles.findIndex((role) => role.id === e.id) === -1) {
-                          newRoles.push(e);
+                          const app = appLookup[e.appId];
+                          if( app.availableRoles && app.availableRoles.length ) {
+                            const role = app.availableRoles.find( (ar) => ar.id === e.id );
+                            if ( role ) {
+                              newRoles.push(role);
+                            }
+                          }
                           newRoles.sort((a, b) => a.name > b.name ? 1 : -1);
                           setNewRoles(newRoles);
                         }

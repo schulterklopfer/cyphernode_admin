@@ -39,14 +39,19 @@ const UserDetails = (data) => {
           <CCardBody>
             <h5>Roles</h5>
             { !!userData.description  && <p  class="lead"><em>{ userData.description}</em></p> }
-            { appList.map( (appData) => (
-              <CCard key={appData.id}>
-                <CCardHeader>{appData.name}</CCardHeader>
-                <CCardBody>
-                  { userData.roles.filter( (r) => r.appId === appData.id ).map( (role) => (<CBadge key={role.id} className="font-lg p-2 cna-role text-white" shape="pill">{role.localName}</CBadge>) ) }
-                </CCardBody>
-              </CCard>
-            ) ) }
+            { appList.map( appData => {
+              const filteredRoles = userData.roles.filter( (r) => r.appId === appData.id );
+              if ( filteredRoles.length > 0 ) {
+                return (
+                  <CCard key={appData.id}>
+                    <CCardHeader>{appData.name}</CCardHeader>
+                    <CCardBody>
+                      { filteredRoles.map( (role) => (<CBadge key={role.id} className="font-lg p-2 cna-role text-white mr-1" shape="pill">{role.name}</CBadge>) ) }
+                    </CCardBody>
+                  </CCard>
+                );
+              }
+            } ) }
           </CCardBody>
         </CCollapse>
       </CCard>

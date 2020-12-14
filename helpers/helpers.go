@@ -123,6 +123,7 @@ func SetByJsonTag( obj interface{}, values *map[string]interface{} ) {
             hashedPassword, _ := password.HashPassword(jsonFieldValue.(string))
             (*values)[jsonFieldName] = hashedPassword
           }
+          break
         }
       }
     }

@@ -1,8 +1,6 @@
 package handlers
 
 import (
-  "encoding/json"
-  "fmt"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
@@ -60,7 +58,7 @@ func CreateUser(c *gin.Context) {
   helpers.SetByJsonTag( &user, input )
 
   // just to be sure
-  err = queries.Create(&user)
+  err = queries.CreateUser(&user)
 
   if err != nil {
     switch err {
@@ -92,68 +90,6 @@ func CreateUser(c *gin.Context) {
 
 }
 
-func UpdateUser(c *gin.Context) {
-  id, err := strconv.Atoi(c.Params[0].Value)
-  if err != nil {
-    c.Status(http.StatusNotFound )
-    return
-  }
-
-  var user models.UserModel
-
-  err = queries.Get( &user, uint(id), true )
-
-  if err != nil {
-    c.Status(http.StatusInternalServerError)
-    return
-  }
-
-  if user.ID == 0 {
-    c.Status(http.StatusNotFound )
-    return
-  }
-
-  input := new( map[string]interface{} )
-
-  err = c.Bind( &input )
-
-  var newUser models.UserModel
-
-  helpers.SetByJsonTag( &newUser, input )
-
-  newUser.ID = user.ID
-  err = queries.Update( &newUser )
-
-  if err != nil {
-    switch err {
-    case cnaErrors.ErrDuplicateUser:
-      c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusConflict )
-      return
-    case cnaErrors.ErrUserHasUnknownRole:
-      c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusBadRequest )
-      return
-    default:
-      switch err.(type) {
-      case validator.ErrorMap:
-        c.Header("X-Status-Reason", err.Error() )
-        c.Status(http.StatusBadRequest)
-        return
-      }
-    }
-    c.Status(http.StatusInternalServerError)
-    return
-  }
-
-  queries.LoadRoles( &newUser )
-
-  var transformedUser transforms.UserV0
-  transforms.Transform( &newUser, &transformedUser )
-  c.JSON( http.StatusOK, &transformedUser )
-
-}
-
 func PatchUser(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
@@ -166,6 +102,7 @@ func PatchUser(c *gin.Context) {
   err = queries.Get( &user, uint(id), true )
 
   if err != nil {
+    c.Header("X-Status-Reason", err.Error() )
     c.Status(http.StatusInternalServerError)
     return
   }
@@ -177,23 +114,16 @@ func PatchUser(c *gin.Context) {
 
   input := new( map[string]interface{} )
 
-
   err = c.Bind( &input )
 
-  b, err := json.MarshalIndent(&input, "", "  ")
   if err != nil {
-    fmt.Println("error:", err)
+    c.Header("X-Status-Reason", err.Error() )
+    c.Status(http.StatusInternalServerError)
+    return
   }
-  fmt.Println(string(b))
 
   helpers.SetByJsonTag( &user, input )
-  err = queries.Update( &user )
-
-  b, err = json.MarshalIndent(&user, "", "  ")
-  if err != nil {
-    fmt.Println("error:", err)
-  }
-  fmt.Println(string(b))
+  err = queries.UpdateUser( &user )
 
   if err != nil {
     switch err {
@@ -217,7 +147,12 @@ func PatchUser(c *gin.Context) {
     return
   }
 
-  queries.LoadRoles( &user )
+  err = queries.LoadRoles( &user )
+  if err != nil {
+    c.Header("X-Status-Reason", err.Error() )
+    c.Status(http.StatusInternalServerError)
+    return
+  }
 
   var transformedUser transforms.UserV0
   transforms.Transform( &user, &transformedUser )
@@ -363,6 +298,38 @@ func FindUsers(c *gin.Context) {
 }
 
 // Roles
+func UserPatchRoles(c *gin.Context) {
+  id, err := strconv.Atoi(c.Params[0].Value)
+  if err != nil {
+    c.Status(http.StatusNotFound)
+    return
+  }
+
+  var user models.UserModel
+
+  err = queries.Get(&user, uint(id), true)
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+  if user.ID == 0 {
+    c.Status(http.StatusNotFound)
+    return
+  }
+
+  var roleInputs []models.RoleModel
+
+  err = c.Bind(&roleInputs)
+
+  if err != nil {
+    c.Status(http.StatusInternalServerError)
+    return
+  }
+
+
+}
 
 func UserAddRoles(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)

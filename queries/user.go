@@ -4,7 +4,43 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/models"
+  "gopkg.in/validator.v2"
 )
+
+func CreateUser( user *models.UserModel ) error {
+  db := dataSource.GetDB()
+  err := validator.Validate( user )
+  if err != nil {
+    return err
+  }
+  // update associations, but don't upsert roles.
+  return db.Create( user ).Error
+}
+
+func UpdateUser( user *models.UserModel ) error {
+  db := dataSource.GetDB()
+  tx := db.Begin()
+
+  err := validator.Validate( user )
+  if err != nil {
+    tx.Rollback()
+    return err
+  }
+  err = tx.Model(&user).Association("Roles").Replace(user.Roles).Error
+  if err != nil {
+    tx.Rollback()
+    return err
+  }
+  err = tx.Save( user ).Error
+  if err != nil {
+    tx.Rollback()
+    return err
+  }
+
+  tx.Commit()
+  return nil
+}
+
 
 func DeleteUser( id uint ) error {
   if id == 0 {

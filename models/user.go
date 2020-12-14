@@ -11,7 +11,7 @@ type UserModel struct {
   Name string `json:"name" form:"name"` // optional
   Password string `json:"password" gorm:"type:varchar(128);not null" form:"password" validate:"nonzero" sbjt:"hashPassword"`
   EmailAddress string `json:"email_address" gorm:"type:varchar(100)" form:"emailAddress" validate:"max=100,regexp=(^$|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"`
-  Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;association_autoupdate:true;gorm:association_autocreate:false" form:"roles" validate:"-"`
+  Roles []*RoleModel `json:"roles" gorm:"many2many:user_roles;association_autoupdate:false;gorm:association_autocreate:false" form:"roles" validate:"-"`
 }
 
 func (user *UserModel) AfterCreate( tx *gorm.DB ) (err error) {
