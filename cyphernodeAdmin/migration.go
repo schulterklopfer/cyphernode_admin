@@ -47,7 +47,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.Name = ADMIN_APP_NAME
     adminApp.Description = ADMIN_APP_DESCRIPTION
     adminApp.Hash = buildAdminHash( adminApp.Name, globals.CYPHERAPPS_REPO )
-    adminApp.MountPoint = "admin"
+    adminApp.MountPoint = globals.BASE_ADMIN_MOUNTPOINT
     adminApp.AccessPolicies = models.AccessPolicies{
       /* General stuff */
       {

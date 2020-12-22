@@ -20,6 +20,8 @@ const BASE_ENDPOINT_USERS string = "/api/v0/users"
 const BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const BASE_ENDPOINT_SESSIONS string = "/api/v0/sessions"
 
+const BASE_ADMIN_MOUNTPOINT string = "admin"
+
 /** urls and endpoints **/
 const FORWARD_AUTH_ENDPOINTS_AUTH = "/forwardauth"
 
