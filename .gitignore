@@ -39,3 +39,4 @@ Thumbs.db
 _dummyWebserver
 
 node_modules
+build_context
