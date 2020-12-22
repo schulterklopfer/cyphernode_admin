@@ -81,7 +81,7 @@ func ForwardAuthAuth(c *gin.Context) {
 
   if err != nil {
     c.Header("X-Status-Reason", err.Error() )
-    c.Status(http.StatusForbidden)
+    c.Status(http.StatusUnauthorized)
     return
   }
 
@@ -90,11 +90,9 @@ func ForwardAuthAuth(c *gin.Context) {
     subject, exists := claims["sub"]
 
     if !exists {
-      if err != nil {
-        c.Header("X-Status-Reason", "no subject claims" )
-        c.Status(http.StatusForbidden)
-        return
-      }
+      c.Header("X-Status-Reason", "no subject claims" )
+      c.Status(http.StatusUnauthorized)
+      return
     }
 
     parts := strings.Split( token.Raw, "." )
@@ -104,9 +102,8 @@ func ForwardAuthAuth(c *gin.Context) {
     var user models.UserModel
     err := queries.Get( &user, userId,true )
 
-    if err != nil {
-      c.Header("X-Status-Reason", err.Error() )
-      c.Status(http.StatusForbidden)
+    if err != nil || user.ID == 0 {
+      c.Status(http.StatusUnauthorized)
       return
     }
 
@@ -133,6 +130,6 @@ func ForwardAuthAuth(c *gin.Context) {
 
   }
 
-  c.Status(http.StatusForbidden)
+  c.Status(http.StatusUnauthorized)
 
 }
