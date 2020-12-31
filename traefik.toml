@@ -1,0 +1,46 @@
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+
+# TODO: remove this later
+[log]
+  level = "TRACE"
+
+# TODO: remove this later
+[accessLog]
+
+# TODO: remove this later
+[api]
+  insecure = true
+
+# add entry points from which services will be accessible
+[entryPoints]
+	[entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
+
+# add docker provider but do not auto expose all containers
+[providers.docker]
+	exposedByDefault = false
+
+# This file provider is used to read in the traefik.toml file
+# so routers and middlewares are available. This is strange
+[providers.file]
+	filename = "/etc/traefik/traefik.toml"
+
+# This router is only used to run the root-to-admin-redirect
+# middleware. It does nothing else
+[http.routers]
+	[http.routers.root-router]
+		entrypoints = ["web"]
+		middlewares = ["root-to-admin-redirect@file"]
+		rule = "Path(`/`)"
+		service = "noop@internal"
+
+# This middleware redirects requests to / to the admin interface
+[http.middlewares]
+	[http.middlewares.root-to-admin-redirect.redirectRegex]
+		regex = "^(https{0,1}://[^/]+?)/{0,1}$"
+		replacement = "${1}/admin/"
+		permanent = true

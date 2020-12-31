@@ -87,6 +87,18 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
         Actions: []string{"post","patch"},
         Effect: "allow",
       },
+      {
+        Patterns: []string{"^\\/$", "^\\/_\\/"},
+        Roles: []string{"*"},
+        Actions: []string{"get"},
+        Effect: "allow",
+      },
+      {
+        Patterns: []string{"^\\/_\\/"},
+        Roles: []string{"user","admin"},
+        Actions: []string{"get"},
+        Effect: "allow",
+      },
     }
     if adminApp.Hash == "" {
       return cnaErrors.ErrMigrationFailed

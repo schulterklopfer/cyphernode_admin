@@ -84,11 +84,11 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   */
   // create handlers for public and private endpoints
   cyphernodeAdmin.initInternalHandlers()
-  cyphernodeAdmin.initPublicHandlers()
   cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initForwardAuthHandlers()
+  cyphernodeAdmin.initPublicHandlers()
   err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )
   if err != nil {
     logwrapper.Logger().Error("Failed to init applist" )

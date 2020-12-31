@@ -1,8 +1,10 @@
 package cyphernodeAdmin
 
 import (
+  "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/handlers"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) initForwardAuthHandlers() {
@@ -18,6 +20,14 @@ func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
   cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
+  cyphernodeAdmin.engineExternal.Static( "/_", helpers.GetenvOrDefault(globals.CNA_STATIC_FILE_DIR_ENV_KEY) )
+  cyphernodeAdmin.engineExternal.Use(func(c *gin.Context) {
+    if c.Request.URL.Path == "/" || c.Request.URL.Path == "/_/" {
+      c.Redirect( 307, "/"+globals.BASE_ADMIN_MOUNTPOINT+"/_/index.html" )
+      return
+    }
+    c.Next()
+  })
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {

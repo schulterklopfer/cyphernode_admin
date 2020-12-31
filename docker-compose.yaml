@@ -8,14 +8,15 @@ services:
       dockerfile: Dockerfile
     image: traefikauthtest/webserver:latest
     labels:
-      - "traefik.frontend.rule=Host:cyphernode.docker.localhost"
-      - "traefik.frontend.rule=PathPrefixStrip:/dummy"
-      - "traefik.frontend.passHostHeader=true"
-      - "traefik.enable=true"
-      - "traefik.port=3000"
-      - "traefik.frontend.auth.forward.address=http://192.168.178.90:3032/forwardauth"
-      - "traefik.frontend.auth.forward.authResponseHeaders=X-Auth-User-Claims"
-#      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+      - traefik.enable=true
+      - traefik.http.routers.webserver.rule=PathPrefix(`/sparkwallet`)
+      # - traefik.http.routers.webserver.tls=false
+      - traefik.http.routers.webserver.entrypoints=web
+      - traefik.http.routers.webserver.service=webserver
+      - traefik.http.routers.webserver.middlewares=webserver-stripprefix@docker
+      - traefik.http.services.webserver.loadbalancer.server.port=3000
+      - traefik.http.middlewares.webserver-stripprefix.stripprefix.prefixes=/sparkwallet,/sparkwallet/
+      - traefik.http.middlewares.webserver-stripprefix.stripprefix.forceSlash=true
     restart: always
   cyphernodeadmin:
     hostname: cyphernodeadmin
@@ -25,25 +26,23 @@ services:
 
     image: traefikauthtest/cyphernodeadmin:latest
     labels:
-      - "traefik.frontend.rule=Host:cyphernode.docker.localhost"
-      - "traefik.frontend.rule=PathPrefixStrip:/admin"
-      - "traefik.frontend.passHostHeader=true"
-      - "traefik.enable=true"
-      - "traefik.port=3030"
-      - "traefik.frontend.auth.forward.address=http://192.168.178.90:3032/forwardauth"
-      - "traefik.frontend.auth.forward.authResponseHeaders=X-Auth-User-Claims"
-    #      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+      - traefik.enable=true
+      - traefik.http.routers.cyphernodeadmin.rule=PathPrefix(`/admin`)
+      - traefik.http.routers.cyphernodeadmin.entrypoints=web
+      - traefik.http.routers.cyphernodeadmin.service=cyphernodeadmin
+      - traefik.http.routers.cyphernodeadmin.middlewares=cyphernodeadmin-stripprefix@docker
+      - traefik.http.services.cyphernodeadmin.loadbalancer.server.port=3030
+      - traefik.http.middlewares.cyphernodeadmin-stripprefix.stripprefix.prefixes=/admin,/admin/
+      - traefik.http.middlewares.cyphernodeadmin-stripprefix.stripprefix.forceSlash=true
     restart: always
     volumes:
       - "/Users/jash/go/src/github.com/SatoshiPortal/cam/apps:/data/apps"
   traefik:
-    hostname: traefik
-    image: traefik:1.7
+    image: traefik:v2.3.6
     ports:
-      - "80:80"
+      - 80:80
+      - 443:443
+      - 8080:8080
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command:
-#      - "--logLevel=DEBUG"
-#      - "--debug"
-      - "--docker"
+      - "/Users/jash/go/src/github.com/schulterklopfer/cyphernode_admin/traefik.toml:/etc/traefik/traefik.toml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
