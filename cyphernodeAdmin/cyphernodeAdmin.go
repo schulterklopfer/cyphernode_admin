@@ -1,14 +1,20 @@
 package cyphernodeAdmin
 
 import (
+  "encoding/json"
+  "github.com/SatoshiPortal/cam/cyphernodeInfo"
+  "github.com/SatoshiPortal/cam/utils"
   "github.com/gin-contrib/cors"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/appList"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeApi"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeState"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "golang.org/x/sync/errgroup"
+  "io/ioutil"
 )
 
 const ADMIN_APP_NAME string = "Cyphernode Admin"
@@ -50,9 +56,39 @@ func Get() *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
-  err := dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
+  var cyphernodeInfo cyphernodeInfo.CyphernodeInfo
+
+  cyphernodeInfoJsonBytes, err := ioutil.ReadFile( utils.GetCyphernodeInfoFilePath() )
+  if err != nil {
+    return err
+  }
+
+  err = json.Unmarshal( cyphernodeInfoJsonBytes, &cyphernodeInfo )
+  if err != nil {
+    return err
+  }
+
+  err = dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
   if err != nil {
     logwrapper.Logger().Error("Failed to create database" )
+    return err
+  }
+
+  err = cyphernodeApi.Init( &cyphernodeApi.CyphernodeApiConfig{
+    Version: cyphernodeInfo.ApiVersions[len(cyphernodeInfo.ApiVersions)-1],
+    Host: "localhost",
+    Port: 2009,
+  })
+
+  if err != nil {
+    logwrapper.Logger().Error("Failed to init cyphernode api" )
+    return err
+  }
+
+  err = cyphernodeState.Init( &cyphernodeInfo )
+
+  if err != nil {
+    logwrapper.Logger().Error("Failed to get init cyphernode state" )
     return err
   }
 

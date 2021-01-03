@@ -1,6 +1,7 @@
 package globals
 
 const SESSION_COOKIE_NAME string = "cna_session"
+const BLOCKCHAIN_INFO_UPDATE_INTERVAL = 1000*60*5
 
 /** env keys **/
 const BASE_URL_EXTERNAL_ENV_KEY string = "BASE_URL_EXTERNAL"
@@ -14,6 +15,8 @@ const CNA_ADMIN_DATABASE_FILE_ENV_KEY string = "CNA_ADMIN_DATABASE_FILE"
 const CNA_COOKIE_SECRET_ENV_KEY = "CNA_COOKIE_SECRET"
 const CNA_STATIC_FILE_DIR_ENV_KEY = "CNA_STATIC_FILE_DIR"
 const CYPHERAPPS_INSTALL_DIR_ENV_KEY = "CYPHERAPPS_INSTALL_DIR"
+const KEYS_FILE_ENV_KEY = "CYPHERNODE_KEYS_FILE"
+const CERT_FILE_ENV_KEY = "CYPHERNODE_CERT_FILE"
 
 /** router groups endpoint bases **/
 const BASE_ENDPOINT_PUBLIC string = ""
@@ -70,4 +73,6 @@ var DEFAULTS = map[string]string{
   CNA_ADMIN_DATABASE_FILE_ENV_KEY: "/data/db.sqlite3",
   CNA_STATIC_FILE_DIR_ENV_KEY:     "/ui",
   CYPHERAPPS_INSTALL_DIR_ENV_KEY:  "/apps",
+  KEYS_FILE_ENV_KEY:               "/keys.properties",
+  CERT_FILE_ENV_KEY:               "/cert.pem",
 }
