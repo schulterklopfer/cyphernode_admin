@@ -15,6 +15,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "golang.org/x/sync/errgroup"
   "io/ioutil"
+  "strconv"
 )
 
 const ADMIN_APP_NAME string = "Cyphernode Admin"
@@ -74,10 +75,17 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     return err
   }
 
+  port, err := strconv.Atoi(helpers.GetenvOrDefault(globals.GATEKEEPER_PORT_ENV_KEY))
+
+  if err != nil {
+    logwrapper.Logger().Error("Failed to read gatekeeper port from env" )
+    return err
+  }
+
   err = cyphernodeApi.Init( &cyphernodeApi.CyphernodeApiConfig{
     Version: cyphernodeInfo.ApiVersions[len(cyphernodeInfo.ApiVersions)-1],
-    Host: "localhost",
-    Port: 2009,
+    Host: helpers.GetenvOrDefault(globals.GATEKEEPER_HOST_ENV_KEY),
+    Port: port,
   })
 
   if err != nil {
@@ -88,7 +96,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   err = cyphernodeState.Init( &cyphernodeInfo )
 
   if err != nil {
-    logwrapper.Logger().Error("Failed to get init cyphernode state" )
+    logwrapper.Logger().Error("Failed to init cyphernode state" )
     return err
   }
 

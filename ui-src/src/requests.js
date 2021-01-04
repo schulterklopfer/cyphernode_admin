@@ -10,6 +10,14 @@ const requests = {
       { body: { username, password } } );
   },
 
+  getStatus: async ( session ) => {
+    return await requests.request(
+      'GET',
+      apiBaseUri+'/status',
+      { session }
+    );
+  },
+
   getUsers: async ( session ) => {
     return await requests.request(
       'GET',

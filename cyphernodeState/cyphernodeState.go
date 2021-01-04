@@ -7,9 +7,11 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "sync"
+  "time"
 )
 
 type CyphernodeState struct {
+  LastUpdate                time.Time                              `json:"lastUpdate"`
   BlockchainInfo            *cyphernodeApi.GetBlockChainInfoResult `json:"blockchainInfo"`
   CyphernodeInfo            *cyphernodeInfo.CyphernodeInfo         `json:"cyphernodeInfo"`
   updateBlockchainInfoMutex sync.Mutex                             `json:"-"`
@@ -61,6 +63,7 @@ func ( cyphernodeState *CyphernodeState ) updateBlockchainInfo() error {
   if err != nil {
     return err
   }
+  cyphernodeState.LastUpdate = time.Now()
   cyphernodeState.BlockchainInfo = blockchainInfo
   return nil
 }

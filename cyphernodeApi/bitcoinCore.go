@@ -2,6 +2,8 @@ package cyphernodeApi
 
 import (
   "encoding/json"
+  "errors"
+  "strconv"
 )
 
 type Bip9SoftForkDescription struct {
@@ -48,6 +50,11 @@ func (cyphernodeApi *CyphernodeApi) BitcoinCore_getBlockchainInfo() (*GetBlockCh
 
   if err != nil {
     return nil, err
+  }
+
+  if resp.StatusCode() != 200 {
+    println( string(resp.Body()) )
+    return nil, errors.New("Invalid response code: "+strconv.Itoa(resp.StatusCode()))
   }
 
   var getBlockChainInfoResult GetBlockChainInfoResult
