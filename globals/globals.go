@@ -23,6 +23,8 @@ const BASE_ENDPOINT_PUBLIC string = ""
 const BASE_ENDPOINT_USERS string = "/api/v0/users"
 const BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const BASE_ENDPOINT_SESSIONS string = "/api/v0/sessions"
+const BASE_ENDPOINT_STATUS string = "/api/v0/status"
+
 
 const BASE_ADMIN_MOUNTPOINT string = "admin"
 

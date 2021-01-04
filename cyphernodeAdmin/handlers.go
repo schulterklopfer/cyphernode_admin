@@ -21,6 +21,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
   cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
   cyphernodeAdmin.engineExternal.Static( "/_", helpers.GetenvOrDefault(globals.CNA_STATIC_FILE_DIR_ENV_KEY) )
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_STATUS+"", handlers.GetStatus )
   cyphernodeAdmin.engineExternal.Use(func(c *gin.Context) {
     if c.Request.URL.Path == "/" || c.Request.URL.Path == "/_/" {
       c.Redirect( 307, "/"+globals.BASE_ADMIN_MOUNTPOINT+"/_/index.html" )

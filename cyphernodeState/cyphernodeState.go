@@ -10,9 +10,9 @@ import (
 )
 
 type CyphernodeState struct {
-  BlockchainInfo *cyphernodeApi.GetBlockChainInfoResult // update regurarly
-  CyphernodeInfo *cyphernodeInfo.CyphernodeInfo // read once at startup
-  updateBlockchainInfoMutex sync.Mutex
+  BlockchainInfo            *cyphernodeApi.GetBlockChainInfoResult `json:"blockchainInfo"`
+  CyphernodeInfo            *cyphernodeInfo.CyphernodeInfo         `json:"cyphernodeInfo"`
+  updateBlockchainInfoMutex sync.Mutex                             `json:"-"`
 }
 
 var instance *CyphernodeState
