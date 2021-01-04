@@ -1,5 +1,7 @@
 package transforms
 
+import "github.com/schulterklopfer/cyphernode_admin/models"
+
 type (
   AppV0 struct {
     ID uint   `json:"id" form:"id"`
@@ -7,8 +9,10 @@ type (
     MountPoint string `json:"mountPoint" form:"mountpoint_like"`
     Name string `json:"name" form:"name_like"`
     Description string `json:"description" form:"description"`
+    Version string `json:"version" form:"description"`
     AvailableRoles []*RoleV0 `json:"availableRoles" form:"availableRoles"`
     AccessPolicies []*AccessPolicyV0 `json:"accessPolicies" form:"availableRoles"`
+    Meta *models.Meta `json:"meta,omitempty"`
   }
 
   RoleV0 struct {

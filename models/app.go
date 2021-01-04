@@ -33,6 +33,35 @@ func (aps *AccessPolicies) Scan(value interface{}) error {
   return err
 }
 
+
+type Meta struct {
+  Icon  string `json:"icon,omitempty"`
+  Color string `json:"color,omitempty"`
+}
+
+
+// this is used to create jsonb Data which then
+// will ne saved to the db by gorm
+func (meta Meta) Value() (driver.Value, error) {
+  bytes, err := json.Marshal(meta)
+  if err != nil {
+    return nil, err
+  }
+  return bytes, nil
+}
+
+// convert jsonb Data from database back into
+// a struct
+func (meta *Meta) Scan(value interface{}) error {
+  bytes, ok := value.([]byte)
+  if !ok {
+    return errors.New(fmt.Sprint("Failed to unmarshal access policies:", value))
+  }
+  err := json.Unmarshal(bytes, meta)
+  return err
+}
+
+
 type AppModel struct {
   gorm.Model
   Hash           string         `json:"hash" gorm:"type:varchar(32);unique_index;not null"`
@@ -40,8 +69,10 @@ type AppModel struct {
   MountPoint     string         `json:"mountPoint" gorm:"type:varchar(32);unique_index;not null"`
   Name           string         `json:"name" gorm:"type:varchar(30);not null" validate:"min=3,max=30,regexp=^[a-zA-Z0-9_\\- ]+$"`
   Description    string         `json:"description" gorm:"type:varchar(255)"`
+  Version        string         `json:"version" gorm:"type:varchar(255)"`
   AvailableRoles []*RoleModel   `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
   AccessPolicies AccessPolicies `json:"accessPolicies,omitempty" gorm:"type:jsonb"`
+  Meta           *Meta          `json:"meta,omitempty" gorm:"type:jsonb"`
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {

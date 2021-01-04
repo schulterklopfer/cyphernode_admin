@@ -36,6 +36,8 @@ func Transform( in interface{}, out interface{} ) bool {
       out.(*AppV0).MountPoint = in.(*models.AppModel).MountPoint
       out.(*AppV0).Name = in.(*models.AppModel).Name
       out.(*AppV0).Description = in.(*models.AppModel).Description
+      out.(*AppV0).Version = in.(*models.AppModel).Version
+      out.(*AppV0).Meta = in.(*models.AppModel).Meta
 
       roleCount := len(in.(*models.AppModel).AvailableRoles)
       transformedAvailableRoles :=make( []*RoleV0, roleCount )

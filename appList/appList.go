@@ -115,6 +115,8 @@ func (appList *AppList) syncToDb() error {
       appFromDb.MountPoint = app.MountPoint
       appFromDb.Name = app.Name
       appFromDb.Secret = app.Secret
+      appFromDb.Version = app.Candidates[0].Version.Raw
+      appFromDb.Meta = &models.Meta{app.Meta.Icon, app.Meta.Color }
       appFromDb.AccessPolicies = app.Candidates[0].AccessPolicies
 
       err := queries.Update( appFromDb )
@@ -186,6 +188,8 @@ func (appList *AppList) syncToDb() error {
       Secret:         app.Secret,
       MountPoint:     app.MountPoint,
       Name:           app.Name,
+      Meta:           &models.Meta{app.Meta.Icon, app.Meta.Color },
+      Version:        app.Candidates[0].Version.Raw,
       AccessPolicies: app.Candidates[0].AccessPolicies,
     }
 
