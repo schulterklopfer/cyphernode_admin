@@ -56,3 +56,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
   cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_APPS+"/:id/roles", handlers.AppAddRoles )
   cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_APPS+"/:id/roles/:roleId", handlers.AppRemoveRole )
 }
+
+func (cyphernodeAdmin *CyphernodeAdmin) initDockerHandlers() {
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_DOCKER+"/image/:image", handlers.GetContainerByHashedImage)
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_DOCKER+"/name/:name", handlers.GetContainerByName)
+}

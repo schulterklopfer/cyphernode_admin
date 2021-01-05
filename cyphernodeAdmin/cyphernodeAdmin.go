@@ -10,6 +10,7 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeApi"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeState"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
+  "github.com/schulterklopfer/cyphernode_admin/dockerApi"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
@@ -82,6 +83,13 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     return err
   }
 
+  err = dockerApi.Init()
+
+  if err != nil {
+    logwrapper.Logger().Error("Failed to connect to docker daemon" )
+    return err
+  }
+
   err = cyphernodeApi.Init( &cyphernodeApi.CyphernodeApiConfig{
     Version: cyphernodeInfo.ApiVersions[len(cyphernodeInfo.ApiVersions)-1],
     Host: helpers.GetenvOrDefault(globals.GATEKEEPER_HOST_ENV_KEY),
@@ -131,6 +139,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
+  cyphernodeAdmin.initDockerHandlers()
   cyphernodeAdmin.initForwardAuthHandlers()
   cyphernodeAdmin.initPublicHandlers()
   err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )

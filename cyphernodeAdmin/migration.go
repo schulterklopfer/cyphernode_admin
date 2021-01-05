@@ -151,6 +151,6 @@ func buildAdminHash( label string, sourceLocation string ) string {
   bytes := make( []byte, 0 )
   bytes = append( bytes, []byte(label)... )
   bytes = append( bytes, []byte(sourceLocation)... )
-  return helpers.TrimmedRipemd160Hash( &bytes )
+  return helpers.TrimmedRipemd160Hash( bytes )
 }
 

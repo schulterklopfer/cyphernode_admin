@@ -143,8 +143,8 @@ func GetenvOrDefault( key string ) string {
   return value
 }
 
-func TrimmedRipemd160Hash( bytes *[]byte ) string {
+func TrimmedRipemd160Hash( bytes []byte ) string {
   hasher := ripemd160.New()
-  hasher.Write(*bytes)
+  hasher.Write(bytes)
   return strings.Trim(base64.URLEncoding.EncodeToString(hasher.Sum(nil)), "=" )
 }
