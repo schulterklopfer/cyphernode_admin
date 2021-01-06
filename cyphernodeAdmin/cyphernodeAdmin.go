@@ -140,6 +140,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   cyphernodeAdmin.initUsersHandlers()
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initDockerHandlers()
+  cyphernodeAdmin.initBlocksHandlers()
   cyphernodeAdmin.initForwardAuthHandlers()
   cyphernodeAdmin.initPublicHandlers()
   err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )

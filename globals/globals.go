@@ -5,6 +5,7 @@ const VERSION = "v0.1.0"
 const SESSION_COOKIE_NAME string = "cna_session"
 const BLOCKCHAIN_INFO_UPDATE_INTERVAL = 1000*60
 const DOCKER_API_UPDATE_INTERVAL = 1000*5
+const LATEST_BLOCK_COUNT = 5
 
 /** env keys **/
 const BASE_URL_EXTERNAL_ENV_KEY string = "BASE_URL_EXTERNAL"
@@ -27,6 +28,7 @@ const CERT_FILE_ENV_KEY = "CYPHERNODE_CERT_FILE"
 const BASE_ENDPOINT_PUBLIC string = ""
 const BASE_ENDPOINT_USERS string = "/api/v0/users"
 const BASE_ENDPOINT_DOCKER string = "/api/v0/docker"
+const BASE_ENDPOINT_BLOCKS string = "/api/v0/blocks"
 const BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const BASE_ENDPOINT_SESSIONS string = "/api/v0/sessions"
 const BASE_ENDPOINT_STATUS string = "/api/v0/status"

@@ -14,6 +14,7 @@ type CyphernodeState struct {
   LastUpdate                time.Time                              `json:"lastUpdate"`
   BlockchainInfo            *cyphernodeApi.GetBlockChainInfoResult `json:"blockchainInfo"`
   CyphernodeInfo            *cyphernodeInfo.CyphernodeInfo         `json:"cyphernodeInfo"`
+  LatestBlocks              []*cyphernodeApi.GetBlockInfoResult    `json:"latestBlocks"`
   updateBlockchainInfoMutex sync.Mutex                             `json:"-"`
 }
 
@@ -26,6 +27,7 @@ func initOnce( info *cyphernodeInfo.CyphernodeInfo ) error {
     instance = &CyphernodeState{
       BlockchainInfo: nil,
       CyphernodeInfo: info,
+      LatestBlocks: []*cyphernodeApi.GetBlockInfoResult{},
     }
     err := instance.updateBlockchainInfo()
     if err != nil {
@@ -65,5 +67,24 @@ func ( cyphernodeState *CyphernodeState ) updateBlockchainInfo() error {
   }
   cyphernodeState.LastUpdate = time.Now()
   cyphernodeState.BlockchainInfo = blockchainInfo
+
+  if err != nil {
+    return err
+  }
+
+  var blocks []*cyphernodeApi.GetBlockInfoResult
+  hash := blockchainInfo.BestBlockHash
+
+  for i:=0; i<globals.LATEST_BLOCK_COUNT; i++ {
+    block, err := cyphernodeApi.Instance().BitcoinCore_getBlock( hash )
+    if err != nil {
+      return err
+    }
+    block.Tx = []string{}
+    blocks = append(blocks,block)
+    hash = block.PreviousHash
+  }
+
+  cyphernodeState.LatestBlocks = blocks
   return nil
 }

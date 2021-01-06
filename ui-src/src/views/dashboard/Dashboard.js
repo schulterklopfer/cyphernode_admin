@@ -6,7 +6,7 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CWidgetIcon, CCardFooter, CLink,
+  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CTooltip, CButton,
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
@@ -20,7 +20,6 @@ const Dashboard = () => {
       const response = await requests.getStatus();
       if ( response.status === 200 ) {
         // everything is ok
-        console.log( "got status" );
         setStatus(response.body);
       }
     }
@@ -70,12 +69,10 @@ const Dashboard = () => {
                 [
                   { field: "blocks", title:"Block count", transform: input => input },
                   { field: "headers", title:"Header count", transform: input => input },
-                  { field: "bestblockhash", title:"Best block hash", transform: input => input },
                   { field: "mediantime", title:"Median time", transform: input => {return new Date(input*1000).toLocaleString()} },
                   { field: "difficulty", title:"Difficulty", transform: input => input },
                   { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
                   { field: "verificationprogress", title:"Verfification progress", transform: input => { return (input*100).toFixed(2)+"%" } },
-                  { field: "chainwork", title:"Chainwork", transform: input => input }
                 ].map( item => (
                   <tr><td className="p-0 m-0"><strong className="nowrap">{ item.title }:</strong></td><td className="p-0 m-0">{ status.blockchainInfo && <span>{ item.transform(status.blockchainInfo[item.field]) } </span> }</td></tr>
                 ))
@@ -84,6 +81,39 @@ const Dashboard = () => {
             </CCol>
           </CRow>
         </CCardBody>
+        <CCardFooter>
+          <div className="d-flex flex-row flex-wrap justify-content-center">
+          { status.latestBlocks?.map( block => (
+            <CTooltip
+              content={ "Hash: "+block.hash }
+              placement="top"
+            >
+              <CCard className="m-2 font-xs">
+                <CCardHeader color="primary" className="p-1">
+                  <CLink
+                    className="font-weight-bold btn-block text-light"
+                    href={"https://blockstream.info/testnet/block/"+block.hash}
+                    rel="noopener norefferer"
+                    target="_blank"
+                  >
+                    { block.hash.replace(/^0+/,'').substr(0,20 )+"..." }
+                    <CIcon name="cil-arrow-right" className="float-right" width="16"/>
+                  </CLink>
+
+                </CCardHeader>
+                <CCardBody className="p-1">
+                  <table className="table table-borderless p-0 m-0">
+                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Height:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.height}</td></tr>
+                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Time:</strong></td><td className="p-0 pr-1 pl-1 m-0">{new Date(block.time*1000).toLocaleString()}</td></tr>
+                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Tx count:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.nTx}</td></tr>
+                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Size:</strong></td><td className="p-0 pr-1 pl-1 m-0">{(block.size/1024/1024).toFixed(2) + " Mb"}</td></tr>
+                  </table>
+                </CCardBody>
+              </CCard>
+            </CTooltip>
+          ))}
+          </div>
+        </CCardFooter>
       </CCard>
       {
         status.blockchainInfo && status.blockchainInfo.initialblockdownload && (

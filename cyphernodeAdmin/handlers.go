@@ -61,3 +61,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initDockerHandlers() {
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_DOCKER+"/image/:image", handlers.GetContainerByHashedImage)
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_DOCKER+"/name/:name", handlers.GetContainerByName)
 }
+
+func (cyphernodeAdmin *CyphernodeAdmin) initBlocksHandlers() {
+  cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_BLOCKS+"/latest", handlers.GetLatestBlocks )
+}
