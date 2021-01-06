@@ -111,7 +111,7 @@ const Dashboard = () => {
       }
       <CCard>
         <CCardHeader>
-          Bitcoin blockchain <CBadge shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge> { status && status.blockchainInfo && status.blockchainInfo.initialblockdownload? (
+          Blockchain <CBadge shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge> { status && status.blockchainInfo && status.blockchainInfo.initialblockdownload? (
           <div className="card-header-actions">
             <CBadge color="warning" className="float-right">Initial block download</CBadge>
           </div>
@@ -122,29 +122,9 @@ const Dashboard = () => {
         ) }
         </CCardHeader>
         <CCardBody>
-          <CRow>
-            <CCol md sm="12" className="mb-sm-2 mb-0">
-              <table className="table table-borderless">
-              {
-                [
-                  { field: "blocks", title:"Block count", transform: input => input },
-                  { field: "headers", title:"Header count", transform: input => input },
-                  { field: "mediantime", title:"Median time", transform: input => {return new Date(input*1000).toLocaleString()} },
-                  { field: "difficulty", title:"Difficulty", transform: input => input },
-                  { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
-                  { field: "verificationprogress", title:"Verfification progress", transform: input => { return (input*100).toFixed(2)+"%" } },
-                ].map( item => (
-                  <tr><td className="p-0 m-0"><strong className="nowrap">{ item.title }:</strong></td><td className="p-0 m-0">{ status.blockchainInfo && <span>{ item.transform(status.blockchainInfo[item.field]) } </span> }</td></tr>
-                ))
-              }
-              </table>
-            </CCol>
-          </CRow>
-        </CCardBody>
-          <CCardFooter>
-            <div className="d-flex flex-row flex-wrap justify-content-center">
-              { status.latestBlocks?.map( (block, index) => (
-                <div className="d-flex flex-row align-items-center">
+          <div className="d-flex flex-row flex-wrap justify-content-center">
+            { status.latestBlocks?.map( (block, index) => (
+              <div className="d-flex flex-row align-items-center">
                 <CTooltip
                   content={ "Hash: "+block.hash }
                   placement="top"
@@ -172,15 +152,34 @@ const Dashboard = () => {
                   </CCard>
                 </CTooltip>
                 <CIcon name="cil-arrow-thick-right"  width="16"/>
-                  {
-                    status.latestBlocks?.length - 1 === index && (
-                      <span className="font-weight-bold font-lg">&nbsp;...</span>
-                    )
-                  }
-                </div>
-                ))}
-            </div>
-          </CCardFooter>
+                {
+                  status.latestBlocks?.length - 1 === index && (
+                    <span className="font-weight-bold font-lg">&nbsp;...</span>
+                  )
+                }
+              </div>
+            ))}
+          </div>
+        </CCardBody>
+        <CCardFooter>
+          <div className="container-fluid mb-sm-2 mb-0 text-center">
+            {
+              [
+                { field: "blocks", title:"Block count", transform: input => input },
+                { field: "headers", title:"Header count", transform: input => input },
+                { field: "difficulty", title:"Difficulty", transform: input => input },
+                { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
+                { field: "verificationprogress", title:"Verfification progress", transform: input => { return (input*100).toFixed(2)+"%" } },
+              ].map( (item, index) => (
+                <span>
+                    <span className="font-weight-bold">{item.title}:</span>
+                    <span> {item.transform((status.blockchainInfo||{})[item.field]) } </span>
+                  { index !== 4 && (<span>&mdash; </span>) }
+                  </span>
+              ))
+            }
+          </div>
+        </CCardFooter>
       </CCard>
       <CCard>
         <CCardHeader>
