@@ -78,7 +78,7 @@ func ( cyphernodeState *CyphernodeState ) updateBlockchainInfo() error {
   for i:=0; i<globals.LATEST_BLOCK_COUNT; i++ {
     block, err := cyphernodeApi.Instance().BitcoinCore_getBlock( hash )
     if err != nil {
-      return err
+      break
     }
     block.Tx = []string{}
     blocks = append(blocks,block)
