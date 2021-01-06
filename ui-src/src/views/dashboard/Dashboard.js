@@ -133,7 +133,7 @@ const Dashboard = () => {
                     <CCardHeader color="primary" className="p-1">
                       <CLink
                         className="font-weight-bold btn-block text-light text-center"
-                        href={"https://blockstream.info/testnet/block/"+block.hash}
+                        href={"https://blockstream.info/"+(status.blockchainInfo.chain==="test"?"testnet/":"")+"block/"+block.hash}
                         rel="noopener norefferer"
                         target="_blank"
                       >
