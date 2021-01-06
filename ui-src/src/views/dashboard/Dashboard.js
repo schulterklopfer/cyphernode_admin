@@ -236,7 +236,7 @@ const Dashboard = () => {
               ).map((feature) => (
 
                 <CCard className={feature.active?"mr-2":"mr-2 text-muted"}>
-                  <CCardHeader color={ feature.active?"success":""}>
+                  <CCardHeader className="text-center" color={ feature.active?"success":""}>
                     <div className={feature.active?"font-weight-bold text-light":"font-weight-bold"}>{feature.label}</div>
                   </CCardHeader>
                   <CCardBody className="font-xs" style={{minWidth: "250px"}}>
