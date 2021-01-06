@@ -172,22 +172,21 @@ const Dashboard = () => {
               appList.data.map((appData) => (
 
                 <CCard>
+                  <CCardHeader className="d-flex justify-content-between align-items-center">
+                    <div className="font-weight-bold">{appData.name}</div>
+                    <CImg className="ml-0 mr-0 p-1" style={{ "background-color": appData.meta?.color, "border-radius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
+                  </CCardHeader>
                   <CCardBody style={{minWidth: "250px"}}>
-                    <div className="d-flex flex-row container-fluid m-0 p-0">
-                      <CImg className="m-0 mr-2 p-2" style={{ "background-color": appData.meta?.color, "border-radius":"10px"}} width="60" height="60" src={appData.meta?.icon}/>
-                      <table className="table-borderless flex-fill font-xs m-0 ml-2">
-                        <thead className="p-0 pr-1 pl-1 m-0 font-weight-bold font-lg">{appData.name}</thead>
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
-                        { appData.container?.state && (
-                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">State:</td><td className="p-0 pr-1 pl-1 m-0">{appData.container.state}</td></tr>
-                        )}
-                        { appData.container?.created && (
-                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Created:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(appData.container.created*1000).toLocaleString()}</td></tr>
-                        )}
-                      </table>
-                    </div>
-
+                    <table className="table-borderless flex-fill font-xs m-0">
+                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
+                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
+                      { appData.container?.state && (
+                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">State:</td><td className="p-0 pr-1 pl-1 m-0">{appData.container.state}</td></tr>
+                      )}
+                      { appData.container?.created && (
+                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Created:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(appData.container.created*1000).toLocaleString()}</td></tr>
+                      )}
+                    </table>
                   </CCardBody>
                   <CCardFooter className="card-footer px-3 py-2">
                     <CLink
