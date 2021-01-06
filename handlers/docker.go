@@ -6,11 +6,11 @@ import (
   "net/http"
 )
 
-func GetContainerByHashedImage(c *gin.Context) {
+func GetContainerByBas64Image(c *gin.Context) {
   // param 0 is first param in url pattern
   hashedImage := c.Params[0].Value
 
-  container := dockerApi.Instance().ContainerByHashedImage(hashedImage)
+  container := dockerApi.Instance().ContainerByBase64Image(hashedImage)
 
   if container == nil {
     c.Status(http.StatusNotFound )

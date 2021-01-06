@@ -2,6 +2,7 @@ package dockerApi
 
 import (
   "context"
+  "encoding/base64"
   "github.com/docker/docker/api/types"
   "github.com/docker/docker/client"
   "github.com/schulterklopfer/cyphernode_admin/globals"
@@ -20,8 +21,8 @@ type DockerApiConfig struct {
 type DockerApi struct {
   DockerClient           *client.Client
   containerList          []types.Container
-  containerById          map[string]*types.Container
-  containerByHashedImage map[string]*types.Container
+  containerById          map[string]int
+  containerByBase64Image map[string]int
 }
 
 
@@ -75,12 +76,18 @@ func ( dockerApi *DockerApi ) ContainerList() []types.Container {
   return dockerApi.containerList
 }
 
-func ( dockerApi *DockerApi ) ContainerByHashedImage( image string ) *types.Container {
-  return dockerApi.containerByHashedImage[image]
+func ( dockerApi *DockerApi ) ContainerByBase64Image( image string ) *types.Container {
+  if index, exists := dockerApi.containerByBase64Image[image]; exists {
+    return &dockerApi.containerList[index]
+  }
+  return nil
 }
 
 func ( dockerApi *DockerApi ) ContainerById( id string ) *types.Container {
-  return dockerApi.containerById[id]
+  if index, exists := dockerApi.containerById[id]; exists {
+    return &dockerApi.containerList[index]
+  }
+  return nil
 }
 
 func ( dockerApi *DockerApi ) ContainerByNameRegexp( pattern string ) *types.Container {
@@ -106,13 +113,13 @@ func ( dockerApi *DockerApi ) Update() error {
 
 func ( dockerApi *DockerApi ) updateContainerIndexes() {
 
-  dockerApi.containerById = make( map[string]*types.Container )
-  dockerApi.containerByHashedImage = make( map[string]*types.Container )
+  dockerApi.containerById = make( map[string]int )
+  dockerApi.containerByBase64Image = make( map[string]int )
 
-  for _, container := range dockerApi.containerList {
-    dockerApi.containerById[container.ID] = &container
+  for index, container := range dockerApi.containerList {
+    dockerApi.containerById[container.ID] = index
     image := strings.Split(container.Image,"@")
-    hashBytes := helpers.TrimmedRipemd160Hash( []byte(image[0]) )
-    dockerApi.containerByHashedImage[string(hashBytes)] = &container
+    base64Image := strings.Trim(base64.StdEncoding.EncodeToString([]byte(image[0])),"=")
+    dockerApi.containerByBase64Image[base64Image] = index
   }
 }

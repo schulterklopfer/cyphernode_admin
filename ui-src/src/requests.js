@@ -18,10 +18,18 @@ const requests = {
     );
   },
 
-  getDockerContainerByHash: async ( hash, session ) => {
+  getDockerContainerByName: async (name, session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/docker/name/'+hash,
+      apiBaseUri+'/docker/name/'+name,
+      { session }
+    );
+  },
+
+  getDockerContainerByImageHash: async ( hash, session ) => {
+    return await requests.request(
+      'GET',
+      apiBaseUri+'/docker/image/'+hash,
       { session }
     );
   },

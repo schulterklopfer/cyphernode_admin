@@ -10,7 +10,10 @@ import {
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
-import crypto from "crypto"
+
+const base64UrlEncode = (str) => {
+  return btoa(str).replace(/\=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+}
 
 const Dashboard = () => {
   const [status, setStatus] = useState({})
@@ -21,6 +24,24 @@ const Dashboard = () => {
       const response = await requests.getStatus();
       if ( response.status === 200 ) {
         // everything is ok
+        for ( const feature of response.body.cyphernodeInfo?.features?.concat( response.body.cyphernodeInfo?.optional_features ) ) {
+
+          const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
+          const containerResponse = await requests.getDockerContainerByImageHash( base64Image );
+
+          if ( containerResponse.status === 200 ) {
+            feature.container = {
+              state: containerResponse.body.State,
+              created: containerResponse.body.Created,
+            };
+          } else {
+            feature.container = {
+              state: "not running",
+            };
+          }
+
+        }
+
         setStatus(response.body);
       }
     }
@@ -44,12 +65,11 @@ const Dashboard = () => {
           appList.data = appList.data.filter( app => app.id!==1 )
 
           for ( const app of appList.data ) {
-            const containerResponse = await requests.getDockerContainerByHash( app.hash );
+            const containerResponse = await requests.getDockerContainerByName( app.hash );
 
             if ( containerResponse.status === 200 ) {
               app.container = {
                 state: containerResponse.body.State,
-                status: containerResponse.body.Status,
                 created: containerResponse.body.Created,
               };
             }
@@ -199,6 +219,39 @@ const Dashboard = () => {
                       <CIcon name="cil-arrow-right" className="float-right" width="16"/>
                     </CLink>
                   </CCardFooter>
+                </CCard>
+              ))
+            }
+          </div>
+        </CCardBody>
+      </CCard>
+      <CCard>
+        <CCardHeader>
+          Features
+        </CCardHeader>
+        <CCardBody>
+          <div className="d-flex flex-row flex-wrap justify-content-center">
+            {
+              status.cyphernodeInfo?.features.concat(status.cyphernodeInfo?.optional_features).sort(
+                (fa, fb) => fb.active - fa.active || fa.label.localeCompare(fb.label)
+              ).map((feature) => (
+
+                <CCard className={feature.active?"mr-2":"mr-2 text-muted"}>
+                  <CCardHeader color={ feature.active?"success":""}>
+                    <div className={feature.active?"font-weight-bold text-light":"font-weight-bold"}>{feature.label}</div>
+                  </CCardHeader>
+                  <CCardBody className="font-xs" style={{minWidth: "250px"}}>
+                    <table className="table-borderless flex-fill font-xs m-0">
+                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
+                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
+                      { feature.container?.state && (
+                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">State:</td><td className="p-0 pr-1 pl-1 m-0">{feature.container.state}</td></tr>
+                      )}
+                      { feature.container?.created && (
+                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Created:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(feature.container.created*1000).toLocaleString()}</td></tr>
+                      )}
+                    </table>
+                  </CCardBody>
                 </CCard>
               ))
             }
