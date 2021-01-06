@@ -6,7 +6,7 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CTooltip, CButton,
+  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CTooltip,
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
@@ -38,7 +38,10 @@ const Dashboard = () => {
       if ( response.status === 200 ) {
         // everything is ok
         if ( !ignore ) {
-          setAppList(response.body);
+          const appList = response.body;
+          // do not include admin app here
+          appList.data = appList.data.filter( app => app.id!==1 )
+          setAppList(appList);
         }
       }
     }
@@ -49,6 +52,28 @@ const Dashboard = () => {
 
   return (
     <>
+      {
+        status.blockchainInfo && status.blockchainInfo.initialblockdownload && (
+          <CCard>
+            <CCardHeader>
+              Initial block download
+            </CCardHeader>
+            <CCardBody>
+              <CRow className="text-center">
+                <CCol md sm="12" className="mb-sm-2 mb-0">
+                  <strong>{status.blockchainInfo.blocks} blocks ({(status.blockchainInfo.verificationprogress*100).toFixed(2)+"%"})</strong>
+                  <CProgress
+                    className="progress-xs mt-2"
+                    precision={1}
+                    color="success"
+                    value={status.blockchainInfo.verificationprogress*100}
+                  />
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CCard>
+        )
+      }
       <CCard>
         <CCardHeader>
           Bitcoin blockchain <CBadge shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge> { status && status.blockchainInfo && status.blockchainInfo.initialblockdownload? (
@@ -81,60 +106,47 @@ const Dashboard = () => {
             </CCol>
           </CRow>
         </CCardBody>
-        <CCardFooter>
-          <div className="d-flex flex-row flex-wrap justify-content-center">
-          { status.latestBlocks?.map( block => (
-            <CTooltip
-              content={ "Hash: "+block.hash }
-              placement="top"
-            >
-              <CCard className="m-2 font-xs">
-                <CCardHeader color="primary" className="p-1">
-                  <CLink
-                    className="font-weight-bold btn-block text-light"
-                    href={"https://blockstream.info/testnet/block/"+block.hash}
-                    rel="noopener norefferer"
-                    target="_blank"
-                  >
-                    { block.hash.replace(/^0+/,'').substr(0,20 )+"..." }
-                    <CIcon name="cil-arrow-right" className="float-right" width="16"/>
-                  </CLink>
+          <CCardFooter>
+            <div className="d-flex flex-row flex-wrap justify-content-center">
+              { status.latestBlocks?.map( (block, index) => (
+                <div className="d-flex flex-row align-items-center">
+                <CTooltip
+                  content={ "Hash: "+block.hash }
+                  placement="top"
+                >
+                  <CCard className="m-2 font-xs">
+                    <CCardHeader color="primary" className="p-1">
+                      <CLink
+                        className="font-weight-bold btn-block text-light text-center"
+                        href={"https://blockstream.info/testnet/block/"+block.hash}
+                        rel="noopener norefferer"
+                        target="_blank"
+                      >
+                        { block.hash.replace(/^0+/,'').substr(0,20 )+"..." }
+                      </CLink>
 
-                </CCardHeader>
-                <CCardBody className="p-1">
-                  <table className="table table-borderless p-0 m-0">
-                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Height:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.height}</td></tr>
-                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Time:</strong></td><td className="p-0 pr-1 pl-1 m-0">{new Date(block.time*1000).toLocaleString()}</td></tr>
-                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Tx count:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.nTx}</td></tr>
-                    <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Size:</strong></td><td className="p-0 pr-1 pl-1 m-0">{(block.size/1024/1024).toFixed(2) + " Mb"}</td></tr>
-                  </table>
-                </CCardBody>
-              </CCard>
-            </CTooltip>
-          ))}
-          </div>
-        </CCardFooter>
+                    </CCardHeader>
+                    <CCardBody className="p-1">
+                      <table className="table table-borderless p-0 m-0">
+                        <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Height:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.height}</td></tr>
+                        <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Time:</strong></td><td className="p-0 pr-1 pl-1 m-0">{new Date(block.time*1000).toLocaleString()}</td></tr>
+                        <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Tx count:</strong></td><td className="p-0 pr-1 pl-1 m-0">{block.nTx}</td></tr>
+                        <tr><td className="p-0 pr-1 pl-1 m-0"><strong>Size:</strong></td><td className="p-0 pr-1 pl-1 m-0">{(block.size/1024/1024).toFixed(2) + " Mb"}</td></tr>
+                      </table>
+                    </CCardBody>
+                  </CCard>
+                </CTooltip>
+                <CIcon name="cil-arrow-thick-right"  width="16"/>
+                  {
+                    status.latestBlocks?.length - 1 === index && (
+                      <span className="font-weight-bold font-lg">&nbsp;...</span>
+                    )
+                  }
+                </div>
+                ))}
+            </div>
+          </CCardFooter>
       </CCard>
-      {
-        status.blockchainInfo && status.blockchainInfo.initialblockdownload && (
-          <CCard>
-            <CCardBody>
-              <CRow className="text-center">
-                <CCol md sm="12" className="mb-sm-2 mb-0">
-                  <div className="text-muted">IBD Progress</div>
-                  <strong>{status.blockchainInfo.blocks} blocks ({(status.blockchainInfo.verificationprogress*100).toFixed(2)+"%"})</strong>
-                  <CProgress
-                    className="progress-xs mt-2"
-                    precision={1}
-                    color="success"
-                    value={status.blockchainInfo.verificationprogress*100}
-                  />
-                </CCol>
-              </CRow>
-            </CCardBody>
-          </CCard>
-        )
-      }
       <CCard>
         <CCardHeader>
           Intalled Apps
