@@ -10,6 +10,7 @@ import {
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
+import ContainerInfo from "./ContainerInfo";
 
 const base64UrlEncode = (str) => {
   return btoa(str).replace(/\=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
@@ -29,11 +30,21 @@ const Dashboard = () => {
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
           const containerResponse = await requests.getDockerContainerByImageHash( base64Image );
 
+
           if ( containerResponse.status === 200 ) {
+            const networks = []
+            Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
+              networks.push({
+                name: network,
+                ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
+              });
+            });
             feature.container = {
               state: containerResponse.body.State,
               created: containerResponse.body.Created,
+              networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
             };
+
           } else {
             feature.container = {
               state: "not running",
@@ -68,9 +79,17 @@ const Dashboard = () => {
             const containerResponse = await requests.getDockerContainerByName( app.hash );
 
             if ( containerResponse.status === 200 ) {
+              const networks = []
+              Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
+                networks.push({
+                  name: network,
+                  ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
+                });
+              });
               app.container = {
                 state: containerResponse.body.State,
                 created: containerResponse.body.Created,
+                networks: networks
               };
             }
 
@@ -199,11 +218,8 @@ const Dashboard = () => {
                     <table className="table-borderless flex-fill font-xs m-0">
                       <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
                       <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
-                      { appData.container?.state && (
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">State:</td><td className="p-0 pr-1 pl-1 m-0">{appData.container.state}</td></tr>
-                      )}
-                      { appData.container?.created && (
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Created:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(appData.container.created*1000).toLocaleString()}</td></tr>
+                      { appData.container && (
+                        <ContainerInfo {...appData.container} />
                       )}
                     </table>
                   </CCardBody>
@@ -243,11 +259,8 @@ const Dashboard = () => {
                     <table className="table-borderless flex-fill font-xs m-0">
                       <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
                       <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
-                      { feature.container?.state && (
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">State:</td><td className="p-0 pr-1 pl-1 m-0">{feature.container.state}</td></tr>
-                      )}
-                      { feature.container?.created && (
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Created:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(feature.container.created*1000).toLocaleString()}</td></tr>
+                      { feature.container && (
+                        <ContainerInfo {...feature.container} />
                       )}
                     </table>
                   </CCardBody>
