@@ -43,6 +43,7 @@ const Dashboard = () => {
               state: containerResponse.body.State,
               created: containerResponse.body.Created,
               networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
+              mounts: (containerResponse.body.Mounts||[]).map( mount => mount.Source ).filter( mount => !!mount ).sort( (a,b) => a.localeCompare(b) )
             };
 
           } else {
@@ -89,7 +90,8 @@ const Dashboard = () => {
               app.container = {
                 state: containerResponse.body.State,
                 created: containerResponse.body.Created,
-                networks: networks
+                networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
+                mounts: (containerResponse.body.Mounts||[]).map( mount => mount.Source ).filter( mount => !!mount ).sort( (a,b) => a.localeCompare(b) )
               };
             }
 
@@ -214,14 +216,32 @@ const Dashboard = () => {
                     <div className="font-weight-bold">{appData.name}</div>
                     <CImg className="ml-0 mr-0 p-1" style={{ "background-color": appData.meta?.color, "border-radius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
                   </CCardHeader>
-                  <CCardBody style={{minWidth: "250px"}}>
+                  <CCardBody style={{minWidth: "300px"}}>
                     <table className="table-borderless flex-fill font-xs m-0">
-                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
-                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
+                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
+                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
                       { appData.container && (
                         <ContainerInfo {...appData.container} />
                       )}
                     </table>
+                    {
+                      (appData.container && appData.container.mounts && appData.container.mounts.length)?(
+                        <div className="font-xs mt-2">
+                          <div className="font-weight-bold">Container mounts:</div>
+                          {
+                            appData.container.mounts.map( mount => {
+                              let shortMount = mount;
+
+                              if ( shortMount.length > 40 ) {
+                                shortMount = "..."+shortMount.substring( shortMount.length - 30, shortMount.length )
+                              }
+
+                              return ( <div className="" >{shortMount}</div> )})
+                          }
+                        </div>
+                      ):(<></>)
+                    }
+
                   </CCardBody>
                   <CCardFooter className="card-footer px-3 py-2">
                     <CLink
@@ -251,18 +271,35 @@ const Dashboard = () => {
                 (fa, fb) => fb.active - fa.active || fa.label.localeCompare(fb.label)
               ).map((feature) => (
 
-                <CCard className={feature.active?"mr-2":"mr-2 text-muted"}>
+                <CCard style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
                   <CCardHeader className="text-center" color={ feature.active?"success":""}>
                     <div className={feature.active?"font-weight-bold text-light":"font-weight-bold"}>{feature.label}</div>
                   </CCardHeader>
                   <CCardBody className="font-xs" style={{minWidth: "250px"}}>
                     <table className="table-borderless flex-fill font-xs m-0">
-                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
-                      <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
+                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
+                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
                       { feature.container && (
                         <ContainerInfo {...feature.container} />
                       )}
                     </table>
+                    {
+                      (feature.container && feature.container.mounts && feature.container.mounts.length)?(
+                        <div className="font-xs mt-2">
+                          <div className="font-weight-bold">Container mounts:</div>
+                          {
+                            feature.container.mounts.map( mount => {
+                              let shortMount = mount;
+
+                              if ( shortMount.length > 40 ) {
+                                shortMount = "..."+shortMount.substring( shortMount.length - 30, shortMount.length )
+                              }
+
+                              return ( <div className="" >{shortMount}</div> )})
+                          }
+                        </div>
+                      ):(<></>)
+                    }
                   </CCardBody>
                 </CCard>
               ))
