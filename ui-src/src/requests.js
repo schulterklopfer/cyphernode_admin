@@ -1,8 +1,8 @@
 //const apiBaseUri = 'http://192.168.178.90/admin/api/v0';
-const apiBaseUri = '192.168.178.90:3030/api/v0';
+//const apiBaseUri = '192.168.178.90:3030/api/v0';
 const webScheme = 'http';
 const webSocketScheme = 'ws';
-//const apiBaseUri = '/admin/api/v0';
+const apiBaseUri = '/admin/api/v0';
 
 const requests = {
   login: async (username, password ) => {
