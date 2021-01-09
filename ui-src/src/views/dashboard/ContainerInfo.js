@@ -108,13 +108,9 @@ const ContainerInfo = props => {
         }
       </CModalBody>
       <CModalFooter>
-        <div>
-        <span className="font-weight-bold">State:&nbsp;</span> <span>{containerInfo.state}</span>&nbsp;&mdash;&nbsp;
-        <span className="font-weight-bold">Created:&nbsp;</span> <span>{new Date(containerInfo.created*1000).toLocaleString()}</span>
-        </div>
-        <div className="font-xs">
-          <span className="font-weight-bold">ID:&nbsp;</span> <span>{containerInfo.id}</span>
-        </div>
+          <span><span className="font-weight-bold">State:&nbsp;</span> <span>{containerInfo.state}</span></span>
+          <span><span className="font-weight-bold">Created:&nbsp;</span> <span>{new Date(containerInfo.created*1000).toLocaleString()}</span></span>
+          <span><span className="font-weight-bold">ID:&nbsp;</span> <span>{containerInfo.id}</span></span>
       </CModalFooter>
     </CModal>
   )

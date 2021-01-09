@@ -81,10 +81,9 @@ const Dashboard = () => {
         if ( !ignore ) {
           const appList = response.body;
           // do not include admin app here
-          appList.data = appList.data.filter( app => app.id!==1 )
-
           for ( const app of appList.data ) {
-            const containerResponse = await requests.getDockerContainerByName( app.hash );
+            const name = app.id === 1 ? 'cyphernodeadmin':app.hash;
+            const containerResponse = await requests.getDockerContainerByName( name );
 
             if ( containerResponse.status === 200 ) {
               const networks = []
@@ -221,12 +220,12 @@ const Dashboard = () => {
           <div className="d-flex flex-row flex-wrap justify-content-center">
             {
               appList.data.map((appData, index) => (
-                <CCard key={index}>
+                <CCard key={index} style={{minWidth: "300px"}} className="mr-2">
                   <CCardHeader className="d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold">{appData.name}</div>
                     <CImg className="ml-0 mr-0 p-1" style={{ "backgroundColor": appData.meta?.color, "borderRadius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
                   </CCardHeader>
-                  <CCardBody style={{minWidth: "300px"}}>
+                  <CCardBody>
                     <table className="table-borderless flex-fill font-xs m-0 mb-4">
                       <tbody>
                         <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
@@ -261,17 +260,21 @@ const Dashboard = () => {
                       }}
                     >container info</CButton>
                   </CCardBody>
-                  <CCardFooter className="card-footer px-3 py-2">
-                    <CLink
-                      className="font-weight-bold font-xs btn-block text-muted"
-                      href={"/"+appData.mountPoint}
-                      rel="noopener norefferer"
-                      target="_blank"
-                    >
-                      Go to app
-                      <CIcon name="cil-arrow-right" className="float-right" width="16"/>
-                    </CLink>
-                  </CCardFooter>
+                  {
+                    appData.id > 1?(
+                      <CCardFooter className="card-footer px-3 py-2">
+                        <CLink
+                          className="font-weight-bold font-xs btn-block text-muted"
+                          href={"/"+appData.mountPoint}
+                          rel="noopener norefferer"
+                          target="_blank"
+                        >
+                          Go to app
+                          <CIcon name="cil-arrow-right" className="float-right" width="16"/>
+                        </CLink>
+                      </CCardFooter>
+                    ):(<></>)
+                  }
                 </CCard>
               ))
             }
