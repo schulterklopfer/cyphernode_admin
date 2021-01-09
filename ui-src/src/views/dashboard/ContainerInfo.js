@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import {CCardBody, CCard, CCardHeader, CModal, CModalHeader, CModalFooter, CModalBody} from "@coreui/react";
+import {CCardBody, CCard, CCardHeader, CModal, CModalHeader, CModalFooter, CModalBody, CRow, CCol} from "@coreui/react";
 import requests from "../../requests";
 
 
@@ -54,11 +54,13 @@ const ContainerInfo = props => {
     >
       <CModalHeader closeButton>{meta.name} {meta.version}</CModalHeader>
       <CModalBody>
+        <CRow>
         {
           (containerInfo.networks && containerInfo.networks.length)?(
+          <CCol>
             <CCard className="font-xs">
-              <CCardHeader>Container networks</CCardHeader>
-              <CCardBody>
+            <CCardHeader>Container networks</CCardHeader>
+            <CCardBody>
             <pre className="m-0 p-0">
             {
               containerInfo.networks.map( (network, index) =>
@@ -68,11 +70,14 @@ const ContainerInfo = props => {
             </pre>
               </CCardBody>
             </CCard>
+          </CCol>
+
           ):(<></>)
         }
 
         {
           (containerInfo.mounts && containerInfo.mounts.length)?(
+          <CCol className="col-8">
             <CCard className="font-xs">
               <CCardHeader>Container mounts</CCardHeader>
               <CCardBody>
@@ -85,9 +90,12 @@ const ContainerInfo = props => {
             </pre>
               </CCardBody>
             </CCard>
+          </CCol>
           ):(<></>)
         }
-
+        </CRow>
+        <CRow>
+          <CCol>
         {
           logLines.length?(
             <CCard className="font-xs">
@@ -106,6 +114,8 @@ const ContainerInfo = props => {
           ):(<></>)
 
         }
+          </CCol>
+        </CRow>
       </CModalBody>
       <CModalFooter>
           <span><span className="font-weight-bold">State:&nbsp;</span> <span>{containerInfo.state}</span></span>
