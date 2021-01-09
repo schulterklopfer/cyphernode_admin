@@ -93,6 +93,7 @@ func initOnce() error {
     instance = &DockerApi{
       DockerClient: cli,
       Lines: make( chan *DockerLogLine ),
+      containerLogsById: make( map[string]*DockerLogWrapper ),
     }
 
     err = instance.Update()
@@ -123,9 +124,10 @@ func Init() error {
 }
 
 func ( dockerApi *DockerApi ) initDockerLogCollectors() {
-  dockerApi.indexMutex.Lock()
-  defer dockerApi.indexMutex.Unlock()
-  dockerApi.containerLogsById = make( map[string]*DockerLogWrapper )
+  //logwrapper.Logger().Debug(  "initDockerLogCollectors" )
+
+  //dockerApi.indexMutex.Lock()
+  //defer dockerApi.indexMutex.Unlock()
 
   dockerApi.checkDockerLogCollectors()
 
@@ -136,6 +138,8 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
         wrapper := dockerApi.containerLogsById[dockerLogLine.ContainerId]
 
         if dockerLogLine.Active {
+          //logwrapper.Logger().Debug( dockerLogLine.ContainerId, "found log line" )
+
           wrapper.LinesMutex.Lock()
           wrapper.Lines = append(wrapper.Lines, dockerLogLine.Line)
           wrapper.LastLineIndex++
@@ -146,6 +150,7 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
           wrapper.LinesMutex.Unlock()
         } else {
           // Scanner stopped working
+          logwrapper.Logger().Debug( dockerLogLine.ContainerId, "stop packet received" )
           wrapper.Active = false
           wrapper.Reader.Close()
         }
@@ -157,8 +162,11 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
 
 func ( dockerApi *DockerApi ) initDockerLogCollector( containerId string, dockerLogWrapper *DockerLogWrapper )  {
 
-  dockerLogWrapper.LinesMutex.Lock()
-  defer dockerLogWrapper.LinesMutex.Unlock()
+  //logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "initDockerLogCollector" )
+
+  //dockerLogWrapper.LinesMutex.Lock()
+  //defer dockerLogWrapper.LinesMutex.Unlock()
+  //logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "trying to read docker logs for "+containerId )
 
   reader, err := dockerApi.LogReaderForContainer( containerId )
   dockerLogWrapper.LastError = err
@@ -168,12 +176,16 @@ func ( dockerApi *DockerApi ) initDockerLogCollector( containerId string, docker
     dockerLogWrapper.Reader = reader
     dockerLogWrapper.Lines = make( []string, 0)
     dockerLogWrapper.LastLineIndex = -1
+    //logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "updated dockerLogWrapper" )
+
     go dockerApi.readDockerLogs( containerId, dockerLogWrapper )
   }
 
 }
 
 func ( dockerApi *DockerApi ) readDockerLogs( containerId string, dockerLogWrapper *DockerLogWrapper ) {
+
+  logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "readDockerLogs" )
 
   reader := dockerLogWrapper.Reader
 
@@ -184,20 +196,26 @@ func ( dockerApi *DockerApi ) readDockerLogs( containerId string, dockerLogWrapp
 
   go func() {
     for scan {
+      logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "Waiting for stop" )
       select {
         case stop := <- dockerLogWrapper.Stop:
           if stop {
+            logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "Scanning stopped from outside" )
             scan = false
           }
       }
     }
   }()
 
+  logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "Scanning logs" )
+
   for scanner.Scan() && scan {
     bytes := scanner.Bytes()
     if len(bytes) < 8 {
       continue
     }
+    //logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "Read bytes" )
+
     // cut away first 8 bytes since it only contains the length of the log
     // we could implement a custom split function which uses that information
     // but not now ;-)
@@ -208,6 +226,8 @@ func ( dockerApi *DockerApi ) readDockerLogs( containerId string, dockerLogWrapp
     }
   }
 
+  logwrapper.Logger().Debug( dockerLogWrapper.ContainerId, "Finished scanning" )
+
   _ = dockerLogWrapper.Reader.Close()
 
   dockerApi.Lines <- &DockerLogLine{
@@ -217,20 +237,10 @@ func ( dockerApi *DockerApi ) readDockerLogs( containerId string, dockerLogWrapp
 }
 
 func ( dockerApi *DockerApi ) checkDockerLogCollectors() {
+  //logwrapper.Logger().Debug( "checkDockerLogCollectors" )
 
-  // check containerList against containerLogsById to see what we need to add or remove
-
-  for _, container := range dockerApi.containerList {
-    if _, exists := dockerApi.containerLogsById[container.ID]; !exists {
-      // container does not exist in log db... create item for it
-    }
-  }
-
-  dockerApi.indexMutex.Lock()
-  defer dockerApi.indexMutex.Unlock()
-
+  // remove logs from log db
   for containerId, dockerLogWrapper := range dockerApi.containerLogsById {
-
     // check if container in log db is in list of containers
     if helpers.SliceIndex(len(dockerApi.containerList), func( index int ) bool {
       return dockerApi.containerList[index].ID == containerId
@@ -238,17 +248,25 @@ func ( dockerApi *DockerApi ) checkDockerLogCollectors() {
       //not found ... remove from logs db
       // send the stop signal
       dockerLogWrapper.Stop <- true
-
-
+      delete( dockerApi.containerLogsById, containerId )
     }
+  }
 
+  // check containerList against containerLogsById to see what we need to add or remove
+  for _, container := range dockerApi.containerList {
+    if _, exists := dockerApi.containerLogsById[container.ID]; !exists {
+      dockerApi.containerLogsById[container.ID] = &DockerLogWrapper{
+        Active: false,
+      }
+    }
+  }
 
+  // finally init inactive log collectors
+  for containerId, dockerLogWrapper := range dockerApi.containerLogsById {
     if !dockerLogWrapper.Active {
-      dockerLogWrapper.LinesMutex.Lock()
       if dockerLogWrapper.Reader != nil {
         _ = dockerLogWrapper.Reader.Close()
       }
-      dockerLogWrapper.LinesMutex.Unlock()
       dockerApi.initDockerLogCollector( containerId, dockerLogWrapper )
     }
   }
