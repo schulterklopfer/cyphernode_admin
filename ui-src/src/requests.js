@@ -1,21 +1,54 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 schulterklopfer/__escapee__
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILIT * Y, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 //const apiBaseUri = 'http://192.168.178.90/admin/api/v0';
 //const apiBaseUri = '192.168.178.90:3030/api/v0';
-const webScheme = 'http';
-const webSocketScheme = 'ws';
-const apiBaseUri = '/admin/api/v0';
+
+//const host = window.location.host
+//const protocol = window.location.protocol
+//const mountPoint = "/admin"
+
+const host = "192.168.178.90:3030"
+const protocol = "http:"
+const mountPoint = ""
+
+const wsBaseUri =   (protocol==='https:'?'wss:':'ws:')+'//' + host + mountPoint + '/api/v0';
+const apiBaseUri =  protocol + '//' + host + mountPoint + '/api/v0';
+
 
 const requests = {
   login: async (username, password ) => {
     return await requests.request(
       'POST',
-      webScheme+"://"+apiBaseUri+'/login',
+      apiBaseUri+'/login',
       { body: { username, password } } );
   },
 
   getStatus: async ( session ) => {
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/status',
+      apiBaseUri+'/status',
       { session }
     );
   },
@@ -23,7 +56,7 @@ const requests = {
   getDockerContainerByName: async (name, session ) => {
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/docker/name/'+name,
+      apiBaseUri+'/docker/name/'+name,
       { session }
     );
   },
@@ -31,19 +64,19 @@ const requests = {
   getDockerContainerByImageHash: async ( hash, session ) => {
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/docker/image/'+hash,
+      apiBaseUri+'/docker/image/'+hash,
       { session }
     );
   },
 
   getDockerLogsWebsocketClient: ( containerId, session ) => {
-    return new WebSocket(webSocketScheme+"://"+apiBaseUri+'/docker/logs/'+containerId );
+    return new WebSocket(wsBaseUri+'/docker/logs/'+containerId );
   },
 
   getUsers: async ( session ) => {
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/users',
+      apiBaseUri+'/users',
       { session }
     );
   },
@@ -51,7 +84,7 @@ const requests = {
   createUser: async ( user, session ) => {
     return await requests.request(
       'POST',
-      webScheme+"://"+apiBaseUri+'/users',
+      apiBaseUri+'/users',
       { session, body: user }
     );
   },
@@ -66,7 +99,7 @@ const requests = {
 
     return await requests.request(
       'PATCH',
-      webScheme+"://"+apiBaseUri+'/users/'+id,
+      apiBaseUri+'/users/'+id,
       { session, body: user }
     );
   },
@@ -74,7 +107,7 @@ const requests = {
   deleteUser: async ( id, session ) => {
     return await requests.request(
       'DELETE',
-      webScheme+"://"+apiBaseUri+'/users/'+id,
+      apiBaseUri+'/users/'+id,
       { session }
     );
   },
@@ -88,7 +121,7 @@ const requests = {
 
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/apps/'+id,
+      apiBaseUri+'/apps/'+id,
       { session }
     );
   },
@@ -96,7 +129,7 @@ const requests = {
   getApps: async ( session ) => {
     return await requests.request(
       'GET',
-      webScheme+"://"+apiBaseUri+'/apps',
+      apiBaseUri+'/apps',
       { session }
     );
   },
@@ -104,7 +137,7 @@ const requests = {
   createApp: async ( app, session ) => {
     return await requests.request(
       'POST',
-      webScheme+"://"+apiBaseUri+'/apps',
+      apiBaseUri+'/apps',
       { session, body: app }
     );
   },
@@ -119,7 +152,7 @@ const requests = {
 
     return await requests.request(
       'PATCH',
-      webScheme+"://"+apiBaseUri+'/apps/'+id,
+      apiBaseUri+'/apps/'+id,
       { session, body: app }
     );
   },
@@ -127,7 +160,7 @@ const requests = {
   deleteApp: async (id, session ) => {
     return await requests.request(
       'DELETE',
-      webScheme+"://"+apiBaseUri+'/apps/'+id,
+      apiBaseUri+'/apps/'+id,
       { session }
     );
   },
