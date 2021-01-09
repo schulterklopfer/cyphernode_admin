@@ -129,13 +129,17 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
 }
 
 func ( dockerApi *DockerApi ) initDockerLogCollector( containerId string, dockerLogWrapper *DockerLogWrapper )  {
+
+  dockerLogWrapper.LinesMutex.Lock()
+  defer dockerLogWrapper.LinesMutex.Unlock()
+
   reader, err := dockerApi.LogReaderForContainer( containerId )
   dockerLogWrapper.LastError = err
 
   if err == nil {
+    dockerLogWrapper.Active = true
     dockerLogWrapper.Reader = reader
     dockerLogWrapper.Lines = make( []string, 0)
-    dockerLogWrapper.Active = true
     dockerLogWrapper.LastLineIndex = -1
     go dockerApi.readDockerLogs( containerId, dockerLogWrapper.Reader )
   }
@@ -164,6 +168,11 @@ func ( dockerApi *DockerApi ) readDockerLogs( containerId string, reader io.Read
 func ( dockerApi *DockerApi ) checkDockerLogCollectors() {
   for containerId, dockerLogWrapper := range dockerApi.containerLogsById {
     if !dockerLogWrapper.Active {
+      dockerLogWrapper.LinesMutex.Lock()
+      if dockerLogWrapper.Reader != nil {
+        dockerLogWrapper.Reader.Close()
+      }
+      dockerLogWrapper.LinesMutex.Unlock()
       dockerApi.initDockerLogCollector( containerId, dockerLogWrapper )
     }
   }
@@ -256,6 +265,7 @@ func ( dockerApi *DockerApi ) Update() error {
   }
   dockerApi.containerList = containerList
   dockerApi.updateContainerIndexes()
+  dockerApi.checkDockerLogCollectors()
   return nil
 }
 
