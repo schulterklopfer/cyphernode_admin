@@ -6,10 +6,11 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CTooltip,
+  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CPopover, CButton
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
+import ContainerBasicInfo from "./ContainerBasicInfo";
 import ContainerInfo from "./ContainerInfo";
 
 const base64UrlEncode = (str) => {
@@ -19,6 +20,7 @@ const base64UrlEncode = (str) => {
 const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
+  const [containerDetails, setContainerContainerDetails] = useState("");
 
   useEffect( () => {
     async function fetchStatus() {
@@ -26,6 +28,10 @@ const Dashboard = () => {
       if ( response.status === 200 ) {
         // everything is ok
         for ( const feature of response.body.cyphernodeInfo?.features?.concat( response.body.cyphernodeInfo?.optional_features ) ) {
+
+          if ( !feature.active ) {
+            continue;
+          }
 
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
           const containerResponse = await requests.getDockerContainerByImageHash( base64Image );
@@ -40,6 +46,7 @@ const Dashboard = () => {
               });
             });
             feature.container = {
+              id: containerResponse.body.Id,
               state: containerResponse.body.State,
               created: containerResponse.body.Created,
               networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
@@ -59,7 +66,7 @@ const Dashboard = () => {
     }
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 1000);
+    const interval = setInterval(fetchStatus,  10*1000);
     return () => {
       clearInterval(interval);
     }
@@ -88,6 +95,7 @@ const Dashboard = () => {
                 });
               });
               app.container = {
+                id: containerResponse.body.Id,
                 state: containerResponse.body.State,
                 created: containerResponse.body.Created,
                 networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
@@ -145,9 +153,10 @@ const Dashboard = () => {
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
             { status.latestBlocks?.map( (block, index) => (
-              <div className="d-flex flex-row align-items-center">
-                <CTooltip
-                  content={ "Hash: "+block.hash }
+              <div key={index} className="d-flex flex-row align-items-center">
+                <CPopover
+                  header="Hash"
+                  content={ block.hash }
                   placement="top"
                 >
                   <CCard className="m-2 font-xs">
@@ -164,14 +173,16 @@ const Dashboard = () => {
                     </CCardHeader>
                     <CCardBody className="p-1">
                       <table className="table table-borderless p-0 m-0">
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Height:</td><td className="p-0 pr-1 pl-1 m-0">{block.height}</td></tr>
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Time:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(block.time*1000).toLocaleString()}</td></tr>
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Tx count:</td><td className="p-0 pr-1 pl-1 m-0">{block.nTx}</td></tr>
-                        <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Size:</td><td className="p-0 pr-1 pl-1 m-0">{(block.size/1024/1024).toFixed(2) + " Mb"}</td></tr>
+                        <tbody>
+                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Height:</td><td className="p-0 pr-1 pl-1 m-0">{block.height}</td></tr>
+                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Time:</td><td className="p-0 pr-1 pl-1 m-0">{new Date(block.time*1000).toLocaleString()}</td></tr>
+                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Tx count:</td><td className="p-0 pr-1 pl-1 m-0">{block.nTx}</td></tr>
+                          <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Size:</td><td className="p-0 pr-1 pl-1 m-0">{(block.size/1024/1024).toFixed(2) + " Mb"}</td></tr>
+                        </tbody>
                       </table>
                     </CCardBody>
                   </CCard>
-                </CTooltip>
+                </CPopover>
                 <CIcon name="cil-arrow-thick-right"  width="16"/>
                 {
                   status.latestBlocks?.length - 1 === index && (
@@ -192,7 +203,7 @@ const Dashboard = () => {
                 { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
                 { field: "verificationprogress", title:"Verfification progress", transform: input => { return (input*100).toFixed(2)+"%" } },
               ].map( (item, index) => (
-                <span>
+                <span key={index}>
                     <span className="font-weight-bold">{item.title}:</span>
                     <span> {item.transform((status.blockchainInfo||{})[item.field]) } </span>
                   { index !== 4 && (<span>&mdash; </span>) }
@@ -209,39 +220,46 @@ const Dashboard = () => {
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
             {
-              appList.data.map((appData) => (
-
-                <CCard>
+              appList.data.map((appData, index) => (
+                <CCard key={index}>
                   <CCardHeader className="d-flex justify-content-between align-items-center">
                     <div className="font-weight-bold">{appData.name}</div>
-                    <CImg className="ml-0 mr-0 p-1" style={{ "background-color": appData.meta?.color, "border-radius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
+                    <CImg className="ml-0 mr-0 p-1" style={{ "backgroundColor": appData.meta?.color, "borderRadius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
                   </CCardHeader>
                   <CCardBody style={{minWidth: "300px"}}>
-                    <table className="table-borderless flex-fill font-xs m-0">
-                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
-                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
-                      { appData.container && (
-                        <ContainerInfo {...appData.container} />
-                      )}
+                    <table className="table-borderless flex-fill font-xs m-0 mb-4">
+                      <tbody>
+                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{appData.version}</td></tr>
+                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Mount:</td><td className="p-0 pr-1 pl-1 m-0">/{appData.mountPoint}</td></tr>
+                        { appData.container && (
+                          <ContainerBasicInfo {...appData.container} />
+                        )}
+                      </tbody>
                     </table>
                     {
-                      (appData.container && appData.container.mounts && appData.container.mounts.length)?(
-                        <div className="font-xs mt-2">
-                          <div className="font-weight-bold">Container mounts:</div>
-                          {
-                            appData.container.mounts.map( mount => {
-                              let shortMount = mount;
-
-                              if ( shortMount.length > 40 ) {
-                                shortMount = "..."+shortMount.substring( shortMount.length - 30, shortMount.length )
-                              }
-
-                              return ( <div className="" >{shortMount}</div> )})
-                          }
-                        </div>
-                      ):(<></>)
+                      (appData.container && (
+                        <ContainerInfo { ...{
+                          containerInfo: appData.container,
+                          meta: appData,
+                          onClose: () => {
+                            console.log( "modal closed" );
+                            setContainerContainerDetails("");
+                          },
+                          show: containerDetails===appData.container.id
+                        }}/>
+                      ))
                     }
-
+                    <CButton
+                      data-containerid={appData.container.id}
+                      className="float-right"
+                      size="sm"
+                      shape="pill"
+                      color="primary"
+                      onClick={(event) => {
+                        const containerId = event.target.dataset.containerid;
+                        setContainerContainerDetails(containerId);
+                      }}
+                    >container info</CButton>
                   </CCardBody>
                   <CCardFooter className="card-footer px-3 py-2">
                     <CLink
@@ -269,37 +287,53 @@ const Dashboard = () => {
             {
               status.cyphernodeInfo?.features.concat(status.cyphernodeInfo?.optional_features).sort(
                 (fa, fb) => fb.active - fa.active || fa.label.localeCompare(fb.label)
-              ).map((feature) => (
+              ).map((feature, index) => (
 
-                <CCard style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
+                <CCard key={index} style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
                   <CCardHeader className="text-center" color={ feature.active?"success":""}>
                     <div className={feature.active?"font-weight-bold text-light":"font-weight-bold"}>{feature.label}</div>
                   </CCardHeader>
                   <CCardBody className="font-xs" style={{minWidth: "250px"}}>
-                    <table className="table-borderless flex-fill font-xs m-0">
-                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
-                      <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
-                      { feature.container && (
-                        <ContainerInfo {...feature.container} />
-                      )}
+                    <table className="table-borderless flex-fill font-xs m-0 mb-4">
+                      <tbody>
+                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
+                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
+                        { feature.container && (
+                          <ContainerBasicInfo {...feature.container} />
+                        )}
+                      </tbody>
                     </table>
-                    {
-                      (feature.container && feature.container.mounts && feature.container.mounts.length)?(
-                        <div className="font-xs mt-2">
-                          <div className="font-weight-bold">Container mounts:</div>
-                          {
-                            feature.container.mounts.map( mount => {
-                              let shortMount = mount;
-
-                              if ( shortMount.length > 40 ) {
-                                shortMount = "..."+shortMount.substring( shortMount.length - 30, shortMount.length )
-                              }
-
-                              return ( <div className="" >{shortMount}</div> )})
-                          }
-                        </div>
-                      ):(<></>)
+                    { feature.active && (
+                      <>
+                      {
+                      (feature.container && (
+                        <ContainerInfo { ...{
+                          containerInfo: feature.container,
+                          meta: {
+                            name: feature.label,
+                            version: feature.docker?.Version
+                          },
+                          onClose: () => {
+                            console.log( "modal closed" );
+                            setContainerContainerDetails("");
+                          },
+                          show: containerDetails===feature.container.id
+                        }}/>
+                      ))
                     }
+                      <CButton
+                      data-containerid={feature.container?.id}
+                      className="float-right"
+                      size="sm"
+                      shape="pill"
+                      color="primary"
+                      onClick={(event) => {
+                      const containerId = event.target.dataset.containerid;
+                      setContainerContainerDetails(containerId);
+                    }}
+                      >container info</CButton>
+                      </>
+                    ) }
                   </CCardBody>
                 </CCard>
               ))

@@ -1,19 +1,21 @@
 //const apiBaseUri = 'http://192.168.178.90/admin/api/v0';
-//const apiBaseUri = 'http://192.168.178.90:3030/api/v0';
-const apiBaseUri = '/admin/api/v0';
+const apiBaseUri = '192.168.178.90:3030/api/v0';
+const webScheme = 'http';
+const webSocketScheme = 'ws';
+//const apiBaseUri = '/admin/api/v0';
 
 const requests = {
   login: async (username, password ) => {
     return await requests.request(
       'POST',
-      apiBaseUri+'/login',
+      webScheme+"://"+apiBaseUri+'/login',
       { body: { username, password } } );
   },
 
   getStatus: async ( session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/status',
+      webScheme+"://"+apiBaseUri+'/status',
       { session }
     );
   },
@@ -21,7 +23,7 @@ const requests = {
   getDockerContainerByName: async (name, session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/docker/name/'+name,
+      webScheme+"://"+apiBaseUri+'/docker/name/'+name,
       { session }
     );
   },
@@ -29,15 +31,19 @@ const requests = {
   getDockerContainerByImageHash: async ( hash, session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/docker/image/'+hash,
+      webScheme+"://"+apiBaseUri+'/docker/image/'+hash,
       { session }
     );
+  },
+
+  getDockerLogsWebsocketClient: ( containerId, session ) => {
+    return new WebSocket(webSocketScheme+"://"+apiBaseUri+'/docker/logs/'+containerId );
   },
 
   getUsers: async ( session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/users',
+      webScheme+"://"+apiBaseUri+'/users',
       { session }
     );
   },
@@ -45,7 +51,7 @@ const requests = {
   createUser: async ( user, session ) => {
     return await requests.request(
       'POST',
-      apiBaseUri+'/users',
+      webScheme+"://"+apiBaseUri+'/users',
       { session, body: user }
     );
   },
@@ -60,7 +66,7 @@ const requests = {
 
     return await requests.request(
       'PATCH',
-      apiBaseUri+'/users/'+id,
+      webScheme+"://"+apiBaseUri+'/users/'+id,
       { session, body: user }
     );
   },
@@ -68,7 +74,7 @@ const requests = {
   deleteUser: async ( id, session ) => {
     return await requests.request(
       'DELETE',
-      apiBaseUri+'/users/'+id,
+      webScheme+"://"+apiBaseUri+'/users/'+id,
       { session }
     );
   },
@@ -82,7 +88,7 @@ const requests = {
 
     return await requests.request(
       'GET',
-      apiBaseUri+'/apps/'+id,
+      webScheme+"://"+apiBaseUri+'/apps/'+id,
       { session }
     );
   },
@@ -90,7 +96,7 @@ const requests = {
   getApps: async ( session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/apps',
+      webScheme+"://"+apiBaseUri+'/apps',
       { session }
     );
   },
@@ -98,7 +104,7 @@ const requests = {
   createApp: async ( app, session ) => {
     return await requests.request(
       'POST',
-      apiBaseUri+'/apps',
+      webScheme+"://"+apiBaseUri+'/apps',
       { session, body: app }
     );
   },
@@ -113,7 +119,7 @@ const requests = {
 
     return await requests.request(
       'PATCH',
-      apiBaseUri+'/apps/'+id,
+      webScheme+"://"+apiBaseUri+'/apps/'+id,
       { session, body: app }
     );
   },
@@ -121,7 +127,7 @@ const requests = {
   deleteApp: async (id, session ) => {
     return await requests.request(
       'DELETE',
-      apiBaseUri+'/apps/'+id,
+      webScheme+"://"+apiBaseUri+'/apps/'+id,
       { session }
     );
   },

@@ -2,8 +2,11 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/gorilla/websocket"
   "github.com/schulterklopfer/cyphernode_admin/dockerApi"
+  "log"
   "net/http"
+  "time"
 )
 
 func GetContainerByBas64Image(c *gin.Context) {
@@ -33,4 +36,71 @@ func GetContainerByName(c *gin.Context) {
   }
 
   c.JSON(http.StatusOK, container )
+}
+
+var upGrader = websocket.Upgrader{
+  CheckOrigin: func(r *http.Request) bool {
+    return true
+  },
+}
+
+//webSocket returns json format
+func WSLogsByContainerId(c *gin.Context) {
+  if len(c.Params) < 1 {
+    c.Status( http.StatusNotFound )
+    return
+  }
+
+  containerId := c.Params[0].Value
+
+  if !dockerApi.Instance().ContainerExists( containerId ) {
+    c.Status( http.StatusNotFound )
+    return
+  }
+
+  //Upgrade get request to webSocket protocol
+  ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+  if err != nil {
+    log.Println("error get connection")
+    c.Status( http.StatusNotFound )
+    return
+  }
+  defer ws.Close()
+
+  sending := true
+
+  go func() {
+    lastSeenLineIndex := -1
+    for sending {
+      lines, lastLineIndex := dockerApi.Instance().LogLinesById( containerId )
+
+      if lastLineIndex != lastSeenLineIndex {
+        lineDiff := lastLineIndex - lastSeenLineIndex
+        lineCount := len(lines)
+
+        // lastLineIndex may be larger than lineCount cause we only store DOCKER_LOGS_MAX_LINES lines
+        if lineDiff > lineCount {
+          lineDiff = lineCount
+        }
+
+        lastSeenLineIndex = lastLineIndex
+        err := ws.WriteJSON( lines[ lineCount-lineDiff: ] )
+
+        if err != nil {
+          sending = false
+        }
+      }
+
+      time.Sleep( 250 * time.Millisecond )
+    }
+  }()
+
+  // listening for close message here
+  for sending {
+    _, _, err := ws.ReadMessage()
+    if err != nil {
+      break
+    }
+  }
+  sending = false
 }

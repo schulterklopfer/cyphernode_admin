@@ -5,6 +5,7 @@ const VERSION = "v0.1.0"
 const SESSION_COOKIE_NAME string = "cna_session"
 const BLOCKCHAIN_INFO_UPDATE_INTERVAL = 1000*60
 const DOCKER_API_UPDATE_INTERVAL = 1000*5
+const DOCKER_LOGS_MAX_LINES = 512
 const LATEST_BLOCK_COUNT = 3
 
 /** env keys **/

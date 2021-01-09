@@ -29,4 +29,22 @@
   background-color: peachpuff;
 }
 
+.docker-logs {
+  background-color: black;
+}
 
+.docker-logs pre {
+  color: green;
+}
+
+
+.docker-logs pre::selection {
+  background-color: green;
+  color: white;
+}
+
+@media (min-width: 992px) {
+  .modal-dialog {
+    max-width: 80%;
+  }
+}
