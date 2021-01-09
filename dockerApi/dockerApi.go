@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 schulterklopfer/__escapee__
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILIT * Y, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dockerApi
 
 import (
@@ -28,6 +52,7 @@ type DockerLogWrapper struct {
   ContainerId string
   Lines []string
   LastLineIndex int
+  Stop chan bool
 
   LinesMutex sync.Mutex
 
@@ -36,6 +61,7 @@ type DockerLogWrapper struct {
 type DockerLogLine struct {
   ContainerId string
   Line string
+  Active bool
 }
 
 type DockerApi struct {
@@ -101,27 +127,28 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
   defer dockerApi.indexMutex.Unlock()
   dockerApi.containerLogsById = make( map[string]*DockerLogWrapper )
 
-  for _, container := range dockerApi.containerList {
-    dockerLogWrapper := DockerLogWrapper{
-      Active: false,
-    }
-    dockerApi.initDockerLogCollector( container.ID, &dockerLogWrapper)
-    dockerApi.containerLogsById[container.ID] = &dockerLogWrapper
-  }
+  dockerApi.checkDockerLogCollectors()
 
   go func() {
     for {
       select {
       case dockerLogLine := <- dockerApi.Lines:
         wrapper := dockerApi.containerLogsById[dockerLogLine.ContainerId]
-        wrapper.LinesMutex.Lock()
-        wrapper.Lines = append(wrapper.Lines, dockerLogLine.Line)
-        wrapper.LastLineIndex++
-        lineCount := len(wrapper.Lines)
-        if lineCount > globals.DOCKER_LOGS_MAX_LINES {
-          wrapper.Lines = wrapper.Lines[lineCount-globals.DOCKER_LOGS_MAX_LINES:]
+
+        if dockerLogLine.Active {
+          wrapper.LinesMutex.Lock()
+          wrapper.Lines = append(wrapper.Lines, dockerLogLine.Line)
+          wrapper.LastLineIndex++
+          lineCount := len(wrapper.Lines)
+          if lineCount > globals.DOCKER_LOGS_MAX_LINES {
+            wrapper.Lines = wrapper.Lines[lineCount-globals.DOCKER_LOGS_MAX_LINES:]
+          }
+          wrapper.LinesMutex.Unlock()
+        } else {
+          // Scanner stopped working
+          wrapper.Active = false
+          wrapper.Reader.Close()
         }
-        wrapper.LinesMutex.Unlock()
       }
     }
   }()
@@ -141,16 +168,32 @@ func ( dockerApi *DockerApi ) initDockerLogCollector( containerId string, docker
     dockerLogWrapper.Reader = reader
     dockerLogWrapper.Lines = make( []string, 0)
     dockerLogWrapper.LastLineIndex = -1
-    go dockerApi.readDockerLogs( containerId, dockerLogWrapper.Reader )
+    go dockerApi.readDockerLogs( containerId, dockerLogWrapper )
   }
 
 }
 
-func ( dockerApi *DockerApi ) readDockerLogs( containerId string, reader io.ReadCloser ) {
+func ( dockerApi *DockerApi ) readDockerLogs( containerId string, dockerLogWrapper *DockerLogWrapper ) {
+
+  reader := dockerLogWrapper.Reader
+
   scanner := bufio.NewScanner(reader)
   scanner.Split( bufio.ScanLines )
 
-  for scanner.Scan() {
+  scan := true
+
+  go func() {
+    for scan {
+      select {
+        case stop := <- dockerLogWrapper.Stop:
+          if stop {
+            scan = false
+          }
+      }
+    }
+  }()
+
+  for scanner.Scan() && scan {
     bytes := scanner.Bytes()
     if len(bytes) < 8 {
       continue
@@ -161,16 +204,49 @@ func ( dockerApi *DockerApi ) readDockerLogs( containerId string, reader io.Read
     dockerApi.Lines <- &DockerLogLine{
       ContainerId: containerId,
       Line: string(norm.NFC.Bytes(bytes[8:])),
+      Active: true,
     }
+  }
+
+  _ = dockerLogWrapper.Reader.Close()
+
+  dockerApi.Lines <- &DockerLogLine{
+    ContainerId: containerId,
+    Active: false,
   }
 }
 
 func ( dockerApi *DockerApi ) checkDockerLogCollectors() {
+
+  // check containerList against containerLogsById to see what we need to add or remove
+
+  for _, container := range dockerApi.containerList {
+    if _, exists := dockerApi.containerLogsById[container.ID]; !exists {
+      // container does not exist in log db... create item for it
+    }
+  }
+
+  dockerApi.indexMutex.Lock()
+  defer dockerApi.indexMutex.Unlock()
+
   for containerId, dockerLogWrapper := range dockerApi.containerLogsById {
+
+    // check if container in log db is in list of containers
+    if helpers.SliceIndex(len(dockerApi.containerList), func( index int ) bool {
+      return dockerApi.containerList[index].ID == containerId
+    }) == -1 {
+      //not found ... remove from logs db
+      // send the stop signal
+      dockerLogWrapper.Stop <- true
+
+
+    }
+
+
     if !dockerLogWrapper.Active {
       dockerLogWrapper.LinesMutex.Lock()
       if dockerLogWrapper.Reader != nil {
-        dockerLogWrapper.Reader.Close()
+        _ = dockerLogWrapper.Reader.Close()
       }
       dockerLogWrapper.LinesMutex.Unlock()
       dockerApi.initDockerLogCollector( containerId, dockerLogWrapper )
