@@ -214,7 +214,7 @@ const Dashboard = () => {
       </CCard>
       <CCard>
         <CCardHeader className="h5">
-          Intalled Apps
+          Intalled cypherapps
         </CCardHeader>
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
