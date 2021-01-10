@@ -6,7 +6,7 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CWidgetIcon, CCardFooter, CLink, CPopover, CButton
+  CRow, CBadge, CCardFooter, CLink, CPopover, CButton
 } from '@coreui/react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
@@ -14,7 +14,7 @@ import ContainerBasicInfo from "./ContainerBasicInfo";
 import ContainerInfo from "./ContainerInfo";
 
 const base64UrlEncode = (str) => {
-  return btoa(str).replace(/\=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+  return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
 }
 
 const Dashboard = () => {
@@ -47,6 +47,7 @@ const Dashboard = () => {
                 name: network,
                 ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
               });
+              return network;
             });
             feature.container = {
               id: containerResponse.body.Id,
@@ -95,6 +96,7 @@ const Dashboard = () => {
                   name: network,
                   ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
                 });
+                return network;
               });
               app.container = {
                 id: containerResponse.body.Id,
