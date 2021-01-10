@@ -122,14 +122,9 @@ const Dashboard = () => {
     <>
 
       <CCard>
-        <CCardHeader>
-          { (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync status" }
-          <CBadge className="ml-1" shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge>
-          { status && status.blockchainInfo && !status.blockchainInfo?.initialblockdownload && (
-            <div className="card-header-actions">
-              <CBadge color="success" className="float-right">In sync</CBadge>
-            </div>
-          ) }
+        <CCardHeader className="d-flex flex-row justify-content-between">
+          <div>{ (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync status" }</div>
+          <div><CBadge className="ml-1" shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge></div>
         </CCardHeader>
         <CCardBody>
           <CRow className="text-center">
@@ -140,7 +135,7 @@ const Dashboard = () => {
                 showValue={true}
                 className="mt-2"
                 precision={2}
-                color="primary"
+                color={status.blockchainInfo?.initialblockdownload?"primary":"success"}
                 stripped={status.blockchainInfo?.initialblockdownload}
                 animated={status.blockchainInfo?.initialblockdownload}
                 max={status.blockchainInfo?.headers}
