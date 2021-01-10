@@ -30,6 +30,9 @@ const Dashboard = () => {
         for ( const feature of response.body.cyphernodeInfo?.features?.concat( response.body.cyphernodeInfo?.optional_features ) ) {
 
           if ( !feature.active ) {
+            feature.container = {
+              state: "not running",
+            };
             continue;
           }
 
@@ -115,39 +118,58 @@ const Dashboard = () => {
 
   return (
     <>
-      {
-        status.blockchainInfo && status.blockchainInfo.initialblockdownload && (
-          <CCard>
-            <CCardHeader>
-              Initial block download
-            </CCardHeader>
-            <CCardBody>
-              <CRow className="text-center">
-                <CCol md sm="12" className="mb-sm-2 mb-0">
-                  <strong>{status.blockchainInfo.blocks} blocks ({(status.blockchainInfo.verificationprogress*100).toFixed(2)+"%"})</strong>
-                  <CProgress
-                    className="progress-xs mt-2"
-                    precision={1}
-                    color="success"
-                    value={status.blockchainInfo.verificationprogress*100}
-                  />
-                </CCol>
-              </CRow>
-            </CCardBody>
-          </CCard>
-        )
-      }
+
       <CCard>
         <CCardHeader>
-          Blockchain <CBadge shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge> { status && status.blockchainInfo && status.blockchainInfo.initialblockdownload? (
-          <div className="card-header-actions">
-            <CBadge color="warning" className="float-right">Initial block download</CBadge>
+          { (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync status" }
+          <CBadge className="ml-1" shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge>
+          { status && status.blockchainInfo && !status.blockchainInfo?.initialblockdownload && (
+            <div className="card-header-actions">
+              <CBadge color="success" className="float-right">In sync</CBadge>
+            </div>
+          ) }
+        </CCardHeader>
+        <CCardBody>
+          <CRow className="text-center">
+            <CCol md sm="12" className="mb-sm-2 mb-0">
+              <strong>{status.blockchainInfo?.blocks} of {status.blockchainInfo?.headers} blocks</strong>
+              <CProgress
+                showPercentage={true}
+                showValue={true}
+                className="mt-2"
+                precision={2}
+                color="primary"
+                stripped={status.blockchainInfo?.initialblockdownload}
+                animated={status.blockchainInfo?.initialblockdownload}
+                max={status.blockchainInfo?.headers}
+                value={status.blockchainInfo?.blocks}
+              />
+            </CCol>
+          </CRow>
+        </CCardBody>
+        <CCardFooter>
+          <div className="container-fluid mb-sm-2 mb-0 text-center">
+            {
+              [
+                { field: "blocks", title:"Block count", transform: input => input },
+                { field: "headers", title:"Header count", transform: input => input },
+                { field: "difficulty", title:"Difficulty", transform: input => input },
+                { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
+              ].map( (item, index) => (
+                <span key={index}>
+                  <span className="font-weight-bold">{item.title}:</span>
+                  <span> {item.transform((status.blockchainInfo||{})[item.field]) } </span>
+                  { index !== 3 && (<span>&mdash; </span>) }
+                </span>
+              ))
+            }
           </div>
-        ): (
-          <div className="card-header-actions">
-            <CBadge color="success" className="float-right">In sync</CBadge>
-          </div>
-        ) }
+        </CCardFooter>
+      </CCard>
+
+      <CCard>
+        <CCardHeader>
+          Latest blocks
         </CCardHeader>
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
@@ -192,25 +214,6 @@ const Dashboard = () => {
             ))}
           </div>
         </CCardBody>
-        <CCardFooter>
-          <div className="container-fluid mb-sm-2 mb-0 text-center">
-            {
-              [
-                { field: "blocks", title:"Block count", transform: input => input },
-                { field: "headers", title:"Header count", transform: input => input },
-                { field: "difficulty", title:"Difficulty", transform: input => input },
-                { field: "pruned", title:"Pruned", transform: input => { return input?"Yes":"No" } },
-                { field: "verificationprogress", title:"Verfification progress", transform: input => { return (input*100).toFixed(2)+"%" } },
-              ].map( (item, index) => (
-                <span key={index}>
-                    <span className="font-weight-bold">{item.title}:</span>
-                    <span> {item.transform((status.blockchainInfo||{})[item.field]) } </span>
-                  { index !== 4 && (<span>&mdash; </span>) }
-                  </span>
-              ))
-            }
-          </div>
-        </CCardFooter>
       </CCard>
       <CCard>
         <CCardHeader>
@@ -306,8 +309,7 @@ const Dashboard = () => {
                         )}
                       </tbody>
                     </table>
-                    { feature.active && (
-                      <>
+
                       {
                       (feature.container && (
                         <ContainerInfo { ...{
@@ -324,6 +326,7 @@ const Dashboard = () => {
                         }}/>
                       ))
                     }
+                    { feature.active && (
                       <CButton
                       data-containerid={feature.container?.id}
                       className="float-right"
@@ -335,7 +338,6 @@ const Dashboard = () => {
                       setContainerContainerDetails(containerId);
                     }}
                       >container info</CButton>
-                      </>
                     ) }
                   </CCardBody>
                 </CCard>

@@ -25,13 +25,17 @@
 //const apiBaseUri = 'http://192.168.178.90/admin/api/v0';
 //const apiBaseUri = '192.168.178.90:3030/api/v0';
 
-const host = window.location.host
-const protocol = window.location.protocol
-const mountPoint = "/admin"
+const debug = false
 
-//const host = "192.168.178.90:3030"
-//const protocol = "http:"
-//const mountPoint = ""
+let host = window.location.host;
+let protocol = window.location.protocol;
+let mountPoint = "/admin";
+
+if ( debug ) {
+  host = "192.168.178.90:3030";
+  protocol = "http:";
+  mountPoint = "";
+}
 
 const wsBaseUri =   (protocol==='https:'?'wss:':'ws:')+'//' + host + mountPoint + '/api/v0';
 const apiBaseUri =  protocol + '//' + host + mountPoint + '/api/v0';
