@@ -145,7 +145,7 @@ func ( dockerApi *DockerApi ) initDockerLogCollectors() {
           wrapper.LastLineIndex++
           lineCount := len(wrapper.Lines)
           if lineCount > globals.DOCKER_LOGS_MAX_LINES {
-            wrapper.Lines = wrapper.Lines[lineCount-globals.DOCKER_LOGS_MAX_LINES:]
+            wrapper.Lines = wrapper.Lines[lineCount-globals.DOCKER_LOGS_MAX_LINES:lineCount]
           }
           wrapper.LinesMutex.Unlock()
         } else {
