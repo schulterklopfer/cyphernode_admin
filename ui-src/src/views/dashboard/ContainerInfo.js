@@ -52,14 +52,14 @@ const ContainerInfo = props => {
             onClosed={onModalClosed}
             onOpened={onModalOpened}
     >
-      <CModalHeader closeButton>{meta.name} {meta.version}</CModalHeader>
+      <CModalHeader className="h5" closeButton>{meta.name} {meta.version}</CModalHeader>
       <CModalBody>
         <CRow>
         {
           (containerInfo.networks && containerInfo.networks.length)?(
           <CCol>
             <CCard className="font-xs">
-            <CCardHeader>Container networks</CCardHeader>
+            <CCardHeader className="h6">Container networks</CCardHeader>
             <CCardBody>
             <pre className="m-0 p-0">
             {
@@ -79,7 +79,7 @@ const ContainerInfo = props => {
           (containerInfo.mounts && containerInfo.mounts.length)?(
           <CCol className="col-8">
             <CCard className="font-xs">
-              <CCardHeader>Container mounts</CCardHeader>
+              <CCardHeader className="h6">Container mounts</CCardHeader>
               <CCardBody>
             <pre className="m-0 p-0">
             {
@@ -99,7 +99,7 @@ const ContainerInfo = props => {
         {
           logLines.length?(
             <CCard className="font-xs">
-              <CCardHeader>Container logs</CCardHeader>
+              <CCardHeader className="h6">Container logs</CCardHeader>
               <CCardBody className="docker-logs">
               <pre className="m-0 p-0" style={{
                 height: "300px"

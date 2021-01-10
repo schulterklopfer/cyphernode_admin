@@ -122,7 +122,7 @@ const Dashboard = () => {
     <>
 
       <CCard>
-        <CCardHeader className="d-flex flex-row justify-content-between">
+        <CCardHeader className="h5 d-flex flex-row justify-content-between">
           <div>{ (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync status" }</div>
           <div><CBadge className="ml-1" shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge></div>
         </CCardHeader>
@@ -165,7 +165,7 @@ const Dashboard = () => {
       </CCard>
 
       <CCard>
-        <CCardHeader>
+        <CCardHeader className="h5">
           Latest blocks
         </CCardHeader>
         <CCardBody>
@@ -213,7 +213,7 @@ const Dashboard = () => {
         </CCardBody>
       </CCard>
       <CCard>
-        <CCardHeader>
+        <CCardHeader className="h5">
           Intalled Apps
         </CCardHeader>
         <CCardBody>
@@ -221,8 +221,8 @@ const Dashboard = () => {
             {
               appList.data.map((appData, index) => (
                 <CCard key={index} style={{minWidth: "300px"}} className="mr-2">
-                  <CCardHeader className="d-flex justify-content-between align-items-center">
-                    <div className="font-weight-bold">{appData.name}</div>
+                  <CCardHeader className="h6 d-flex justify-content-between align-items-center">
+                    <div>{appData.name}</div>
                     <CImg className="ml-0 mr-0 p-1" style={{ "backgroundColor": appData.meta?.color, "borderRadius":"10px"}} width="30" height="30" src={appData.meta?.icon}/>
                   </CCardHeader>
                   <CCardBody>
@@ -282,7 +282,7 @@ const Dashboard = () => {
         </CCardBody>
       </CCard>
       <CCard>
-        <CCardHeader>
+        <CCardHeader className="h5">
           Features
         </CCardHeader>
         <CCardBody>
@@ -293,8 +293,8 @@ const Dashboard = () => {
               ).map((feature, index) => (
 
                 <CCard key={index} style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
-                  <CCardHeader className="text-center" color={ feature.active?"success":""}>
-                    <div className={feature.active?"font-weight-bold text-light":"font-weight-bold"}>{feature.label}</div>
+                  <CCardHeader className="h6 text-center" color={ feature.active?"success":""}>
+                    <div className={feature.active?"text-light":""}>{feature.label}</div>
                   </CCardHeader>
                   <CCardBody className="font-xs" style={{minWidth: "250px"}}>
                     <table className="table-borderless flex-fill font-xs m-0 mb-4">
