@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import {
   CImg,
   CCard,
@@ -12,6 +12,7 @@ import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
 import ContainerBasicInfo from "./ContainerBasicInfo";
 import ContainerInfo from "./ContainerInfo";
+import SessionContext from "../../sessionContext";
 
 const base64UrlEncode = (str) => {
   return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
@@ -21,10 +22,12 @@ const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
   const [containerDetails, setContainerContainerDetails] = useState("");
+  const context = useContext( SessionContext )
+
 
   useEffect( () => {
     async function fetchStatus() {
-      const response = await requests.getStatus();
+      const response = await requests.getStatus( context.session );
       if ( response.status === 200 ) {
         // everything is ok
         for ( const feature of response.body.cyphernodeInfo?.features?.concat( response.body.cyphernodeInfo?.optional_features ) ) {
@@ -37,7 +40,7 @@ const Dashboard = () => {
           }
 
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
-          const containerResponse = await requests.getDockerContainerByImageHash( base64Image );
+          const containerResponse = await requests.getDockerContainerByImageHash( base64Image, context.session );
 
 
           if ( containerResponse.status === 200 ) {
@@ -74,12 +77,12 @@ const Dashboard = () => {
     return () => {
       clearInterval(interval);
     }
-  }, [] )
+  }, [context.session] )
 
   useEffect( () => {
     let ignore = false;
     async function fetchAppList() {
-      const response = await requests.getApps();
+      const response = await requests.getApps( context.session );
       if ( response.status === 200 ) {
         // everything is ok
         if ( !ignore ) {
@@ -87,7 +90,7 @@ const Dashboard = () => {
           // do not include admin app here
           for ( const app of appList.data ) {
             const name = app.id === 1 ? 'cyphernodeadmin':app.hash;
-            const containerResponse = await requests.getDockerContainerByName( name );
+            const containerResponse = await requests.getDockerContainerByName( name, context.session  );
 
             if ( containerResponse.status === 200 ) {
               const networks = []
@@ -116,7 +119,7 @@ const Dashboard = () => {
 
     fetchAppList();
     return () => { ignore = true }
-  }, [] )
+  }, [context.session] )
 
   return (
     <>
