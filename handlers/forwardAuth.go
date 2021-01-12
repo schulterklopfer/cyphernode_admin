@@ -58,8 +58,15 @@ func ForwardAuthAuth(c *gin.Context) {
 
   //secret := []byte("my_secret_key")
 
+  prefix := c.Request.Header.Get("x-forwarded-prefix")
+
+  if prefix == "" {
+    c.Status(http.StatusUnauthorized)
+    return
+  }
+
   // x-forwarded-prefix header idetentifies the app we want to auth against
-  mountPoint := c.Request.Header.Get("x-forwarded-prefix")[1:]
+  mountPoint := prefix[1:]
 
   app, err := queries.GetAppByMountPoint( mountPoint )
 
@@ -90,6 +97,14 @@ func ForwardAuthAuth(c *gin.Context) {
 
 
   tokenString := tokenFromBearerAuthHeader( c.Request.Header.Get("authorization") )
+
+  if tokenString == "" {
+    proto := c.Request.Header.Get("x-forwarded-proto")
+    // lets see if there is a cookie where we can get the auth from when we have a websocket request
+    if sessionCookie, err := c.Request.Cookie("session"); ( proto == "ws" || proto == "wss" ) && err == nil {
+      tokenString = sessionCookie.Value
+    }
+  }
 
   // Parse takes the token string and a function for looking up the key. The latter is especially
   // useful if you use multiple keys for your application.  The standard is to use 'kid' in the
