@@ -22,19 +22,19 @@
  * SOFTWARE.
  */
 
-//const apiBaseUri = 'http://192.168.178.90/admin/api/v0';
-//const apiBaseUri = '192.168.178.90:3030/api/v0';
-
-const debug = false
+const debug = 0;
 
 let host = window.location.host;
 let protocol = window.location.protocol;
 let mountPoint = "/admin";
 
-if ( debug ) {
+if ( debug === 1) {
   host = "192.168.178.90:3030";
   protocol = "http:";
   mountPoint = "";
+} else if ( debug === 2 ) {
+  host = "192.168.178.90";
+  protocol = "http:";
 }
 
 const wsBaseUri =   (protocol==='https:'?'wss:':'ws:')+'//' + host + mountPoint + '/api/v0';
