@@ -28,7 +28,8 @@ import * as Cookies from "js-cookie";
 class Session {
 
   constructor() {
-    this.token = this._getCookie();
+    const token = this._getCookie();
+    this.setToken( token );
     this.payload = this._parseJWT(this.token);
   }
 
@@ -45,7 +46,37 @@ class Session {
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
-    return JSON.parse(jsonPayload);
+    const jwt = JSON.parse(jsonPayload);
+    jwt.valid = this._JWTIsValid(jwt);
+    return jwt;
+  }
+
+  _JWTIsValid( jwt ) {
+    const now = ((new Date()).getTime()/1000)<<0;
+
+    if( !this._verifyExp( jwt.exp, now, true ) ) {
+      return false;
+    }
+
+    if( !this._verifyIat( jwt.iat, now, false ) ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  _verifyExp(exp, now, req) {
+    if (!exp) {
+      return !req;
+    }
+    return now <= exp;
+  }
+
+  _verifyIat(iat, now, req ) {
+    if (!iat) {
+      return !req;
+    }
+    return now >= iat;
   }
 
   _setCookie(session) {
@@ -60,6 +91,7 @@ class Session {
 
   setToken( token ) {
     this.token = token;
+    this.jwt = this._parseJWT( token );
   }
 
   getToken() {

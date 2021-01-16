@@ -64,7 +64,7 @@ class AccessMiddleware {
 
   alreadyLoggedIn (component, _, session) {
 
-    if ( !session || !session.token ) {
+    if ( !session || !session.token || !session.jwt.valid) {
       // no valid session
       return this._getRouteReturn(true, component);
     }
@@ -73,14 +73,14 @@ class AccessMiddleware {
 
   privateRoute (component, pathname = '/', session) {
 
-    if ( !session || !session.token ) {
+    if ( !session || !session.token || !session.jwt.valid ) {
       // no valid session
       return this._getRouteReturn(false, <Redirect to="/login" /> );
     }
 
     let accessDenied = true;
     for ( const pattern of this.privateRoutePatterns ) {
-      if ( pathname.match(pattern) && session && session.token ) {
+      if ( pathname.match(pattern) && session && session.token && session.jwt.valid) {
         accessDenied = false;
       }
       if ( !accessDenied ) {
