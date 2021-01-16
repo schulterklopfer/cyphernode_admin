@@ -27,6 +27,7 @@ package cyphernodeApi
 import (
   "encoding/json"
   "errors"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeKeys"
   "strconv"
 )
 
@@ -84,7 +85,7 @@ type GetBlockInfoResult struct {
 }
 
 func (cyphernodeApi *CyphernodeApi) BitcoinCore_getBlockchainInfo() (*GetBlockChainInfoResult, error) {
-  bearerToken, err := cyphernodeApi.CyphernodeKeys.BearerFromKey("000")
+  bearerToken, err := cyphernodeKeys.Instance().BearerFromKey("000")
 
   if err != nil {
     return nil, err
@@ -143,7 +144,7 @@ type bitcoinCore_getBlockResult struct {
 }
 
 func (cyphernodeApi *CyphernodeApi) BitcoinCore_getBlock(hash string) (*GetBlockInfoResult, error) {
-  bearerToken, err := cyphernodeApi.CyphernodeKeys.BearerFromKey("002")
+  bearerToken, err := cyphernodeKeys.Instance().BearerFromKey("002")
 
   if err != nil {
     return nil, err

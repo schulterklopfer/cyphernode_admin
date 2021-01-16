@@ -31,8 +31,9 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
 )
 
-func (cyphernodeAdmin *CyphernodeAdmin) initForwardAuthHandlers() {
-  cyphernodeAdmin.engineForwardAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, handlers.ForwardAuthAuth )
+func (cyphernodeAdmin *CyphernodeAdmin) initAuthHandlers() {
+  cyphernodeAdmin.engineAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, handlers.ForwardAuthAuth )
+  cyphernodeAdmin.engineAuth.GET( globals.PROXY_GATEKEEPER_ENDPOINTS_AUTH, handlers.ProxyGatekeeperAuth )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {

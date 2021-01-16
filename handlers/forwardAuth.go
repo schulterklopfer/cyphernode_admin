@@ -36,24 +36,6 @@ import (
   "strings"
 )
 
-func tokenFromBearerAuthHeader(authHeader string) string {
-  if authHeader == "" {
-    return ""
-  }
-
-  parts := strings.Split(authHeader, "Bearer")
-  if len(parts) != 2 {
-    return ""
-  }
-
-  token := strings.TrimSpace(parts[1])
-  if len(token) < 1 {
-    return ""
-  }
-
-  return token
-}
-
 func ForwardAuthAuth(c *gin.Context) {
 
   //secret := []byte("my_secret_key")
@@ -96,7 +78,7 @@ func ForwardAuthAuth(c *gin.Context) {
   // and check access again
 
 
-  tokenString := tokenFromBearerAuthHeader( c.Request.Header.Get("authorization") )
+  tokenString := helpers.TokenFromBearerAuthHeader( c.Request.Header.Get("authorization") )
 
   if tokenString == "" {
     proto := c.Request.Header.Get("x-forwarded-proto")

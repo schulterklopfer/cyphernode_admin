@@ -172,3 +172,21 @@ func TrimmedRipemd160Hash( bytes []byte ) string {
   hasher.Write(bytes)
   return strings.Trim(base64.URLEncoding.EncodeToString(hasher.Sum(nil)), "=" )
 }
+
+func TokenFromBearerAuthHeader(authHeader string) string {
+  if authHeader == "" {
+    return ""
+  }
+
+  parts := strings.Split(authHeader, "Bearer")
+  if len(parts) != 2 {
+    return ""
+  }
+
+  token := strings.TrimSpace(parts[1])
+  if len(token) < 1 {
+    return ""
+  }
+
+  return token
+}

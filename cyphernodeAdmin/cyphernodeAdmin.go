@@ -32,6 +32,7 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/appList"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeApi"
+  "github.com/schulterklopfer/cyphernode_admin/cyphernodeKeys"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeState"
   "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/dockerApi"
@@ -59,13 +60,13 @@ type Config struct {
 }
 
 type CyphernodeAdmin struct {
-  Config            *Config
-  engineInternal    *gin.Engine
-  engineExternal    *gin.Engine
-  engineForwardAuth *gin.Engine
-  routerGroups      map[string]*gin.RouterGroup
-  ClientID          string
-  Secret            string
+  Config         *Config
+  engineInternal *gin.Engine
+  engineExternal *gin.Engine
+  engineAuth     *gin.Engine
+  routerGroups   map[string]*gin.RouterGroup
+  ClientID       string
+  Secret         string
 }
 
 var instance *CyphernodeAdmin
@@ -82,53 +83,19 @@ func Get() *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
-  var cyphernodeInfo cyphernodeInfo.CyphernodeInfo
-
-  cyphernodeInfoJsonBytes, err := ioutil.ReadFile( utils.GetCyphernodeInfoFilePath() )
-  if err != nil {
-    return err
-  }
-
-  err = json.Unmarshal( cyphernodeInfoJsonBytes, &cyphernodeInfo )
-  if err != nil {
-    return err
-  }
-
-  err = dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
+  err := dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
   if err != nil {
     logwrapper.Logger().Error("Failed to create database" )
     return err
   }
 
-  port, err := strconv.Atoi(helpers.GetenvOrDefault(globals.GATEKEEPER_PORT_ENV_KEY))
+  err = cyphernodeKeys.Init(
+    helpers.GetenvOrDefault( globals.KEYS_FILE_ENV_KEY ),
+    helpers.GetenvOrDefault( globals.ACTIONS_FILE_ENV_KEY ),
+  )
 
   if err != nil {
-    logwrapper.Logger().Error("Failed to read gatekeeper port from env" )
-    return err
-  }
-
-  err = dockerApi.Init()
-
-  if err != nil {
-    logwrapper.Logger().Error("Failed to connect to docker daemon" )
-    return err
-  }
-
-  err = cyphernodeApi.Init( &cyphernodeApi.CyphernodeApiConfig{
-    Version: cyphernodeInfo.ApiVersions[len(cyphernodeInfo.ApiVersions)-1],
-    Host: helpers.GetenvOrDefault(globals.GATEKEEPER_HOST_ENV_KEY),
-    Port: port,
-  })
-
-  if err != nil {
-    logwrapper.Logger().Error("Failed to init cyphernode api" )
-    return err
-  }
-
-  err = cyphernodeState.Init( &cyphernodeInfo )
-
-  if err != nil {
-    logwrapper.Logger().Error("Failed to init cyphernode state" )
+    logwrapper.Logger().Error("Failed to load cyphernode keys and api info" )
     return err
   }
 
@@ -139,7 +106,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     return err
   }
 
-  cyphernodeAdmin.engineForwardAuth = gin.New()
+  cyphernodeAdmin.engineAuth = gin.New()
   cyphernodeAdmin.engineInternal = gin.New()
   cyphernodeAdmin.engineExternal = gin.New()
 
@@ -165,13 +132,15 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initDockerHandlers()
   cyphernodeAdmin.initBlocksHandlers()
-  cyphernodeAdmin.initForwardAuthHandlers()
+  cyphernodeAdmin.initAuthHandlers()
   cyphernodeAdmin.initPublicHandlers()
+
   err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )
   if err != nil {
     logwrapper.Logger().Error("Failed to init applist" )
     return err
   }
+
   return nil
 }
 
@@ -205,7 +174,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Start() {
 
   // oathkeeper session checker
   g.Go(func() error {
-    return  cyphernodeAdmin.engineForwardAuth.Run(":3032")
+    return  cyphernodeAdmin.engineAuth.Run(":3032")
   })
 
   // internal interface, only available to cypherapps
@@ -217,6 +186,52 @@ func (cyphernodeAdmin *CyphernodeAdmin) Start() {
   g.Go(func() error {
     return cyphernodeAdmin.engineExternal.Run(":3030")
   })
+
+  var cyphernodeInfo cyphernodeInfo.CyphernodeInfo
+
+  cyphernodeInfoJsonBytes, err := ioutil.ReadFile( utils.GetCyphernodeInfoFilePath() )
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+    return
+  }
+
+  err = json.Unmarshal( cyphernodeInfoJsonBytes, &cyphernodeInfo )
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+    return
+  }
+
+  port, err := strconv.Atoi(helpers.GetenvOrDefault(globals.GATEKEEPER_PORT_ENV_KEY))
+
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+    return
+  }
+
+  err = dockerApi.Init()
+
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+    return
+  }
+
+  err = cyphernodeApi.Init( &cyphernodeApi.CyphernodeApiConfig{
+    Version: cyphernodeInfo.ApiVersions[len(cyphernodeInfo.ApiVersions)-1],
+    Host: helpers.GetenvOrDefault(globals.GATEKEEPER_HOST_ENV_KEY),
+    Port: port,
+  })
+
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+  }
+
+  err = cyphernodeState.Init( &cyphernodeInfo )
+
+  if err != nil {
+    logwrapper.Logger().Fatal(err)
+    return
+  }
+
 
   if err := g.Wait(); err != nil {
     logwrapper.Logger().Fatal(err)

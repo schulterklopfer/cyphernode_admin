@@ -28,12 +28,10 @@ import (
   "crypto/tls"
   "crypto/x509"
   "github.com/go-resty/resty/v2"
-  "github.com/schulterklopfer/cyphernode_admin/cyphernodeKeys"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "io/ioutil"
   "net/http"
-  "os"
   "path"
   "strconv"
   "sync"
@@ -47,7 +45,6 @@ type CyphernodeApiConfig struct {
 
 type CyphernodeApi struct {
   Config         *CyphernodeApiConfig
-  CyphernodeKeys *cyphernodeKeys.CyphernodeKeys
   RestyClient    *resty.Client
 }
 
@@ -58,19 +55,6 @@ var once sync.Once
 func initOnce( config *CyphernodeApiConfig ) error {
   var initOnceErr error
   once.Do(func() {
-    keysFile, err := os.Open( helpers.GetenvOrDefault( globals.KEYS_FILE_ENV_KEY ) )
-
-    if err != nil {
-      initOnceErr = err
-      return
-    }
-
-    cnk, err := cyphernodeKeys.NewCyphernodeKeysFromFile(keysFile)
-
-    if err != nil {
-      initOnceErr = err
-      return
-    }
 
     caCert, err := ioutil.ReadFile(helpers.GetenvOrDefault( globals.CERT_FILE_ENV_KEY ))
     if err != nil {
@@ -93,7 +77,6 @@ func initOnce( config *CyphernodeApiConfig ) error {
 
     instance = &CyphernodeApi{
       config,
-      cnk,
       restyClient,
     }
   })

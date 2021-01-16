@@ -47,6 +47,7 @@ const CYPHERAPPS_INSTALL_DIR_ENV_KEY = "CYPHERAPPS_INSTALL_DIR"
 const GATEKEEPER_HOST_ENV_KEY = "GATEKEEPER_HOST"
 const GATEKEEPER_PORT_ENV_KEY = "GATEKEEPER_PORT"
 const KEYS_FILE_ENV_KEY = "CYPHERNODE_KEYS_FILE"
+const ACTIONS_FILE_ENV_KEY = "CYPHERNODE_ACTIONS_FILE"
 const CERT_FILE_ENV_KEY = "CYPHERNODE_CERT_FILE"
 
 /** router groups endpoint bases **/
@@ -63,6 +64,7 @@ const BASE_ADMIN_MOUNTPOINT string = "admin"
 
 /** urls and endpoints **/
 const FORWARD_AUTH_ENDPOINTS_AUTH = "/forwardauth"
+const PROXY_GATEKEEPER_ENDPOINTS_AUTH = "/gatekeeper"
 
 const PUBLIC_ENDPOINTS_LOGIN string = "/api/v0/login"
 const PRIVATE_ENDPOINTS_LOGOUT string = "/api/v0/logout"
@@ -109,6 +111,7 @@ var DEFAULTS = map[string]string{
   CNA_STATIC_FILE_DIR_ENV_KEY:     "/ui",
   CYPHERAPPS_INSTALL_DIR_ENV_KEY:  "/apps",
   KEYS_FILE_ENV_KEY:               "/keys.properties",
+  ACTIONS_FILE_ENV_KEY:            "/api.properties",
   CERT_FILE_ENV_KEY:               "/cert.pem",
   GATEKEEPER_HOST_ENV_KEY:         "gatekeeper",
   GATEKEEPER_PORT_ENV_KEY:         "2009",

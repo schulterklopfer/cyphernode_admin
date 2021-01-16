@@ -53,17 +53,25 @@ func initOnce( info *cyphernodeInfo.CyphernodeInfo ) error {
       CyphernodeInfo: info,
       LatestBlocks: []*cyphernodeApi.GetBlockInfoResult{},
     }
-    err := instance.updateBlockchainInfo()
-    if err != nil {
-      initOnceErr = err
-      return
-    }
-    helpers.SetInterval( func() {
-      err := instance.updateBlockchainInfo()
-      if err != nil {
+
+    upbci := func() {
+      trying := true
+
+      for trying {
+        err := instance.updateBlockchainInfo()
+        if err == nil {
+          trying = false
+          continue
+        }
         logwrapper.Logger().Error( err.Error() )
+        time.Sleep( 1*time.Second )
       }
-    }, globals.BLOCKCHAIN_INFO_UPDATE_INTERVAL, false )
+    }
+
+    upbci()
+
+    helpers.SetInterval( upbci, globals.BLOCKCHAIN_INFO_UPDATE_INTERVAL, false )
+
   })
   return initOnceErr
 }

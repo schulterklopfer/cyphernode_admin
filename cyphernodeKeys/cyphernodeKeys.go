@@ -33,19 +33,84 @@ import (
   "encoding/hex"
   "fmt"
   "github.com/pkg/errors"
+  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "os"
+  "strings"
+  "sync"
   "time"
 )
 
-type CyphernodeKeys map[string]string
+type CyphernodeKeys struct {
+  KeysConfigFilePath    string
+  ActionsConfigFilePath string
+  LastKeysUpdate        time.Time
+  LastActionsUpdate     time.Time
 
-func NewCyphernodeKeysFromFile( file *os.File ) (*CyphernodeKeys, error) {
-  cyphernodeKeys := make(CyphernodeKeys,0)
-  err := cyphernodeKeys.parseConfigFile(file)
-  if err != nil {
-    return nil, err
+  // label -> key
+  keys                      map[string]string
+
+  // label -> groups
+  groups                    map[string][]string
+
+  // action -> group
+  actions                   map[string]string
+
+  lastKeysConfigFileInfo    os.FileInfo
+  lastActionsConfigFileInfo os.FileInfo
+
+  loadKeysMutex    sync.Mutex
+  loadActionsMutex sync.Mutex
+}
+
+
+var instance *CyphernodeKeys
+var once sync.Once
+
+func initOnce( keysConfigFilePath string, actionsConfigFilePath string ) error {
+  var initOnceErr error
+  once.Do(func() {
+    keysConfigFile, err := os.Open( keysConfigFilePath )
+    if err != nil {
+      initOnceErr = err
+      return
+    }
+    actionsConfigFile, err := os.Open( actionsConfigFilePath )
+    if err != nil {
+      initOnceErr = err
+      return
+    }
+    instance = &CyphernodeKeys{
+      KeysConfigFilePath: keysConfigFilePath,
+      ActionsConfigFilePath: actionsConfigFilePath,
+    }
+    err = instance.parseKeysConfigFile(keysConfigFile)
+    if err != nil {
+      initOnceErr = err
+      return
+    }
+    err = instance.parseActionsConfigFile(actionsConfigFile)
+    if err != nil {
+      initOnceErr = err
+      return
+    }
+    helpers.SetInterval(instance.checkConfigFilesChange, 1000, false)
+  })
+  return initOnceErr
+}
+
+func Init( keysConfigFilePath string, actionsConfigFilePath string ) error {
+  if instance == nil {
+    err := initOnce( keysConfigFilePath, actionsConfigFilePath )
+    if err != nil {
+      return err
+    }
   }
-  return &cyphernodeKeys, nil
+  return nil
+}
+
+func Instance() *CyphernodeKeys {
+  return instance
 }
 
 
@@ -53,7 +118,11 @@ func NewCyphernodeKeysFromFile( file *os.File ) (*CyphernodeKeys, error) {
 kapi_id="001";kapi_key="a27f9e73fdde6a5005879c273c9aea5e8d917eec77bbdfd73272c0af9b4c6b7a";kapi_groups="watcher";eval ugroups_${kapi_id}=${kapi_groups};eval ukey_${kapi_id}=${kapi_key}
 */
 
-func (cyphernodeKeys *CyphernodeKeys) parseConfigFile(file *os.File) error {
+func (cyphernodeKeys *CyphernodeKeys) parseKeysConfigFile(file *os.File) error {
+  cyphernodeKeys.loadKeysMutex.Lock()
+  defer cyphernodeKeys.loadKeysMutex.Unlock()
+  cyphernodeKeys.keys = make(map[string]string)
+  cyphernodeKeys.groups = make(map[string][]string)
   scanner := bufio.NewScanner(file)
   for scanner.Scan() {
     line := []byte(scanner.Text())
@@ -67,6 +136,7 @@ func (cyphernodeKeys *CyphernodeKeys) parseConfigFile(file *os.File) error {
     // only first 3 kv pairs are relevant
     var keyLabel string
     var keyHex string
+    var keyGroups []string
     for fkv := 0; fkv<3; fkv++ {
       kv := bytes.Split( bytes.Trim(fieldsKV[fkv], " "), []byte("=") )
 
@@ -77,41 +147,55 @@ func (cyphernodeKeys *CyphernodeKeys) parseConfigFile(file *os.File) error {
       case "kapi_key":
         keyHex = string(bytes.Trim(kv[1],"\""))
         break
+      case "kapi_groups":
+        keyGroups = strings.Split(string(bytes.Trim(kv[1],"\"")),",")
+        for i:=0; i< len(keyGroups); i++ {
+          keyGroups[i] = strings.Trim( keyGroups[i], " ")
+        }
+        break
       }
 
     }
-    if keyLabel != "" && keyHex != "" {
-      (*cyphernodeKeys)[keyLabel] = keyHex
+    if keyLabel != "" {
+      if keyHex != "" {
+        (*cyphernodeKeys).keys[keyLabel] = keyHex
+      }
+      if len(keyGroups) > 0 {
+        (*cyphernodeKeys).groups[keyLabel] = keyGroups
+      }
     }
   }
   return scanner.Err()
 }
 
-/*
+func (cyphernodeKeys *CyphernodeKeys) parseActionsConfigFile(file *os.File) error {
+  cyphernodeKeys.loadActionsMutex.Lock()
+  defer cyphernodeKeys.loadActionsMutex.Unlock()
+  cyphernodeKeys.actions = make(map[string]string)
+  scanner := bufio.NewScanner(file)
+  for scanner.Scan() {
+    line := scanner.Text()
 
-#!/bin/bash
+    if strings.HasPrefix(line, "#") {
+      continue
+    }
 
-k="9cf15759eb77400f2d0d54d9e3a5822fc5b1f49817f0a65e930a1ed6bf3f8a00"
-id="003"
+    kv := strings.Split( strings.Trim(line, " "), "=")
 
-h64=$(echo -n "{\"alg\":\"HS256\",\"typ\":\"JWT\"}" | base64)
-p64=$(echo -n "{\"id\":\"$id\",\"exp\":$((`date +"%s"`+10))}" | base64)
-s=$(echo -n "$h64.$p64" | openssl dgst -hmac "$k" -sha256 -r | cut -sd ' ' -f1)
-token="$h64.$p64.$s"
+    if len( kv ) != 2 {
+      continue
+    }
 
-echo h64=$h64
-echo p64=$p64
-echo k=$k
-echo token=$token
-echo ""
-curl --cacert dist/gatekeeper/cert.pem -H "Authorization: Bearer $token" https://127.0.0.1/getnewaddress
-echo ""
+    cyphernodeKeys.actions[strings.TrimPrefix( kv[0],"action_" )]=kv[1]
 
-
-*/
+  }
+  return scanner.Err()
+}
 
 func (cyphernodeKeys *CyphernodeKeys) BearerFromKey( keyLabel string ) (string, error) {
-  if keyHex, ok := (*cyphernodeKeys)[keyLabel]; ok {
+  cyphernodeKeys.loadKeysMutex.Lock()
+  defer cyphernodeKeys.loadKeysMutex.Unlock()
+  if keyHex, ok := (*cyphernodeKeys).keys[keyLabel]; ok {
     header := "{\"alg\":\"HS256\",\"typ\":\"JWT\"}"
     payload := fmt.Sprintf("{\"id\":\"%s\",\"exp\":%d}", keyLabel, time.Now().Unix()+10 )
 
@@ -124,4 +208,92 @@ func (cyphernodeKeys *CyphernodeKeys) BearerFromKey( keyLabel string ) (string, 
     return "Bearer "+toSign+"."+sha, nil
   }
   return "", errors.New("No such key with label "+keyLabel )
+}
+
+// TOOO: we should handle all keys as bytes from hex string... this is strange
+func (cyphernodeKeys *CyphernodeKeys) KeyForLabel( keyLabel string ) string {
+  if key, exists := cyphernodeKeys.keys[keyLabel]; exists {
+    return key
+  }
+  return ""
+}
+
+func (cyphernodeKeys *CyphernodeKeys) CheckSignature( keyLabel string, signed string, expected string ) bool {
+
+  if keyHex, exists := cyphernodeKeys.keys[keyLabel]; exists {
+    h := hmac.New( sha256.New, []byte(keyHex) )
+    h.Write([]byte(signed))
+    return hex.EncodeToString(h.Sum(nil)) == expected
+  }
+  return false
+}
+
+func (cyphernodeKeys *CyphernodeKeys) ActionAllowed( keyLabel string, action string ) bool {
+  cyphernodeKeys.loadKeysMutex.Lock()
+  defer cyphernodeKeys.loadKeysMutex.Unlock()
+  cyphernodeKeys.loadActionsMutex.Lock()
+  defer cyphernodeKeys.loadActionsMutex.Unlock()
+
+  if group, exists0 := cyphernodeKeys.actions[action]; exists0 {
+    // we found a group for this action
+    if groups, exists1 := cyphernodeKeys.groups[keyLabel]; exists1 {
+      // we found groups for the key label
+      if helpers.SliceIndex( len(groups), func(i int) bool {
+        return groups[i] == group
+      }) != -1 {
+        // group of action is in groups of key. all is good
+        return true
+      }
+    }
+  }
+  return false
+}
+
+func (cyphernodeKeys *CyphernodeKeys) checkConfigFilesChange() {
+  cyphernodeKeys.checkKeysConfigFileChange()
+  cyphernodeKeys.checkActionsConfigFileChange()
+}
+
+func (cyphernodeKeys *CyphernodeKeys) checkKeysConfigFileChange() {
+  fileInfo, err := os.Stat( cyphernodeKeys.KeysConfigFilePath )
+  if err != nil {
+    logwrapper.Logger().Error( err.Error() )
+    return
+  }
+  if cyphernodeKeys.lastKeysConfigFileInfo != nil && (
+      cyphernodeKeys.lastKeysConfigFileInfo.Size() != fileInfo.Size() ||
+          cyphernodeKeys.lastKeysConfigFileInfo.ModTime().Before( fileInfo.ModTime() ) ) {
+    file, err := os.Open( cyphernodeKeys.KeysConfigFilePath )
+    if err != nil {
+      logwrapper.Logger().Error( err.Error() )
+    }
+    err = cyphernodeKeys.parseKeysConfigFile( file )
+    if err != nil {
+      logwrapper.Logger().Error( err.Error() )
+    }
+    cyphernodeKeys.LastKeysUpdate = time.Now()
+    cyphernodeKeys.lastKeysConfigFileInfo = fileInfo
+  }
+}
+
+func (cyphernodeKeys *CyphernodeKeys) checkActionsConfigFileChange() {
+  fileInfo, err := os.Stat( cyphernodeKeys.ActionsConfigFilePath )
+  if err != nil {
+    logwrapper.Logger().Error( err.Error() )
+    return
+  }
+  if cyphernodeKeys.lastActionsConfigFileInfo != nil && (
+      cyphernodeKeys.lastActionsConfigFileInfo.Size() != fileInfo.Size() ||
+          cyphernodeKeys.lastActionsConfigFileInfo.ModTime().Before( fileInfo.ModTime() ) ) {
+    file, err := os.Open( cyphernodeKeys.ActionsConfigFilePath )
+    if err != nil {
+      logwrapper.Logger().Error( err.Error() )
+    }
+    err = cyphernodeKeys.parseKeysConfigFile( file )
+    if err != nil {
+      logwrapper.Logger().Error( err.Error() )
+    }
+    cyphernodeKeys.LastActionsUpdate = time.Now()
+    cyphernodeKeys.lastActionsConfigFileInfo = fileInfo
+  }
 }
