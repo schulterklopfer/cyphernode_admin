@@ -60,10 +60,24 @@ func ( role *RoleModel ) AfterUpdate( tx *gorm.DB ) {
     role.addToAllUsers( tx )
   } else {
     role.removeFromAllUsers( tx )
+
+    // reassign to admin user
+    var adminUser UserModel
+    tx.First( &adminUser, 1 )
+    if adminUser.ID == 1 {
+      tx.Model(adminUser).Association("Roles").Append( role )
+    }
   }
 }
 
 func ( role *RoleModel) AfterCreate( tx *gorm.DB )  {
+  // all roles are given to the admin user
+  var adminUser UserModel
+  tx.First( &adminUser, 1 )
+  if adminUser.ID == 1 {
+    tx.Model(adminUser).Association("Roles").Append( role )
+  }
+
   if !role.AutoAssign {
     return
   }

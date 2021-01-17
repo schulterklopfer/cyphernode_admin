@@ -74,3 +74,8 @@ func UsersForRole( users *[]*models.UserModel, role *models.RoleModel ) error {
   db.Model(role).Association("Users").Find( users )
   return nil
 }
+
+func AllRoles( allRoles *[]models.RoleModel ) error {
+  db := dataSource.GetDB()
+  return db.Find( allRoles ).Error
+}

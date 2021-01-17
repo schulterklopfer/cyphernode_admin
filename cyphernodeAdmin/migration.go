@@ -150,15 +150,17 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     tx.Create(adminUser)
   }
 
-  hasAdminRole = false
-  for i:=0; i<len(adminUser.Roles); i++ {
-    if adminUser.Roles[i].ID == adminRole.ID {
-      hasAdminRole = true
-    }
+  // append all existing roles to super admin user
+  var allRoles []models.RoleModel
+
+  err = queries.AllRoles( &allRoles )
+
+  if err != nil {
+    return err
   }
 
-  if !hasAdminRole {
-    tx.Model(&adminUser).Association("Roles").Append(adminRole)
+  for _, role := range allRoles {
+    tx.Model(&adminUser).Association("Roles").Append(role)
   }
 
   return tx.Commit().Error
