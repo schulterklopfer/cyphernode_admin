@@ -2,8 +2,6 @@ module github.com/schulterklopfer/cyphernode_admin
 
 go 1.12
 
-replace github.com/SatoshiPortal/cam => /Users/jash/go/src/github.com/SatoshiPortal/cam
-
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/SatoshiPortal/cam v0.0.0-20200807091734-ccc5b29959eb
