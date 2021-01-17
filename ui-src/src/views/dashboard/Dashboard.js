@@ -88,7 +88,7 @@ const Dashboard = () => {
       const response = await requests.getApps( context.session );
       if ( response && response.status === 200 ) {
         // everything is ok
-        if ( !ignore && response.body ) {
+        if ( !ignore && response.body && response.body.data ) {
           const appList = response.body || { data: [] };
           // do not include admin app here
           for ( const app of appList.data ) {
