@@ -76,14 +76,11 @@ func ForwardAuthAuth(c *gin.Context) {
 
   // access not granted. See if we have a valid token
   // and check access again
-
-
   tokenString := helpers.TokenFromBearerAuthHeader( c.Request.Header.Get("authorization") )
 
   if tokenString == "" {
-    proto := c.Request.Header.Get("x-forwarded-proto")
-    // lets see if there is a cookie where we can get the auth from when we have a websocket request
-    if sessionCookie, err := c.Request.Cookie("session"); ( proto == "ws" || proto == "wss" ) && err == nil {
+    // lets see if there is a cookie where we can get the auth from
+    if sessionCookie, err := c.Request.Cookie("session"); err == nil {
       tokenString = sessionCookie.Value
     }
   }
