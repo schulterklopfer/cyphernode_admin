@@ -28,9 +28,12 @@ const Dashboard = () => {
   useEffect( () => {
     async function fetchStatus() {
       const response = await requests.getStatus( context.session );
-      if ( response.status === 200 ) {
+      if ( response && response.status === 200 &&
+        response.body.cyphernodeInfo &&
+        response.body.cyphernodeInfo.features &&
+        response.body.cyphernodeInfo.optional_features) {
         // everything is ok
-        for ( const feature of response.body.cyphernodeInfo?.features?.concat( response.body.cyphernodeInfo?.optional_features ) ) {
+        for ( const feature of response.body.cyphernodeInfo.features.concat( response.body.cyphernodeInfo.optional_features ) ) {
 
           if ( !feature.active ) {
             feature.container = {
@@ -83,16 +86,16 @@ const Dashboard = () => {
     let ignore = false;
     async function fetchAppList() {
       const response = await requests.getApps( context.session );
-      if ( response.status === 200 ) {
+      if ( response && response.status === 200 ) {
         // everything is ok
-        if ( !ignore ) {
-          const appList = response.body;
+        if ( !ignore && response.body ) {
+          const appList = response.body || { data: [] };
           // do not include admin app here
           for ( const app of appList.data ) {
             const name = app.id === 1 ? 'cyphernodeadmin':app.hash;
             const containerResponse = await requests.getDockerContainerByName( name, context.session  );
 
-            if ( containerResponse.status === 200 ) {
+            if ( containerResponse.status === 200 && containerResponse.body ) {
               const networks = []
               Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
                 networks.push({
@@ -240,28 +243,30 @@ const Dashboard = () => {
                     </table>
                     {
                       (appData.container && (
-                        <ContainerInfo { ...{
-                          containerInfo: appData.container,
-                          meta: appData,
-                          onClose: () => {
-                            console.log( "modal closed" );
-                            setContainerContainerDetails("");
-                          },
-                          show: containerDetails===appData.container.id
-                        }}/>
+                        <>
+                          <ContainerInfo { ...{
+                            containerInfo: appData.container,
+                            meta: appData,
+                            onClose: () => {
+                              console.log( "modal closed" );
+                              setContainerContainerDetails("");
+                            },
+                            show: containerDetails===appData.container.id
+                          }}/>
+                          <CButton
+                            data-containerid={appData.container.id}
+                            className="float-right"
+                            size="sm"
+                            shape="pill"
+                            color="primary"
+                            onClick={(event) => {
+                              const containerId = event.target.dataset.containerid;
+                              setContainerContainerDetails(containerId);
+                            }}
+                          >container info</CButton>
+                        </>
                       ))
                     }
-                    <CButton
-                      data-containerid={appData.container.id}
-                      className="float-right"
-                      size="sm"
-                      shape="pill"
-                      color="primary"
-                      onClick={(event) => {
-                        const containerId = event.target.dataset.containerid;
-                        setContainerContainerDetails(containerId);
-                      }}
-                    >container info</CButton>
                   </CCardBody>
                   {
                     appData.id > 1?(

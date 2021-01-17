@@ -88,7 +88,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
       {
         Patterns: []string{"favicon.ico$"},
         Roles: []string{"*"},
-        Actions: []string{"get", "options"},
+        Actions: []string{"get"},
         Effect: "allow",
       },
       /* API endpoints */
