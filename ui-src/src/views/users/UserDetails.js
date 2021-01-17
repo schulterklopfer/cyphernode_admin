@@ -47,12 +47,11 @@ const UserDetails = (data) => {
         <CCardHeader>
           <CIcon name="cil-user" /> { userData.login } ({userData.email_address})
           <div className="card-header-actions">
-            {
-              userData.id !== 1 && (
-              <CLink className="card-header-action" onClick={() => data.onEditClick(userData) }>
-                <CIcon name="cil-pencil" />
-              </CLink>)
-            }
+
+            <CLink className="card-header-action" onClick={() => data.onEditClick(userData) }>
+              <CIcon name="cil-pencil" />
+            </CLink>
+
 
             <CLink className="card-header-action" onClick={() => setCollapsed(!collapsed)}>
               <CIcon name={collapsed ? 'cil-chevron-top':'cil-chevron-bottom'} />

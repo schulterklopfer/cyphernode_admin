@@ -380,7 +380,7 @@ const Users = () => {
             </fieldset>
           </CModalBody>
           <CModalFooter>
-            {userToEdit.id > 0 && (
+            {userToEdit.id > 1 && (
               <>
                 <CButton color="danger"
                          onClick={handleEditUserDelete}>{userIdToDelete > 0 ? "FINISH IT" : "Delete"}</CButton>
