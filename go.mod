@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/SatoshiPortal/cam v0.0.0-20200807091734-ccc5b29959eb
+	github.com/SatoshiPortal/cam v0.0.0-20210117121657-672517e8693d
 	github.com/containerd/containerd v1.4.3 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v2.7.1+incompatible // indirect

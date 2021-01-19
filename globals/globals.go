@@ -69,6 +69,8 @@ const PROXY_GATEKEEPER_ENDPOINTS_AUTH = "/gatekeeper"
 const PUBLIC_ENDPOINTS_LOGIN string = "/api/v0/login"
 const PRIVATE_ENDPOINTS_LOGOUT string = "/api/v0/logout"
 
+const UNAUTHORIZED_REDIRECT_URL string = "/admin"
+
 const CYPHERAPPS_REPO string = "git://github.com/SatoshiPortal/cypherapps.git"
 
 /** sql statements **/

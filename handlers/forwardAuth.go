@@ -41,9 +41,11 @@ func ForwardAuthAuth(c *gin.Context) {
   //secret := []byte("my_secret_key")
 
   prefix := c.Request.Header.Get("x-forwarded-prefix")
+  forwardedHost := c.Request.Header.Get("x-forwarded-host")
+  forwardedProto := c.Request.Header.Get("x-forwarded-proto")
 
   if prefix == "" {
-    c.Status(http.StatusUnauthorized)
+    c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
     return
   }
 
@@ -99,7 +101,7 @@ func ForwardAuthAuth(c *gin.Context) {
 
   if err != nil {
     c.Header("X-Status-Reason", err.Error() )
-    c.Status(http.StatusUnauthorized)
+    c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
     return
   }
 
@@ -109,7 +111,7 @@ func ForwardAuthAuth(c *gin.Context) {
 
     if !exists {
       c.Header("X-Status-Reason", "no subject claims" )
-      c.Status(http.StatusUnauthorized)
+      c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
       return
     }
 
@@ -121,7 +123,7 @@ func ForwardAuthAuth(c *gin.Context) {
     err := queries.Get( &user, userId,true )
 
     if err != nil || user.ID == 0 {
-      c.Status(http.StatusUnauthorized)
+      c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
       return
     }
 
@@ -148,6 +150,6 @@ func ForwardAuthAuth(c *gin.Context) {
 
   }
 
-  c.Status(http.StatusUnauthorized)
+  c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
 
 }

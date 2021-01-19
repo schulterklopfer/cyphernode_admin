@@ -5,6 +5,10 @@ cloud.google.com/go v0.37.4/go.mod h1:NHPJ89PdicEuT9hdPXMROBD91xc5uRDxsMtSB16k7h
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Microsoft/go-winio v0.4.16 h1:FtSW/jqD+l4ba5iPBj9CODVtgfYAD8w2wS923g/cFDk=
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
+github.com/SatoshiPortal/cam v0.0.0-20200807091734-ccc5b29959eb h1:vuevvUvkZXPkI+wAzY1dR63hi/a1lObdH3mD/hccdfw=
+github.com/SatoshiPortal/cam v0.0.0-20200807091734-ccc5b29959eb/go.mod h1:qviC3PQckPJsNQQWW2j6d6rcnMWm33fAsZxZ06MDxwY=
+github.com/SatoshiPortal/cam v0.0.0-20210117121657-672517e8693d h1:o4GajcATAacsTJAmiMUtnl7mtdxfN2IKd/+iHwiHJEk=
+github.com/SatoshiPortal/cam v0.0.0-20210117121657-672517e8693d/go.mod h1:rDx4EJkW9uO0+4zO/oszJtrTJELxXlH2jOM1rRs9GlQ=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
