@@ -23,7 +23,7 @@
  */
 
 import React, {Component} from 'react';
-import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {HashRouter, Route, Switch} from 'react-router-dom';
 import './scss/style.scss';
 import SessionContext, {getSession} from "./sessionContext";
 import AccessMiddleware from "./AccessMiddleware";
@@ -96,7 +96,7 @@ class App extends Component {
 
   render() {
     return (
-      <BrowserRouter>
+      <HashRouter>
         <React.Suspense fallback={loading}>
           <SessionContext.Provider value={this.state}>
             <Switch>
@@ -123,7 +123,7 @@ class App extends Component {
             </Switch>
           </SessionContext.Provider>
         </React.Suspense>
-      </BrowserRouter>
+      </HashRouter>
     );
   }
 }
