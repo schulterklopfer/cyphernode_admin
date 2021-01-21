@@ -57,6 +57,14 @@ const requests = {
     );
   },
 
+  getMe: async ( session ) => {
+    return await requests.request(
+      'GET',
+      apiBaseUri+'/users/me',
+      { session }
+    );
+  },
+
   getDockerContainerByName: async (name, session ) => {
     return await requests.request(
       'GET',
