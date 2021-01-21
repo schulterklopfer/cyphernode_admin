@@ -198,7 +198,15 @@ const requests = {
       }
     }
 
-    const response = await fetch(url, {method, headers, body});
+    let response;
+
+    try {
+      // will throw when redirected
+      response = await fetch(url, {method, headers, body, redirect: 'error'});
+    } catch( err ) {
+      console.log( err );
+      return;
+    }
 
     const r = {
       status: response.status,
