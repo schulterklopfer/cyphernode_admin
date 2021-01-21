@@ -96,7 +96,7 @@ func DefaultLogin( c *gin.Context ) {
   nowUnix := time.Now().Unix()
 
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-    "sub": user.ID,
+    "id": user.ID,
     "roles": roleStrings,
     "exp": nowUnix + 1*24*60*60, // expires in one day
     "auth_time": nowUnix,

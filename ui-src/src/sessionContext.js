@@ -24,6 +24,7 @@
 
 import React from 'react';
 import * as Cookies from "js-cookie";
+import requests from "./requests";
 
 class Session {
 
@@ -33,8 +34,29 @@ class Session {
     this.payload = this._parseJWT(this.token);
   }
 
+  async appendLocalData() {
+    // load user from database and put it in session.
+    if ( this.payload.id ) {
+      // we have an id
+      const response = await requests.getMe( this );
+      if ( response && response.status === 200 ) {
+        // all good
+        this.user = response.body;
+        return true;
+      }
+    }
+    this.end();
+    return false;
+  }
+
   save() {
     this._setCookie(this.token);
+  }
+
+  end() {
+    this.setToken( undefined );
+    this.payload = undefined;
+    this._removeCookie();
   }
 
   _parseJWT( token ) {
@@ -89,6 +111,10 @@ class Session {
     return Cookies.get("session");
   }
 
+  _removeCookie() {
+    Cookies.remove("session");
+  }
+
   setToken( token ) {
     this.token = token;
     this.jwt = this._parseJWT( token );
@@ -99,6 +125,11 @@ class Session {
   }
 }
 
-export const getSession = () => { return new Session() };
+export const getSession = async () => {
+  const session = new Session();
+  await session.appendLocalData();
+  return session
+};
+
 const SessionContext = React.createContext( getSession() );
 export default SessionContext;

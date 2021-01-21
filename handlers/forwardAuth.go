@@ -107,7 +107,7 @@ func ForwardAuthAuth(c *gin.Context) {
 
   if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
-    subject, exists := claims["sub"]
+    subject, exists := claims["id"]
 
     if !exists {
       c.Header("X-Status-Reason", "no subject claims" )
