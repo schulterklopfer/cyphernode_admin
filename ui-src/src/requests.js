@@ -29,12 +29,12 @@ let protocol = window.location.protocol;
 let mountPoint = "/admin";
 
 if ( debug === 1) {
-  host = "192.168.178.90:3030";
+  host = "localhost:3030";
   protocol = "http:";
   mountPoint = "";
 } else if ( debug === 2 ) {
-  host = "192.168.178.90";
-  protocol = "http:";
+  host = "localhost";
+  protocol = "https:";
 }
 
 const wsBaseUri =   (protocol==='https:'?'wss:':'ws:')+'//' + host + mountPoint + '/api/v0';
