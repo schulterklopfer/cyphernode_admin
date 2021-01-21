@@ -46,7 +46,7 @@ const Dashboard = () => {
           const containerResponse = await requests.getDockerContainerByImageHash( base64Image, context.session );
 
 
-          if ( containerResponse.status === 200 ) {
+          if ( containerResponse && containerResponse.status === 200 ) {
             const networks = []
             Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
               networks.push({
@@ -95,7 +95,7 @@ const Dashboard = () => {
             const name = app.id === 1 ? 'cyphernodeadmin':app.hash;
             const containerResponse = await requests.getDockerContainerByName( name, context.session  );
 
-            if ( containerResponse.status === 200 && containerResponse.body ) {
+            if ( containerResponse && containerResponse.status === 200 && containerResponse.body ) {
               const networks = []
               Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
                 networks.push({
