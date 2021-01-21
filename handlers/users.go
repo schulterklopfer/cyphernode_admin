@@ -25,6 +25,8 @@
 package handlers
 
 import (
+  "encoding/json"
+  "github.com/dgrijalva/jwt-go"
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
@@ -39,15 +41,57 @@ import (
 
 func GetUser(c *gin.Context) {
   // param 0 is first param in url pattern
-  id, err := strconv.Atoi(c.Params[0].Value)
-  if err != nil {
-    c.Status(http.StatusNotFound )
-    return
+
+  idString := c.Params[0].Value
+  var id int
+
+  if idString == "me" {
+    // my user based on header
+    claimsBas64String := c.Request.Header.Get("x-auth-user-claims" )
+    claimsJsonString, err := jwt.DecodeSegment( claimsBas64String )
+
+    if err != nil {
+      println( err.Error() )
+      c.Status(http.StatusBadRequest)
+      return
+    }
+
+    var claims map[string]interface{}
+    err = json.Unmarshal( []byte(claimsJsonString), &claims )
+
+    if err != nil {
+      c.Status(http.StatusBadRequest)
+      return
+    }
+
+    idInterface, exists := claims["id"]
+
+    if !exists {
+      c.Status(http.StatusBadRequest)
+      return
+    }
+
+    floatId, ok := idInterface.(float64)
+
+    if !ok {
+      c.Status(http.StatusBadRequest)
+      return
+    }
+
+    id = int(floatId)
+
+  } else {
+    var err error
+    id, err = strconv.Atoi(idString)
+    if err != nil {
+      c.Status(http.StatusBadRequest )
+      return
+    }
   }
 
   var user models.UserModel
 
-  err = queries.Get( &user, uint(id), true )
+  err := queries.Get( &user, uint(id), true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
