@@ -23,7 +23,7 @@
  */
 
 import React, {Component} from 'react';
-import {HashRouter, Route, Switch} from 'react-router-dom';
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
 import './scss/style.scss';
 import SessionContext, {getSession} from "./sessionContext";
 import AccessMiddleware from "./AccessMiddleware";
@@ -42,6 +42,7 @@ const TheLayout = React.lazy(() => import('./containers/TheLayout'));
 
 // Pages
 const Login = React.lazy(() => import('./views/pages/login/Login'));
+const Logout = React.lazy(() => import('./views/pages/logout/Logout'));
 const Register = React.lazy(() => import('./views/pages/register/Register'));
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'));
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'));
@@ -51,15 +52,15 @@ class App extends Component {
   constructor( props ) {
     super( props );
     this.login = this.login.bind(this);
-    const session = getSession();
+    this.accessMiddleware = new AccessMiddleware();
     this.state = {
-      session: session,
       login: this.login
     };
-    this.accessMiddleware = new AccessMiddleware();
   }
 
   async componentDidMount() {
+    const session = await getSession();
+    this.setState( { session } );
     let app = {};
     try {
       const appResponse = await requests.getApp(1, this.state.session );
@@ -87,6 +88,7 @@ class App extends Component {
         return ErrorCodes.UNKNOWN_ERROR;
       }
     } catch (e) {
+      console.log(e);
       return ErrorCodes.API_UNAVAILABLE;
     }
     return 0;
@@ -94,7 +96,7 @@ class App extends Component {
 
   render() {
     return (
-      <HashRouter>
+      <BrowserRouter>
         <React.Suspense fallback={loading}>
           <SessionContext.Provider value={this.state}>
             <Switch>
@@ -106,6 +108,7 @@ class App extends Component {
                   this.state.session )
               }/>
 
+              <Route exact path="/logout" name="Logout" render={props => <Logout {...props}/>} />
               <Route exact path="/register" name="Register Page" render={props => <Register {...props}/>} />
               <Route exact path="/404" name="Page 404" render={props => <Page404 {...props}/>} />
               <Route exact path="/500" name="Page 500" render={props => <Page500 {...props}/>} />
@@ -120,7 +123,7 @@ class App extends Component {
             </Switch>
           </SessionContext.Provider>
         </React.Suspense>
-      </HashRouter>
+      </BrowserRouter>
     );
   }
 }

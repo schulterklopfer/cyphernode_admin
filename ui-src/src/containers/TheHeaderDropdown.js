@@ -1,4 +1,6 @@
-import React from 'react'
+import React, {useContext} from 'react'
+import { useHistory } from "react-router-dom";
+
 import {
   CDropdown,
   CDropdownItem,
@@ -6,8 +8,11 @@ import {
   CDropdownToggle,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
+import SessionContext from "../sessionContext";
 
-const TheHeaderDropdown = () => {
+const TheHeaderDropdown = (props) => {
+  const context = useContext( SessionContext )
+  const history = useHistory();
   return (
     <CDropdown
       inNav
@@ -24,16 +29,13 @@ const TheHeaderDropdown = () => {
           color="light"
           className="text-center"
         >
-          <strong>Settings</strong>
+          <strong>{context.session?.user?.name}</strong>
         </CDropdownItem>
         <CDropdownItem>
           <CIcon name="cil-heart" className="mfe-2" style={{'--ci-primary-color':'red'}}/>Profile
         </CDropdownItem>
-        <CDropdownItem>
-          <CIcon name="cil-settings" className="mfe-2"/>Settings
-        </CDropdownItem>
         <CDropdownItem divider />
-        <CDropdownItem>
+        <CDropdownItem onClick={()=>{history.push("/logout")}}>
           <CIcon name="cil-account-logout" className="mfe-2" />Logout
         </CDropdownItem>
       </CDropdownMenu>
