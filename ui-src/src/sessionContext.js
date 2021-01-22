@@ -31,7 +31,6 @@ class Session {
   constructor() {
     const token = this._getCookie();
     this.setToken( token );
-    this.payload = this._parseJWT(this.token);
   }
 
   async appendLocalData() {
@@ -115,9 +114,11 @@ class Session {
     Cookies.remove("session");
   }
 
-  setToken( token ) {
+  async setToken( token ) {
     this.token = token;
     this.jwt = this._parseJWT( token );
+    this.payload = this._parseJWT(this.token);
+    await this.appendLocalData();
   }
 
   getToken() {
@@ -127,7 +128,6 @@ class Session {
 
 export const getSession = async () => {
   const session = new Session();
-  await session.appendLocalData();
   return session
 };
 

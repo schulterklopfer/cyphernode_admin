@@ -80,7 +80,7 @@ class App extends Component {
       console.log( response );
       if ( response.status === 200 ) {
         // everything is ok
-        this.state.session.setToken( response.body.token );
+        await this.state.session.setToken( response.body.token );
         this.state.session.save();
       } else if( response.status === 401 ) {
         return ErrorCodes.WRONG_CREDENTIALS;
