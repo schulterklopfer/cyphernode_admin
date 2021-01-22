@@ -84,14 +84,14 @@ class Login extends React.Component {
                       </CModal>
                       <CForm>
                         <h1>Login</h1>
-                        <p className="text-muted">Sign In to your account</p>
+                        <p className="text-muted">Sign in to cyphernode</p>
                         <CInputGroup className="mb-3">
                           <CInputGroupPrepend>
                             <CInputGroupText>
                               <CIcon name="cil-user" />
                             </CInputGroupText>
                           </CInputGroupPrepend>
-                          <CInput type="text" name="username" placeholder={JSON.stringify(context)} autoComplete="username" value={this.state.username} onChange={this.handleChange}/>
+                          <CInput type="text" name="username" placeholder="Login" autoComplete="username" value={this.state.username} onChange={this.handleChange}/>
                         </CInputGroup>
                         <CInputGroup className="mb-4">
                           <CInputGroupPrepend>
