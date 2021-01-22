@@ -24,7 +24,7 @@
 
 import React, {useEffect, useContext} from 'react'
 import SessionContext from "../../../sessionContext";
-import {CCard, CCardBody, CCol, CContainer, CForm, CRow} from "@coreui/react";
+import {CCard, CCardBody, CCol, CContainer, CRow} from "@coreui/react";
 import {Link} from "react-router-dom";
 
 
