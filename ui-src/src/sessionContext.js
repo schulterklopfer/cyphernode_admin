@@ -54,7 +54,6 @@ class Session {
 
   end() {
     this.setToken( undefined );
-    this.payload = undefined;
     this._removeCookie();
   }
 
@@ -116,9 +115,15 @@ class Session {
 
   async setToken( token ) {
     this.token = token;
-    this.jwt = this._parseJWT( token );
-    this.payload = this._parseJWT(this.token);
-    await this.appendLocalData();
+    if( token ) {
+      this.jwt = this._parseJWT( token );
+      this.payload = this._parseJWT(this.token);
+      await this.appendLocalData();
+    } else {
+      delete this.jwt
+      delete this.payload;
+    }
+
   }
 
   getToken() {
