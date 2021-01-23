@@ -6,7 +6,8 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CCardFooter, CLink, CPopover, CButton
+  CRow, CBadge, CCardFooter, CLink, CPopover, CButton,
+  CModal, CModalBody, CModalHeader, CModalTitle
 } from '@coreui/react'
 import QRCode from 'qrcode.react'
 import requests from "../../requests";
@@ -23,9 +24,9 @@ const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
   const [containerDetails, setContainerContainerDetails] = useState("");
+  const [qrZoom, setQrZoom] = useState({} );
   const [traefikOnion, setTraefikOnion] = useState("");
   const context = useContext( SessionContext )
-
 
   useEffect( () => {
     async function fetchStatus() {
@@ -231,12 +232,14 @@ const Dashboard = () => {
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
           { traefikOnion && (
-            <CCard className="mr-2">
+            <CCard className="mr-2 h-25">
               <CCardHeader className="h6 text-center">
                 Cyphernode onion
               </CCardHeader>
               <CCardBody>
-                <QRCode value={traefikOnion} />
+                <QRCode renderAs={"svg"} value={traefikOnion} onClick={()=>{
+                  setQrZoom( { value: traefikOnion, title: "Cyphernode onion"} )
+                }}/>
               </CCardBody>
               <CCardFooter>
                 <CLink target="_blank" href={'http://'+traefikOnion}>Go to onion site</CLink>
@@ -298,7 +301,6 @@ const Dashboard = () => {
                             containerInfo: appData.container,
                             meta: appData,
                             onClose: () => {
-                              console.log( "modal closed" );
                               setContainerContainerDetails("");
                             },
                             show: containerDetails===appData.container.id
@@ -373,7 +375,6 @@ const Dashboard = () => {
                             version: feature.docker?.Version
                           },
                           onClose: () => {
-                            console.log( "modal closed" );
                             setContainerContainerDetails("");
                           },
                           show: containerDetails===feature.container.id
@@ -400,6 +401,18 @@ const Dashboard = () => {
           </div>
         </CCardBody>
       </CCard>
+      <CModal
+        show={!!qrZoom.value}
+        onClose={()=>setQrZoom({})}
+        size={"lg"}
+      >
+        <CModalHeader>
+          <CModalTitle>{qrZoom.title}</CModalTitle>
+        </CModalHeader>
+        <CModalBody className="text-center">
+          <QRCode className="d-inline px-3 py-5" renderAs={"svg"} value={qrZoom.value||""} size={400} />
+        </CModalBody>
+      </CModal>
     </>
   )
 }
