@@ -80,6 +80,9 @@ class App extends Component {
       console.log( response );
       if ( response.status === 200 ) {
         // everything is ok
+        if ( !response.body || !response.body.token ) {
+          return ErrorCodes.UNKNOWN_ERROR;
+        }
         await this.state.session.setToken( response.body.token );
         this.state.session.save();
       } else if( response.status === 401 ) {

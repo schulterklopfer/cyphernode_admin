@@ -210,6 +210,7 @@ const requests = {
 
     const r = {
       status: response.status,
+      headers: response.headers
     }
 
     const ct = response.headers.get('Content-Type');

@@ -34,8 +34,11 @@ class Session {
   }
 
   async appendLocalData() {
+    if( !this.jwt || !this.jwt.id ) {
+      return;
+    }
     // load user from database and put it in session.
-    if ( this.payload.id ) {
+    if ( this.jwt.id ) {
       // we have an id
       const response = await requests.getMe( this );
       if ( response && response.status === 200 ) {
@@ -44,11 +47,17 @@ class Session {
         return true;
       }
     }
-    this.end();
     return false;
   }
 
+  deleteLocalData() {
+    delete this.user;
+  }
+
   save() {
+    if( !this.token ) {
+      return;
+    }
     this._setCookie(this.token);
   }
 
@@ -59,10 +68,13 @@ class Session {
 
   _parseJWT( token ) {
     if ( !token || token === ''  ) {
-      return {};
+      return undefined;
     }
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64UrlEncodedPayloadString = token.split('.')[1];
+    if ( !base64UrlEncodedPayloadString ) {
+      return undefined;
+    }
+    const base64 = base64UrlEncodedPayloadString.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
@@ -115,13 +127,12 @@ class Session {
 
   async setToken( token ) {
     this.token = token;
-    if( token ) {
-      this.jwt = this._parseJWT( token );
-      this.payload = this._parseJWT(this.token);
+    if( this.token ) {
+      this.jwt = this._parseJWT( this.token );
       await this.appendLocalData();
     } else {
-      delete this.jwt
-      delete this.payload;
+      delete this.jwt;
+      this.deleteLocalData();
     }
 
   }

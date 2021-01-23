@@ -255,7 +255,7 @@ const Users = () => {
       <CRow><CCol>
         <CCard>
           <CCardBody>
-            User data: <pre>{ JSON.stringify(context.session.payload, null, 2) }</pre>
+            User data: <pre>{ JSON.stringify(context.session.jwt, null, 2) }</pre>
           </CCardBody>
         </CCard>
       </CCol></CRow>

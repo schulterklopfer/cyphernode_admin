@@ -64,7 +64,7 @@ class AccessMiddleware {
 
   alreadyLoggedIn (component, _, session) {
 
-    if ( !session || !session.token || !session.jwt.valid) {
+    if ( !session || !session.token || !session.jwt || !session.jwt.valid) {
       // no valid session
       return this._getRouteReturn(true, component);
     }
