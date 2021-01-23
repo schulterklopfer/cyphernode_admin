@@ -347,7 +347,7 @@ const Dashboard = () => {
           <div className="d-flex flex-row flex-wrap justify-content-center">
             {
               status.cyphernodeInfo?.features.concat(status.cyphernodeInfo?.optional_features).sort(
-                (fa, fb) => fb.active - fa.active || fa.label.localeCompare(fb.label)
+                (fa, fb) => fb.active - fa.active || fa.name.localeCompare(fb.name)
               ).map((feature, index) => (
                 <CCard key={index} style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
                   <CCardHeader className="h6 text-center" color={ feature.active?"success":""}>
