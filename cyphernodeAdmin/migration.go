@@ -153,7 +153,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
   // append all existing roles to super admin user
   var allRoles []models.RoleModel
 
-  err = queries.AllRoles( &allRoles )
+  err = tx.Find( &allRoles ).Error
 
   if err != nil {
     return err
