@@ -41,6 +41,9 @@ const CNA_ADMIN_PASSWORD_ENV_KEY string = "CNA_ADMIN_PASSWORD"
 const CNA_ADMIN_NAME_ENV_KEY string = "CNA_ADMIN_NAME"
 const CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY string = "CNA_ADMIN_EMAIL_ADDRESS"
 const CNA_ADMIN_DATABASE_FILE_ENV_KEY string = "CNA_ADMIN_DATABASE_FILE"
+const CNA_ADMIN_CONFIG7Z_FILE_ENV_KEY string = "CNA_ADMIN_CONFIG7Z_FILE"
+const CNA_ADMIN_CLIENT7Z_FILE_ENV_KEY string = "CNA_ADMIN_CLIENT7Z_FILE"
+
 const CNA_COOKIE_SECRET_ENV_KEY = "CNA_COOKIE_SECRET"
 const CNA_STATIC_FILE_DIR_ENV_KEY = "CNA_STATIC_FILE_DIR"
 const CYPHERAPPS_INSTALL_DIR_ENV_KEY = "CYPHERAPPS_INSTALL_DIR"
@@ -58,6 +61,7 @@ const BASE_ENDPOINT_BLOCKS string = "/api/v0/blocks"
 const BASE_ENDPOINT_APPS string = "/api/v0/apps"
 const BASE_ENDPOINT_SESSIONS string = "/api/v0/sessions"
 const BASE_ENDPOINT_STATUS string = "/api/v0/status"
+const BASE_ENDPOINT_FILES string = "/api/v0/files"
 
 
 const BASE_ADMIN_MOUNTPOINT string = "admin"
@@ -110,6 +114,8 @@ var DEFAULTS = map[string]string{
   CNA_ADMIN_NAME_ENV_KEY:          "admin",
   CNA_ADMIN_EMAIL_ADDRESS_ENV_KEY: "admin@admin.com",
   CNA_ADMIN_DATABASE_FILE_ENV_KEY: "/data/db.sqlite3",
+  CNA_ADMIN_CONFIG7Z_FILE_ENV_KEY: "/data/config.7z",
+  CNA_ADMIN_CLIENT7Z_FILE_ENV_KEY: "/data/client.7z",
   CNA_STATIC_FILE_DIR_ENV_KEY:     "/ui",
   CYPHERAPPS_INSTALL_DIR_ENV_KEY:  "/apps",
   KEYS_FILE_ENV_KEY:               "/keys.properties",

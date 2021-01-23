@@ -99,7 +99,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
         Effect: "allow",
       },
       {
-        Patterns: []string{"^\\/api\\/v0\\/users","^\\/api\\/v0\\/docker"},
+        Patterns: []string{"^\\/api\\/v0\\/users","^\\/api\\/v0\\/docker","^\\/api\\/v0\\/files"},
         Roles: []string{"admin"},
         Actions: []string{"get","post","patch","delete"},
         Effect: "allow",

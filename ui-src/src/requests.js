@@ -49,6 +49,10 @@ const requests = {
       { body: { username, password } } );
   },
 
+  resolveFile: ( file ) => {
+    return apiBaseUri+'/files/'+file;
+  },
+
   getStatus: async ( session ) => {
     return await requests.request(
       'GET',
