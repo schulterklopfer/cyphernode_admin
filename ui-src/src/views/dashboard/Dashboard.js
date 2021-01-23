@@ -8,6 +8,7 @@ import {
   CProgress,
   CRow, CBadge, CCardFooter, CLink, CPopover, CButton
 } from '@coreui/react'
+import QRCode from 'qrcode.react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
 import ContainerBasicInfo from "./ContainerBasicInfo";
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
   const [containerDetails, setContainerContainerDetails] = useState("");
+  const [traefikOnion, setTraefikOnion] = useState("");
   const context = useContext( SessionContext )
 
 
@@ -40,6 +42,11 @@ const Dashboard = () => {
               state: "not running",
             };
             continue;
+          }
+
+          if ( feature.label === "traefik" && feature.extra && feature.extra.tor_hostname ) {
+            // tor is enable for traefik, show qr code
+            setTraefikOnion( feature.extra.tor_hostname );
           }
 
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
@@ -169,7 +176,6 @@ const Dashboard = () => {
           </div>
         </CCardFooter>
       </CCard>
-
       <CCard>
         <CCardHeader className="h5">
           Latest blocks
@@ -215,6 +221,28 @@ const Dashboard = () => {
                 }
               </div>
             ))}
+          </div>
+        </CCardBody>
+      </CCard>
+      <CCard>
+        <CCardHeader className="h5">
+          Important stuff
+        </CCardHeader>
+        <CCardBody>
+          <div className="d-flex flex-row flex-wrap justify-content-center">
+          { traefikOnion && (
+            <CCard>
+              <CCardHeader className="h6 text-center">
+                Cyphernode onion
+              </CCardHeader>
+              <CCardBody>
+                <QRCode value={traefikOnion} />
+              </CCardBody>
+              <CCardFooter>
+                <CLink target="_blank" href={'http://'+traefikOnion}>Go to onion site</CLink>
+              </CCardFooter>
+            </CCard>
+            ) }
           </div>
         </CCardBody>
       </CCard>
