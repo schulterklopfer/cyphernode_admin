@@ -234,6 +234,11 @@ func DeleteUser(c *gin.Context) {
     return
   }
 
+  if id == 1 {
+    c.Status(http.StatusMethodNotAllowed )
+    return
+  }
+
   var user models.UserModel
 
   err = queries.Get( &user, uint(id), true )
@@ -373,6 +378,11 @@ func UserPatchRoles(c *gin.Context) {
     return
   }
 
+  if id == 1 {
+    c.Status(http.StatusMethodNotAllowed )
+    return
+  }
+
   var user models.UserModel
 
   err = queries.Get(&user, uint(id), true)
@@ -403,6 +413,11 @@ func UserAddRoles(c *gin.Context) {
   id, err := strconv.Atoi(c.Params[0].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
+    return
+  }
+
+  if id == 1 {
+    c.Status(http.StatusMethodNotAllowed )
     return
   }
 
@@ -461,6 +476,12 @@ func UserRemoveRole(c *gin.Context) {
     c.Status(http.StatusNotFound )
     return
   }
+
+  if id == 1 {
+    c.Status(http.StatusMethodNotAllowed )
+    return
+  }
+
   roleId, err := strconv.Atoi(c.Params[1].Value)
   if err != nil {
     c.Status(http.StatusNotFound )
