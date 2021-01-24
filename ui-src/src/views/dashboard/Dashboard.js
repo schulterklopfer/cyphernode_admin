@@ -9,6 +9,7 @@ import {
   CRow, CBadge, CCardFooter, CLink, CPopover, CButton,
   CModal, CModalBody, CModalHeader, CModalTitle
 } from '@coreui/react'
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import QRCode from 'qrcode.react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
@@ -20,12 +21,47 @@ const base64UrlEncode = (str) => {
   return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
 }
 
+const onionValueTransforms = {
+  "traefik": (feature) => { return {
+    value: "http://"+feature.extra.tor_hostname,
+    footer: (
+      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
+        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
+      </CopyToClipboard>
+    )
+  }},
+  "bitcoin": (feature) => { return {
+    value: "http://"+feature.extra.tor_hostname,
+    footer: (
+      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
+        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
+      </CopyToClipboard>
+    )
+  }},
+  "lightning": (feature) => { return {
+    value: feature.extra.pubkey+"@"+feature.extra.tor_hostname,
+    footer: (
+      <CopyToClipboard text={feature.extra.pubkey+"@"+feature.extra.tor_hostname}>
+        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
+      </CopyToClipboard>
+    )
+  }}
+
+}
+
+const onionValue = ( feature ) => {
+  if ( onionValueTransforms[feature.label] ) {
+    return onionValueTransforms[feature.label](feature);
+  }
+  return feature.extra.tor_hostname;
+}
+
 const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
   const [containerDetails, setContainerContainerDetails] = useState("");
   const [qrZoom, setQrZoom] = useState({} );
-  const [traefikOnion, setTraefikOnion] = useState("");
+  const [onions, setOnions] = useState([]);
   const context = useContext( SessionContext )
 
   useEffect( () => {
@@ -36,6 +72,9 @@ const Dashboard = () => {
         response.body.cyphernodeInfo.features &&
         response.body.cyphernodeInfo.optional_features) {
         // everything is ok
+
+        const onions = [];
+
         for ( const feature of response.body.cyphernodeInfo.features.concat( response.body.cyphernodeInfo.optional_features ) ) {
 
           if ( !feature.active ) {
@@ -45,14 +84,18 @@ const Dashboard = () => {
             continue;
           }
 
-          if ( feature.label === "traefik" && feature.extra && feature.extra.tor_hostname ) {
+          if ( feature.extra && feature.extra.tor_hostname ) {
             // tor is enable for traefik, show qr code
-            setTraefikOnion( feature.extra.tor_hostname );
+            const o = onionValue( feature );
+            onions.push( {
+              title: feature.name,
+              value: o.value,
+              footer: o.footer
+            } );
           }
 
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
           const containerResponse = await requests.getDockerContainerByImageHash( base64Image, context.session );
-
 
           if ( containerResponse && containerResponse.status === 200 ) {
             const networks = []
@@ -78,7 +121,7 @@ const Dashboard = () => {
           }
 
         }
-
+        setOnions(onions);
         setStatus(response.body);
       }
     }
@@ -231,21 +274,25 @@ const Dashboard = () => {
         </CCardHeader>
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
-          { traefikOnion && (
-            <CCard className="mr-2 h-25">
-              <CCardHeader className="h6 text-center">
-                Cyphernode onion
-              </CCardHeader>
-              <CCardBody>
-                <QRCode renderAs={"svg"} value={traefikOnion} onClick={()=>{
-                  setQrZoom( { value: traefikOnion, title: "Cyphernode onion"} )
-                }}/>
-              </CCardBody>
-              <CCardFooter>
-                <CLink target="_blank" href={'http://'+traefikOnion}>Go to onion site</CLink>
-              </CCardFooter>
-            </CCard>
-            ) }
+          {  onions.map( (onion, index) => (
+            <CPopover
+              content={ onion.value }
+              placement="top"
+            >
+              <CCard key={index} className="mr-2 h-25">
+                <CCardHeader className="h6 text-center">
+                  {onion.title}
+                </CCardHeader>
+                <CCardBody>
+                  <QRCode renderAs={"svg"} value={onion.value} onClick={()=>{
+                    setQrZoom( onion )
+                  }}/>
+                </CCardBody>
+                { onion.footer && (<CCardFooter className="d-flex flex-row flex-wrap justify-content-center">{onion.footer}</CCardFooter> ) }
+              </CCard>
+            </CPopover>) ) }
+          </div>
+          <div className="d-flex flex-row flex-wrap justify-content-center">
             <CCard className="mr-2">
               <CCardHeader className="h6 text-center">
                 Config archive
@@ -253,7 +300,7 @@ const Dashboard = () => {
               <CCardBody className="d-flex flex-row justify-content-center align-items-center">
                 <CLink target="_blank" href={requests.resolveFile("config.7z")}><CIcon name="cil-cloud-download" width={64}/></CLink>
               </CCardBody>
-              <CCardFooter>
+              <CCardFooter className="d-flex flex-row flex-wrap justify-content-center">
                 config.7z
               </CCardFooter>
             </CCard>
@@ -264,7 +311,7 @@ const Dashboard = () => {
               <CCardBody className="d-flex flex-row justify-content-center align-items-center">
                 <CLink target="_blank" href={requests.resolveFile("client.7z")}><CIcon name="cil-cloud-download" width={64}/></CLink>
               </CCardBody>
-              <CCardFooter>
+              <CCardFooter className="d-flex flex-row flex-wrap justify-content-center">
                 client.7z
               </CCardFooter>
             </CCard>

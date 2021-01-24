@@ -35,11 +35,14 @@ import (
 )
 
 type CyphernodeState struct {
-  LastUpdate                time.Time                              `json:"lastUpdate"`
-  BlockchainInfo            *cyphernodeApi.GetBlockChainInfoResult `json:"blockchainInfo"`
-  CyphernodeInfo            *cyphernodeInfo.CyphernodeInfo         `json:"cyphernodeInfo"`
-  LatestBlocks              []*cyphernodeApi.GetBlockInfoResult    `json:"latestBlocks"`
-  updateBlockchainInfoMutex sync.Mutex                             `json:"-"`
+  LastUpdate                   time.Time                                 `json:"lastUpdate"`
+  BlockchainInfo               *cyphernodeApi.GetBlockChainInfoResult    `json:"blockchainInfo"`
+  LightningNodeInfo            *cyphernodeApi.GetLightningNodeInfoResult `json:"lightningNodeInfo"`
+  CyphernodeInfo               *cyphernodeInfo.CyphernodeInfo            `json:"cyphernodeInfo"`
+  LatestBlocks                 []*cyphernodeApi.GetBlockInfoResult       `json:"latestBlocks"`
+  updateBlockchainInfoMutex    sync.Mutex                                `json:"-"`
+  updateLightningNodeInfoMutex sync.Mutex                                `json:"-"`
+
 }
 
 var instance *CyphernodeState
@@ -69,9 +72,31 @@ func initOnce( info *cyphernodeInfo.CyphernodeInfo ) error {
     }
 
     upbci()
-
     helpers.SetInterval( upbci, globals.BLOCKCHAIN_INFO_UPDATE_INTERVAL, false )
 
+    featureIndex := helpers.SliceIndex(len(info.OptionalFeatures), func(i int) bool {
+      return info.OptionalFeatures[i].Label == "lightning" && info.OptionalFeatures[i].Active
+    })
+
+    if featureIndex > -1 {
+      uplni := func() {
+        trying := true
+
+        for trying {
+          err := instance.updateLightningNodeInfo()
+          if err == nil {
+            trying = false
+            info.OptionalFeatures[featureIndex].Extra["pubkey"] = instance.LightningNodeInfo.Id
+            continue
+          }
+          logwrapper.Logger().Error( err.Error() )
+          time.Sleep( 1*time.Second )
+        }
+      }
+
+      uplni()
+      helpers.SetInterval( uplni, globals.BLOCKCHAIN_INFO_UPDATE_INTERVAL, false )
+    }
   })
   return initOnceErr
 }
@@ -118,5 +143,17 @@ func ( cyphernodeState *CyphernodeState ) updateBlockchainInfo() error {
   }
 
   cyphernodeState.LatestBlocks = blocks
+  return nil
+}
+
+func ( cyphernodeState *CyphernodeState ) updateLightningNodeInfo() error {
+  cyphernodeState.updateLightningNodeInfoMutex.Lock()
+  defer cyphernodeState.updateLightningNodeInfoMutex.Unlock()
+  lightningNodeInfo, err := cyphernodeApi.Instance().Lightning_getNodeInfo()
+  if err != nil {
+    return err
+  }
+  cyphernodeState.LastUpdate = time.Now()
+  cyphernodeState.LightningNodeInfo = lightningNodeInfo
   return nil
 }
