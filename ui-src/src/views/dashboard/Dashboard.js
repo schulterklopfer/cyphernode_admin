@@ -276,10 +276,11 @@ const Dashboard = () => {
           <div className="d-flex flex-row flex-wrap justify-content-center">
           {  onions.map( (onion, index) => (
             <CPopover
+              key={index}
               content={ onion.value }
               placement="top"
             >
-              <CCard key={index} className="mr-2 h-25">
+              <CCard className="mr-2 h-25">
                 <CCardHeader className="h6 text-center">
                   {onion.title}
                 </CCardHeader>
