@@ -50,6 +50,10 @@ const ADMIN_APP_DESCRIPTION string = "Manage your cyphernode"
 const ADMIN_APP_ADMIN_ROLE_NAME string = "admin"
 const ADMIN_APP_ADMIN_ROLE_DESCRIPTION string = "Main admin with god mode"
 
+const ADMIN_APP_USER_ROLE_NAME string = "user"
+const ADMIN_APP_USER_ROLE_DESCRIPTION string = "Regular user"
+
+
 type Config struct {
   DatabaseFile string
   InitialAdminLogin string
