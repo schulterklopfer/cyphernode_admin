@@ -24,7 +24,7 @@ const TheSidebar = () => {
   const dispatch = useDispatch();
   const show = useSelector(state => state.sidebarShow);
   const context = useContext( SessionContext );
-  
+
   return (
     <CSidebar
       show={show}

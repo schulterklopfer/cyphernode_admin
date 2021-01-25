@@ -6,62 +6,22 @@ import {
   CCardBody,
   CCol,
   CProgress,
-  CRow, CBadge, CCardFooter, CLink, CPopover, CButton,
-  CModal, CModalBody, CModalHeader, CModalTitle
+  CRow, CBadge, CCardFooter, CLink, CPopover, CButton
 } from '@coreui/react'
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import QRCode from 'qrcode.react'
 import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
-import ContainerBasicInfo from "./ContainerBasicInfo";
-import ContainerInfo from "./ContainerInfo";
+import ContainerBasicInfo from "../_common/ContainerBasicInfo";
+import ContainerInfo from "../_common/ContainerInfo";
 import SessionContext from "../../sessionContext";
 
 const base64UrlEncode = (str) => {
   return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
 }
 
-const onionValueTransforms = {
-  "traefik": (feature) => { return {
-    value: "http://"+feature.extra.tor_hostname,
-    footer: (
-      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
-        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
-      </CopyToClipboard>
-    )
-  }},
-  "bitcoin": (feature) => { return {
-    value: "http://"+feature.extra.tor_hostname,
-    footer: (
-      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
-        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
-      </CopyToClipboard>
-    )
-  }},
-  "lightning": (feature) => { return {
-    value: feature.extra.pubkey+"@"+feature.extra.tor_hostname,
-    footer: (
-      <CopyToClipboard text={feature.extra.pubkey+"@"+feature.extra.tor_hostname}>
-        <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
-      </CopyToClipboard>
-    )
-  }}
-
-}
-
-const onionValue = ( feature ) => {
-  if ( onionValueTransforms[feature.label] ) {
-    return onionValueTransforms[feature.label](feature);
-  }
-  return feature.extra.tor_hostname;
-}
-
 const Dashboard = () => {
   const [status, setStatus] = useState({})
   const [appList, setAppList] = useState({ data: [] })
   const [containerDetails, setContainerContainerDetails] = useState("");
-  const [qrZoom, setQrZoom] = useState({} );
-  const [onions, setOnions] = useState([]);
   const context = useContext( SessionContext )
 
   useEffect( () => {
@@ -73,8 +33,6 @@ const Dashboard = () => {
         response.body.cyphernodeInfo.optional_features) {
         // everything is ok
 
-        const onions = [];
-
         for ( const feature of response.body.cyphernodeInfo.features.concat( response.body.cyphernodeInfo.optional_features ) ) {
 
           if ( !feature.active ) {
@@ -82,16 +40,6 @@ const Dashboard = () => {
               state: "not running",
             };
             continue;
-          }
-
-          if ( feature.extra && feature.extra.tor_hostname ) {
-            // tor is enable for traefik, show qr code
-            const o = onionValue( feature );
-            onions.push( {
-              title: feature.name,
-              value: o.value,
-              footer: o.footer
-            } );
           }
 
           const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
@@ -121,7 +69,6 @@ const Dashboard = () => {
           }
 
         }
-        setOnions(onions);
         setStatus(response.body);
       }
     }
@@ -270,57 +217,6 @@ const Dashboard = () => {
       </CCard>
       <CCard>
         <CCardHeader className="h5">
-          Important stuff
-        </CCardHeader>
-        <CCardBody>
-          <div className="d-flex flex-row flex-wrap justify-content-center">
-          {  onions.map( (onion, index) => (
-            <CPopover
-              key={index}
-              content={ onion.value }
-              placement="top"
-            >
-              <CCard className="mr-2 h-25">
-                <CCardHeader className="h6 text-center">
-                  {onion.title}
-                </CCardHeader>
-                <CCardBody>
-                  <QRCode renderAs={"svg"} value={onion.value} onClick={()=>{
-                    setQrZoom( onion )
-                  }}/>
-                </CCardBody>
-                { onion.footer && (<CCardFooter className="d-flex flex-row flex-wrap justify-content-center">{onion.footer}</CCardFooter> ) }
-              </CCard>
-            </CPopover>) ) }
-          </div>
-          <div className="d-flex flex-row flex-wrap justify-content-center">
-            <CCard className="mr-2">
-              <CCardHeader className="h6 text-center">
-                Config archive
-              </CCardHeader>
-              <CCardBody className="d-flex flex-row justify-content-center align-items-center">
-                <CLink target="_blank" href={requests.resolveFile("config.7z")}><CIcon name="cil-cloud-download" width={64}/></CLink>
-              </CCardBody>
-              <CCardFooter className="d-flex flex-row flex-wrap justify-content-center">
-                config.7z
-              </CCardFooter>
-            </CCard>
-            <CCard className="mr-2">
-              <CCardHeader className="h6 text-center">
-                Client archive
-              </CCardHeader>
-              <CCardBody className="d-flex flex-row justify-content-center align-items-center">
-                <CLink target="_blank" href={requests.resolveFile("client.7z")}><CIcon name="cil-cloud-download" width={64}/></CLink>
-              </CCardBody>
-              <CCardFooter className="d-flex flex-row flex-wrap justify-content-center">
-                client.7z
-              </CCardFooter>
-            </CCard>
-          </div>
-        </CCardBody>
-      </CCard>
-      <CCard>
-        <CCardHeader className="h5">
           Intalled cypherapps
         </CCardHeader>
         <CCardBody>
@@ -389,78 +285,6 @@ const Dashboard = () => {
           </div>
         </CCardBody>
       </CCard>
-      <CCard>
-        <CCardHeader className="h5">
-          Features
-        </CCardHeader>
-        <CCardBody>
-          <div className="d-flex flex-row flex-wrap justify-content-center">
-            {
-              status.cyphernodeInfo?.features.concat(status.cyphernodeInfo?.optional_features).sort(
-                (fa, fb) => fb.active - fa.active || fa.name.localeCompare(fb.name)
-              ).map((feature, index) => (
-                <CCard key={index} style={{minWidth:"300px"}} className={feature.active?"mr-2":"mr-2 text-muted"}>
-                  <CCardHeader className="h6 text-center" color={ feature.active?"success":""}>
-                    <div className={feature.active?"text-light":""}>{feature.name}</div>
-                  </CCardHeader>
-                  <CCardBody className="font-xs" style={{minWidth: "250px"}}>
-                    <table className="table-borderless flex-fill font-xs m-0 mb-4">
-                      <tbody>
-                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Image:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.ImageName}</td></tr>
-                        <tr><td className="p-0 pr-1 m-0 font-weight-bold">Version:</td><td className="p-0 pr-1 pl-1 m-0">{feature.docker?.Version}</td></tr>
-                        { feature.container && (
-                          <ContainerBasicInfo {...feature.container} />
-                        )}
-                      </tbody>
-                    </table>
-
-                      {
-                      (feature.container && (
-                        <ContainerInfo { ...{
-                          containerInfo: feature.container,
-                          meta: {
-                            name: feature.label,
-                            version: feature.docker?.Version
-                          },
-                          onClose: () => {
-                            setContainerContainerDetails("");
-                          },
-                          show: containerDetails===feature.container.id
-                        }}/>
-                      ))
-                    }
-                    { feature.active && (
-                      <CButton
-                      data-containerid={feature.container?.id}
-                      className="float-right"
-                      size="sm"
-                      shape="pill"
-                      color="primary"
-                      onClick={(event) => {
-                      const containerId = event.target.dataset.containerid;
-                      setContainerContainerDetails(containerId);
-                    }}
-                      >container info</CButton>
-                    ) }
-                  </CCardBody>
-                </CCard>
-              ))
-            }
-          </div>
-        </CCardBody>
-      </CCard>
-      <CModal
-        show={!!qrZoom.value}
-        onClose={()=>setQrZoom({})}
-        size={"lg"}
-      >
-        <CModalHeader>
-          <CModalTitle>{qrZoom.title}</CModalTitle>
-        </CModalHeader>
-        <CModalBody className="text-center">
-          <QRCode className="d-inline px-3 py-5" renderAs={"svg"} value={qrZoom.value||""} size={400} />
-        </CModalBody>
-      </CModal>
     </>
   )
 }

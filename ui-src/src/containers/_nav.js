@@ -34,6 +34,25 @@ export default [
   },
   {
     _tag: 'CSidebarNavTitle',
+    _children: ['Information'],
+    roles: ["admin"]
+  },
+  {
+    _tag: 'CSidebarNavItem',
+    name: 'Links',
+    to: '/links',
+    icon: 'cil-at',
+    roles: ["*"]
+  },
+  {
+    _tag: 'CSidebarNavItem',
+    name: 'Features',
+    to: '/features',
+    icon: 'cil-sitemap',
+    roles: ["*"]
+  },
+  {
+    _tag: 'CSidebarNavTitle',
     _children: ['News'],
     roles: ["*"]
   },
