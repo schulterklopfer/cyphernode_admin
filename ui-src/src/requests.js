@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-const debug = 1;
+const debug = 0;
 
 let host = window.location.host;
 let protocol = window.location.protocol;
