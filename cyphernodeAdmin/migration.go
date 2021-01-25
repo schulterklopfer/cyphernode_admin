@@ -39,12 +39,14 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   // Create adminUser id=1, cyphernodeAdmin id=1, adminRole id=1
   adminRole := new(models.RoleModel)
+  userRole := new(models.RoleModel)
   adminApp := new(models.AppModel)
   adminUser := new(models.UserModel)
 
   db := dataSource.GetDB()
 
   _ = queries.Get( adminRole, 1, true )
+  _ = queries.Get( userRole, 2, true )
   _ = queries.Get( adminApp, 1, true )
   _ = queries.Get( adminUser, 1, true )
 
@@ -63,6 +65,16 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminRole.AutoAssign = false
     adminRole.AppId = 1
     tx.Create(adminRole)
+  }
+
+  if userRole.ID != 2 {
+    logwrapper.Logger().Info("adding user role")
+    userRole.ID = 2
+    userRole.Name = ADMIN_APP_USER_ROLE_NAME
+    userRole.Description = ADMIN_APP_USER_ROLE_DESCRIPTION
+    userRole.AutoAssign = true
+    userRole.AppId = 1
+    tx.Create(userRole)
   }
 
   if adminApp.ID != 1 {
@@ -105,7 +117,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
         Effect: "allow",
       },
       {
-        Patterns: []string{"^\\/api\\/v0\\/apps","^\\/api\\/v0\\/status","^\\/api\\/v0\\/blocks"},
+        Patterns: []string{"^\\/api\\/v0\\/apps","^\\/api\\/v0\\/status","^\\/api\\/v0\\/blocks","^\\/api\\/v0\\/users\\/me$"},
         Roles: []string{"*"},
         Actions: []string{"get"},
         Effect: "allow",
