@@ -4,30 +4,38 @@ export default [
     name: 'Dashboard',
     to: '/dashboard',
     icon: 'cil-speedometer',
+    /*
     badge: {
       color: 'info',
       text: 'NEW',
-    }
+    },
+     */
+    roles: ["*"]
   },
+
   {
     _tag: 'CSidebarNavTitle',
-    _children: ['Manage']
+    _children: ['Manage'],
+    roles: ["*"]
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Cypherapps',
     to: '/apps',
     icon: 'cil-applications',
+    roles: ["*"]
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Users',
     to: '/users',
     icon: 'cil-people',
+    roles: ["admin"]
   },
   {
     _tag: 'CSidebarNavTitle',
-    _children: ['News']
+    _children: ['News'],
+    roles: ["*"]
   },
   {
     _tag: 'CSidebarNavItem',
@@ -35,6 +43,7 @@ export default [
     target: '_blank',
     href: 'https://twitter.com/cyphernode_io',
     icon: 'cib-twitter',
+    roles: ["*"]
   },
   {
     _tag: 'CSidebarNavTitle',

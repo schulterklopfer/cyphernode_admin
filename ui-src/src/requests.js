@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-const debug = 0;
+const debug = 1;
 
 let host = window.location.host;
 let protocol = window.location.protocol;
@@ -64,7 +64,7 @@ const requests = {
   getMe: async ( session ) => {
     return await requests.request(
       'GET',
-      apiBaseUri+'/users/me',
+      apiBaseUri+(!debug?'/users/me':'/users/1'),
       { session }
     );
   },
