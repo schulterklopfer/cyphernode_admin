@@ -92,46 +92,40 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     adminApp.AccessPolicies = models.AccessPolicies{
       /* General stuff */
       {
-        Patterns: []string{".+"},
-        Roles: []string{"*"},
-        Actions: []string{"options"},
-        Effect: "allow",
-      },
-      {
         Patterns: []string{"favicon.ico$"},
         Roles: []string{"*"},
-        Actions: []string{"get"},
+        Actions: []string{"options","get"},
         Effect: "allow",
       },
       /* API endpoints */
       {
         Patterns: []string{"^\\/api\\/v0\\/login$"},
         Roles: []string{"*"},
-        Actions: []string{"post"},
+        Actions: []string{"options","post"},
         Effect: "allow",
       },
       {
         Patterns: []string{"^\\/api\\/v0\\/users","^\\/api\\/v0\\/docker","^\\/api\\/v0\\/files"},
         Roles: []string{"admin"},
-        Actions: []string{"get","post","patch","delete"},
+        Actions: []string{"options","get","post","patch","delete"},
         Effect: "allow",
       },
       {
         Patterns: []string{"^\\/api\\/v0\\/apps","^\\/api\\/v0\\/status","^\\/api\\/v0\\/blocks","^\\/api\\/v0\\/users\\/me$"},
         Roles: []string{"*"},
-        Actions: []string{"get"},
+        Actions: []string{"options","get"},
         Effect: "allow",
       },
       {
         Patterns: []string{"^\\/api\\/v0\\/apps"},
         Roles: []string{"admin"},
-        Actions: []string{"post","patch"},
+        Actions: []string{"options","post","patch"},
         Effect: "allow",
       },
       {
         Patterns: []string{"^\\/$", "^\\/_\\/"},
         Roles: []string{"*"},
-        Actions: []string{"get"},
+        Actions: []string{"options","get"},
         Effect: "allow",
       },
     }
