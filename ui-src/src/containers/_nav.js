@@ -53,7 +53,15 @@ export default [
   },
   {
     _tag: 'CSidebarNavTitle',
-    _children: ['News'],
+    _children: ['Misc'],
+    roles: ["*"]
+  },
+  {
+    _tag: 'CSidebarNavItem',
+    name: 'Bitcoin Whitepaper',
+    target: '_blank',
+    href: '/bitcoin.pdf',
+    icon: 'cil-education',
     roles: ["*"]
   },
   {
