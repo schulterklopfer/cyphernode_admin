@@ -62,19 +62,6 @@ func ForwardAuthAuth(c *gin.Context) {
 
   uriInAp := c.Request.Header.Get("x-forwarded-uri")
   method := c.Request.Header.Get("x-forwarded-method")
-  // check for public access
-  accessGranted := false
-  for _, accessPolicy := range app.AccessPolicies {
-    accessGranted = accessPolicy.Check( method, uriInAp, nil )
-    if accessGranted {
-      break
-    }
-  }
-
-  if accessGranted {
-    c.Status(http.StatusOK)
-    return
-  }
 
   // access not granted. See if we have a valid token
   // and check access again
@@ -91,63 +78,79 @@ func ForwardAuthAuth(c *gin.Context) {
   // useful if you use multiple keys for your application.  The standard is to use 'kid' in the
   // head of the token to identify which key to use, but the parsed token (head and claims) is provided
   // to the callback, providing flexibility.
-  token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-    // Don't forget to validate the alg is what you expect:
-    if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-      return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-    }
-    return []byte(helpers.GetenvOrDefault(globals.CNA_COOKIE_SECRET_ENV_KEY)), nil
-  })
+  var token *jwt.Token
+  if tokenString != "" {
+    token, err = jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+      // Don't forget to validate the alg is what you expect:
+      if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+        return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+      }
+      return []byte(helpers.GetenvOrDefault(globals.CNA_COOKIE_SECRET_ENV_KEY)), nil
+    })
 
-  if err != nil {
-    c.Header("X-Status-Reason", err.Error() )
-    c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
+    if err == nil {
+      // set correct headers for cypherapp down the line
+      parts := strings.Split( token.Raw, "." )
+      c.Header("X-Auth-User-Claims", parts[1] )
+    }
+
+  }
+
+  // check for public access
+  accessGranted := false
+  for _, accessPolicy := range app.AccessPolicies {
+    accessGranted = accessPolicy.Check( method, uriInAp, nil )
+    if accessGranted {
+      break
+    }
+  }
+
+  if accessGranted {
+    c.Status(http.StatusOK)
     return
   }
 
-  if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+  if token != nil {
+    if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
-    subject, exists := claims["id"]
+      subject, exists := claims["id"]
 
-    if !exists {
-      c.Header("X-Status-Reason", "no subject claims" )
-      c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
-      return
-    }
-
-    parts := strings.Split( token.Raw, "." )
-    c.Header("X-Auth-User-Claims", parts[1] )
-
-    userId := uint(subject.(float64))
-    var user models.UserModel
-    err := queries.Get( &user, userId,true )
-
-    if err != nil || user.ID == 0 {
-      c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
-      return
-    }
-
-    var roleNames []string;
-    for _, role := range user.Roles {
-      if role.AppId != app.ID {
-        continue
+      if !exists {
+        c.Header("X-Status-Reason", "no subject claims" )
+        c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
+        return
       }
-      roleNames = append( roleNames, role.Name )
-    }
 
-    accessGranted := false
-    for _, accessPolicy := range app.AccessPolicies {
-      accessGranted = accessPolicy.Check( method, uriInAp, roleNames )
+      userId := uint(subject.(float64))
+      var user models.UserModel
+      err := queries.Get( &user, userId,true )
+
+      if err != nil || user.ID == 0 {
+        c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
+        return
+      }
+
+      var roleNames []string;
+      for _, role := range user.Roles {
+        if role.AppId != app.ID {
+          continue
+        }
+        roleNames = append( roleNames, role.Name )
+      }
+
+      accessGranted := false
+      for _, accessPolicy := range app.AccessPolicies {
+        accessGranted = accessPolicy.Check( method, uriInAp, roleNames )
+        if accessGranted {
+          break
+        }
+      }
+
       if accessGranted {
-        break
+        c.Status(http.StatusOK)
+        return
       }
     }
-
-    if accessGranted {
-      c.Status(http.StatusOK)
-      return
-    }
-
   }
 
   c.Redirect( http.StatusTemporaryRedirect, forwardedProto+"://"+forwardedHost+globals.UNAUTHORIZED_REDIRECT_URL )
