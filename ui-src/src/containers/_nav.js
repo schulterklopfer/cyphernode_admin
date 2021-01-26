@@ -60,7 +60,7 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Bitcoin Whitepaper',
     target: '_blank',
-    href: '/bitcoin.pdf',
+    href: 'bitcoin.pdf',
     icon: 'cil-education',
     roles: ["*"]
   },
