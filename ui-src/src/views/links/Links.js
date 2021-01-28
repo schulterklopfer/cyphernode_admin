@@ -14,25 +14,25 @@ import SessionContext from "../../sessionContext";
 
 const onionValueTransforms = {
   "traefik": (feature) => { return {
-    value: "http://"+feature.extra.tor_hostname,
+    value: "http://"+feature.extra.tor_hostname+":"+(feature.extra.http_port||80),
     footer: (
-      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
+      <CopyToClipboard text={"http://"+feature.extra.tor_hostname+":"+(feature.extra.http_port||80)}>
         <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
       </CopyToClipboard>
     )
   }},
   "bitcoin": (feature) => { return {
-    value: "http://"+feature.extra.tor_hostname,
+    value: "http://"+feature.extra.tor_hostname+":"+(feature.extra.port),
     footer: (
-      <CopyToClipboard text={"http://"+feature.extra.tor_hostname}>
+      <CopyToClipboard text={"http://"+feature.extra.tor_hostname+":"+feature.extra.port}>
         <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
       </CopyToClipboard>
     )
   }},
   "lightning": (feature) => { return {
-    value: feature.extra.pubkey+"@"+feature.extra.tor_hostname,
+    value: feature.extra.pubkey+"@"+feature.extra.tor_hostname+":"+feature.extra.port,
     footer: (
-      <CopyToClipboard text={feature.extra.pubkey+"@"+feature.extra.tor_hostname}>
+      <CopyToClipboard text={feature.extra.pubkey+"@"+feature.extra.tor_hostname+":"+feature.extra.port}>
         <CButton size="sm" color="primary" className="py-0 my-0"><CIcon name="cil-clipboard" className="mr-1"/><span>to clipboard</span></CButton>
       </CopyToClipboard>
     )
@@ -72,7 +72,7 @@ const Links = () => {
             continue;
           }
 
-          if ( feature.extra && feature.extra.tor_hostname ) {
+          if ( feature.extra && feature.extra.torified ) {
             // tor is enable for traefik, show qr code
             const o = onionValue( feature );
             onions.push( {
