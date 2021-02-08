@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package handlers
+package forwardAuth
 
 import (
   "fmt"
@@ -36,7 +36,7 @@ import (
   "strings"
 )
 
-func ForwardAuthAuth(c *gin.Context) {
+func ForwardUserAuth(c *gin.Context) {
 
   //secret := []byte("my_secret_key")
 

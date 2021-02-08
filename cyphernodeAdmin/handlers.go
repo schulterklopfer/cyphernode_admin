@@ -26,14 +26,15 @@ package cyphernodeAdmin
 
 import (
   "github.com/gin-gonic/gin"
+  "github.com/schulterklopfer/cyphernode_admin/forwardAuth"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/handlers"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) initAuthHandlers() {
-  cyphernodeAdmin.engineAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, handlers.ForwardAuthAuth )
-  cyphernodeAdmin.engineAuth.GET( globals.PROXY_GATEKEEPER_ENDPOINTS_AUTH, handlers.ProxyGatekeeperAuth )
+  cyphernodeAdmin.engineAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, forwardAuth.ForwardUserAuth)
+  cyphernodeAdmin.engineAuth.GET( globals.PROXY_GATEKEEPER_ENDPOINTS_AUTH, forwardAuth.ForwardGatekeeperAuth)
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {

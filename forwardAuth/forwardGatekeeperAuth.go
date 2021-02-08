@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package handlers
+package forwardAuth
 
 import (
   "github.com/dgrijalva/jwt-go"
@@ -33,7 +33,7 @@ import (
   "strings"
 )
 
-func ProxyGatekeeperAuth(c *gin.Context) {
+func ForwardGatekeeperAuth(c *gin.Context) {
 
   //secret := []byte("my_secret_key")
 
