@@ -292,7 +292,7 @@ const Users = () => {
         </CCol>
       </CRow>
       <CModal
-        show={userToEdit.id >= 0}
+        show={userToEdit.id > 1}
         onClose={clearUserToEdit}
         color={userIdToDelete > 0 ? "danger" : "default"}
         size="lg"
