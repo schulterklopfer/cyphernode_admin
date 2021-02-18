@@ -30,10 +30,14 @@ import {
   CCol,
 } from '@coreui/react'
 import SessionContext from "../../sessionContext";
+import {useSelector} from "react-redux";
 
 const UserProfile = () => {
 
   const context = useContext( SessionContext );
+  const user = useSelector(state => {
+    return state.users.data.find( user => user.id === context.session.jwt.id );
+  });
 
   return (
     <CCol xl={6}>
@@ -43,15 +47,15 @@ const UserProfile = () => {
         </CCardHeader>
         <CCardBody>
           <pre>
-          { JSON.stringify( context.session.user, null, 2 ) }
+          { JSON.stringify( user, null, 2 ) }
           </pre>
           <table className="table table-borderless p-0 m-0">
             <tbody>
-            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Login:</td><td className="p-0 pr-1 pl-1 m-0">{ context.session.user.login }</td></tr>
-            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">name:</td><td className="p-0 pr-1 pl-1 m-0">{ context.session.user.name }</td></tr>
-            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Email address:</td><td className="p-0 pr-1 pl-1 m-0">{ context.session.user.email_address }</td></tr>
+            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Login:</td><td className="p-0 pr-1 pl-1 m-0">{ user.login }</td></tr>
+            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">name:</td><td className="p-0 pr-1 pl-1 m-0">{ user.name }</td></tr>
+            <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Email address:</td><td className="p-0 pr-1 pl-1 m-0">{ user.email_address }</td></tr>
             <tr><td className="p-0 pr-1 pl-1 m-0 font-weight-bold">Roles:</td><td className="p-0 pr-1 pl-1 m-0">
-              { context.session.user.roles.map( role => (
+              { user.roles.map( role => (
                 <table key={role.id} className="table table-borderless p-0 m-0">
                   <tbody>
                   <tr><td className="p-0 pr-1 pl-1 m-0">name:</td><td className="p-0 pr-1 pl-1 m-0"></td></tr>
