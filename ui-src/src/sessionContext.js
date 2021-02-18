@@ -24,34 +24,12 @@
 
 import React from 'react';
 import * as Cookies from "js-cookie";
-import requests from "./requests";
 
 class Session {
 
   constructor() {
     const token = this._getCookie();
     this.setToken( token );
-  }
-
-  async appendLocalData() {
-    if( !this.jwt || !this.jwt.id ) {
-      return;
-    }
-    // load user from database and put it in session.
-    if ( this.jwt.id ) {
-      // we have an id
-      const response = await requests.getMe( this );
-      if ( response && response.status === 200 ) {
-        // all good
-        this.user = response.body;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  deleteLocalData() {
-    delete this.user;
   }
 
   save() {
@@ -129,10 +107,8 @@ class Session {
     this.token = token;
     if( this.token ) {
       this.jwt = this._parseJWT( this.token );
-      await this.appendLocalData();
     } else {
       delete this.jwt;
-      this.deleteLocalData();
     }
 
   }

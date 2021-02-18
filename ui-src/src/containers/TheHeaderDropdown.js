@@ -9,9 +9,14 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import SessionContext from "../sessionContext";
+import {useSelector} from "react-redux";
 
 const TheHeaderDropdown = (props) => {
   const context = useContext( SessionContext )
+  const user = useSelector(state => {
+    return state.users.data.find( user => user.id === context.session.jwt.id );
+  });
+
   const history = useHistory();
   return (
     <CDropdown
@@ -29,9 +34,9 @@ const TheHeaderDropdown = (props) => {
           color="light"
           className="text-center"
         >
-          <strong>{context.session?.user?.name}</strong>
+          <strong>{user?.name}</strong>
         </CDropdownItem>
-        <CDropdownItem>
+        <CDropdownItem onClick={()=>{history.push("/profile")}}>
           <CIcon name="cil-heart" className="mfe-2" style={{'--ci-primary-color':'red'}}/>Profile
         </CDropdownItem>
         <CDropdownItem divider />

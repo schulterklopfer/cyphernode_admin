@@ -21,14 +21,14 @@ export default [
   {
     _tag: 'CSidebarNavItem',
     name: 'Cypherapps',
-    to: '/apps',
+    to: '/fetchApps',
     icon: 'cil-applications',
     roles: ["*"]
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Users',
-    to: '/users',
+    to: '/fetchUsers',
     icon: 'cil-people',
     roles: ["admin"]
   },

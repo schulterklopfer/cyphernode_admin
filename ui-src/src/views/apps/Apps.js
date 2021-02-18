@@ -22,33 +22,18 @@
  * SOFTWARE.
  */
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import {
   CCard,
   CCardBody,
   CRow, CCol
 } from '@coreui/react'
 import AppDetails from "./AppDetails";
-import requests from "../../requests";
+import {useSelector} from "react-redux";
+import {getApps} from "../../redux/selectors";
 
 const Apps = () => {
-  const [appList, setAppList] = useState({ data: [] })
-
-  useEffect( () => {
-    let ignore = false;
-    async function fetchAppList() {
-      const response = await requests.getApps();
-      if ( response.status === 200 ) {
-        // everything is ok
-        if ( !ignore ) {
-          setAppList(response.body);
-        }
-      }
-    }
-
-    fetchAppList();
-    return () => { ignore = true }
-  }, [] )
+  const apps = useSelector( getApps );
 
   return (
     <>
@@ -80,7 +65,7 @@ const Apps = () => {
         </CCardBody>
       </CCard>
     </CCol></CRow>
-    <CRow> { appList.data.map((appData) => ( <AppDetails key={appData.id} {...appData} /> ) ) } </CRow>
+    <CRow> { apps.map((appData) => ( <AppDetails key={appData.id} {...appData} /> ) ) } </CRow>
     </>
   )
 }

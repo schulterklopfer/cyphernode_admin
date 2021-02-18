@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react'
 import {CCardBody, CCard, CCardHeader, CModal, CModalHeader, CModalFooter, CModalBody, CRow, CCol} from "@coreui/react";
-import requests from "../../requests";
-
+import {fetchDockerLogsWebsocketClient} from '../../api'
 
 const ContainerInfo = props => {
 
@@ -15,7 +14,7 @@ const ContainerInfo = props => {
 
   const onModalOpened = () => {
     console.log( "on opened");
-    const client = requests.getDockerLogsWebsocketClient( containerInfo.id )
+    const client = fetchDockerLogsWebsocketClient( containerInfo.id )
     client.onopen = () => {
       console.log('WebSocket Client Connected');
     };

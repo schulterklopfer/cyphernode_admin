@@ -28,8 +28,7 @@ import './scss/style.scss';
 import SessionContext, {getSession} from "./sessionContext";
 import AccessMiddleware from "./AccessMiddleware";
 import { ErrorCodes } from "./errors";
-import requests from "./requests";
-
+import { login } from "./api";
 
 const loading = (
   <div className="pt-3 text-center">
@@ -61,22 +60,11 @@ class App extends Component {
   async componentDidMount() {
     const session = await getSession();
     this.setState( { session } );
-    let app = {};
-    try {
-      const appResponse = await requests.getApp(1, this.state.session );
-      if ( appResponse.status === 200 ) {
-        app = appResponse.body;
-        this.accessMiddleware.setAccessPolicies(app.accessPolicies);
-        this.setState({app:app});
-      }
-    } catch (e) {
-      console.log( e );
-    }
   }
 
   async login(username, password ) {
     try {
-      const response = await requests.login( username, password );
+      const response = await login( username, password );
       console.log( response );
       if ( response.status === 200 ) {
         // everything is ok
@@ -132,3 +120,4 @@ class App extends Component {
 }
 
 export default App;
+

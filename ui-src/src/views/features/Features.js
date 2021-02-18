@@ -1,79 +1,18 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState } from 'react'
 import {
   CCard,
   CCardHeader,
   CCardBody,
   CButton
 } from '@coreui/react'
-import requests from "../../requests";
 import ContainerBasicInfo from "../_common/ContainerBasicInfo";
 import ContainerInfo from "../_common/ContainerInfo";
-import SessionContext from "../../sessionContext";
-
-const base64UrlEncode = (str) => {
-  return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
-}
+import {useSelector} from "react-redux";
+import {getStatus} from "../../redux/selectors";
 
 const Features = () => {
-  const [status, setStatus] = useState({})
   const [containerDetails, setContainerContainerDetails] = useState("");
-  const context = useContext( SessionContext )
-
-  useEffect( () => {
-    async function fetchStatus() {
-      const response = await requests.getStatus( context.session );
-      if ( response && response.status === 200 &&
-        response.body.cyphernodeInfo &&
-        response.body.cyphernodeInfo.features &&
-        response.body.cyphernodeInfo.optional_features) {
-        // everything is ok
-
-        for ( const feature of response.body.cyphernodeInfo.features.concat( response.body.cyphernodeInfo.optional_features ) ) {
-
-          if ( !feature.active ) {
-            feature.container = {
-              state: "not running",
-            };
-            continue;
-          }
-
-          const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
-          const containerResponse = await requests.getDockerContainerByImageHash( base64Image, context.session );
-
-          if ( containerResponse && containerResponse.status === 200 ) {
-            const networks = []
-            Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
-              networks.push({
-                name: network,
-                ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
-              });
-              return network;
-            });
-            feature.container = {
-              id: containerResponse.body.Id,
-              state: containerResponse.body.State,
-              created: containerResponse.body.Created,
-              networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
-              mounts: (containerResponse.body.Mounts||[]).map( mount => mount.Source ).filter( mount => !!mount ).sort( (a,b) => a.localeCompare(b) )
-            };
-
-          } else {
-            feature.container = {
-              state: "not running",
-            };
-          }
-
-        }
-        setStatus(response.body);
-      }
-    }
-
-    fetchStatus();
-    const interval = setInterval(fetchStatus,  10*1000);
-    return () => {
-      clearInterval(interval);
-    }
-  }, [context.session] )
+  const status = useSelector( getStatus );
 
   return (
     <>

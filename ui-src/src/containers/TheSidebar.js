@@ -1,5 +1,6 @@
 import React, {useContext} from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { setSidebarShow } from "../redux/actions";
 import {
   CCreateElement,
   CSidebar,
@@ -17,18 +18,26 @@ import CIcon from '@coreui/icons-react'
 // sidebar nav config
 import navigation from './_nav'
 import SessionContext from "../sessionContext";
+import {getSidebarShow} from "../redux/selectors";
 
 const showDebugNavItems = false;
 
 const TheSidebar = () => {
   const dispatch = useDispatch();
-  const show = useSelector(state => state.sidebarShow);
+  const show = useSelector( getSidebarShow );
   const context = useContext( SessionContext );
+  const user = useSelector(state => {
+    return state.users.data.find( user => user.id === context.session.jwt.id );
+  });
 
   return (
     <CSidebar
       show={show}
-      onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}
+      onShowChange={
+        (val) => {
+          dispatch(setSidebarShow(val))
+        }
+      }
     >
       <CSidebarBrand className="d-md-down-none" to="/">
         <CIcon
@@ -51,14 +60,14 @@ const TheSidebar = () => {
             }
 
             if ( !context.session ||
-              !context.session.user ||
-              !context.session.user.roles ||
-              !context.session.user.roles.length ) {
+              !user ||
+              !user.roles ||
+              !user.roles.length ) {
               return false;
             }
 
             for( const rn of n.roles ) {
-              const found = context.session.user.roles.findIndex( ro => rn === '*' || ro.name === rn );
+              const found = user.roles.findIndex( ro => rn === '*' || ro.name === rn );
               if ( found !== -1) {
                 return true;
               }

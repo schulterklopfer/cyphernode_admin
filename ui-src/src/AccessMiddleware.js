@@ -24,6 +24,7 @@
 
 import React from 'react';
 import { Redirect } from "react-router-dom";
+import { getAdminApp } from "./redux/selectors";
 
 class AccessMiddleware {
 
@@ -32,12 +33,15 @@ class AccessMiddleware {
       alreadyLoggedIn: this.alreadyLoggedIn.bind(this),
       privateRoute: this.privateRoute.bind(this),
     }
-    this.accessPolicies = [];
     this.privateRoutePatterns = [/.+/];
   }
 
-  setAccessPolicies( accessPolicies ) {
-    this.accessPolicies = accessPolicies;
+  getAccessPolicies() {
+    const adminApp = getAdminApp();
+    if ( adminApp ) {
+      return adminApp.accessPolicies;
+    }
+    return [];
   }
 
   routeDisplay (middlewares= [], routeToVisit, directedFrom = '', session = {}) {

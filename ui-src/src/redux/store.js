@@ -22,20 +22,30 @@
  * SOFTWARE.
  */
 
-import { createStore } from 'redux'
+// https://dev.to/markusclaus/fetching-data-from-an-api-using-reactredux-55ao
+
+import {applyMiddleware, combineReducers, createStore} from 'redux'
+import thunk from 'redux-thunk';
+import {
+  appsReducer, usersReducer, statusReducer, uiReducer,
+  initialAppsState, initialUsersState, initialStatusState, initialUiState
+} from "./reducers";
+
+const rootReducer = combineReducers({
+  ui: uiReducer,
+  apps: appsReducer,
+  users: usersReducer,
+  status: statusReducer
+});
+
+const middlewares = [thunk]
 
 const initialState = {
-  sidebarShow: 'responsive'
+  ui: initialUiState,
+  apps: initialAppsState,
+  users: initialUsersState,
+  status: initialStatusState
 }
 
-const changeState = (state = initialState, { type, ...rest }) => {
-  switch (type) {
-    case 'set':
-      return {...state, ...rest }
-    default:
-      return state
-  }
-}
-
-const store = createStore(changeState)
+const store = createStore(rootReducer, initialState, applyMiddleware(...middlewares));
 export default store

@@ -1,133 +1,36 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, {useState} from 'react'
 import {
-  CImg,
+  CBadge,
+  CButton,
   CCard,
-  CCardHeader,
   CCardBody,
+  CCardFooter,
+  CCardHeader,
   CCol,
+  CImg,
+  CLink,
+  CPopover,
   CProgress,
-  CRow, CBadge, CCardFooter, CLink, CPopover, CButton
+  CRow
 } from '@coreui/react'
-import requests from "../../requests";
 import CIcon from "@coreui/icons-react";
 import ContainerBasicInfo from "../_common/ContainerBasicInfo";
 import ContainerInfo from "../_common/ContainerInfo";
-import SessionContext from "../../sessionContext";
-
-const base64UrlEncode = (str) => {
-  return btoa(str).replace(/=+$/,""); //.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
-}
+import {getApps, getStatus} from "../../redux/selectors";
+import { useSelector} from "react-redux";
 
 const Dashboard = () => {
-  const [status, setStatus] = useState({})
-  const [appList, setAppList] = useState({ data: [] })
+
   const [containerDetails, setContainerContainerDetails] = useState("");
-  const context = useContext( SessionContext )
 
-  useEffect( () => {
-    async function fetchStatus() {
-      const response = await requests.getStatus( context.session );
-      if ( response && response.status === 200 &&
-        response.body.cyphernodeInfo &&
-        response.body.cyphernodeInfo.features &&
-        response.body.cyphernodeInfo.optional_features) {
-        // everything is ok
-
-        for ( const feature of response.body.cyphernodeInfo.features.concat( response.body.cyphernodeInfo.optional_features ) ) {
-
-          if ( !feature.active ) {
-            feature.container = {
-              state: "not running",
-            };
-            continue;
-          }
-
-          const base64Image = base64UrlEncode( feature.docker.ImageName+":"+feature.docker.Version );
-          const containerResponse = await requests.getDockerContainerByImageHash( base64Image, context.session );
-
-          if ( containerResponse && containerResponse.status === 200 ) {
-            const networks = []
-            Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
-              networks.push({
-                name: network,
-                ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
-              });
-              return network;
-            });
-            feature.container = {
-              id: containerResponse.body.Id,
-              state: containerResponse.body.State,
-              created: containerResponse.body.Created,
-              networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
-              mounts: (containerResponse.body.Mounts||[]).map( mount => mount.Source ).filter( mount => !!mount ).sort( (a,b) => a.localeCompare(b) )
-            };
-
-          } else {
-            feature.container = {
-              state: "not running",
-            };
-          }
-
-        }
-        setStatus(response.body);
-      }
-    }
-
-    fetchStatus();
-    const interval = setInterval(fetchStatus,  10*1000);
-    return () => {
-      clearInterval(interval);
-    }
-  }, [context.session] )
-
-  useEffect( () => {
-    let ignore = false;
-    async function fetchAppList() {
-      const response = await requests.getApps( context.session );
-      if ( response && response.status === 200 ) {
-        // everything is ok
-        if ( !ignore && response.body && response.body.data ) {
-          const appList = response.body || { data: [] };
-          // do not include admin app here
-          for ( const app of appList.data ) {
-            const name = app.id === 1 ? 'cyphernodeadmin':app.hash;
-            const containerResponse = await requests.getDockerContainerByName( name, context.session  );
-
-            if ( containerResponse && containerResponse.status === 200 && containerResponse.body ) {
-              const networks = []
-              Object.keys(containerResponse.body.NetworkSettings.Networks).map(network => {
-                networks.push({
-                  name: network,
-                  ipAddress: containerResponse.body.NetworkSettings.Networks[network].IPAddress
-                });
-                return network;
-              });
-              app.container = {
-                id: containerResponse.body.Id,
-                state: containerResponse.body.State,
-                created: containerResponse.body.Created,
-                networks: networks.sort( (a,b) => a.name.localeCompare(b.name) ),
-                mounts: (containerResponse.body.Mounts||[]).map( mount => mount.Source ).filter( mount => !!mount ).sort( (a,b) => a.localeCompare(b) )
-              };
-            }
-
-          }
-
-          setAppList(appList);
-        }
-      }
-    }
-
-    fetchAppList();
-    return () => { ignore = true }
-  }, [context.session] )
+  const apps = useSelector( getApps );
+  const status = useSelector( getStatus );
 
   return (
     <>
-
       <CCard>
         <CCardHeader className="h5 d-flex flex-row justify-content-between">
-          <div>{ (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync status" }</div>
+          <div>{ (status.blockchainInfo?.initialblockdownload)?"Initial block download":"Sync fetchStatus" }</div>
           <div><CBadge className="ml-1" shape="pill" color="primary">{status.blockchainInfo?.chain}</CBadge></div>
         </CCardHeader>
         <CCardBody>
@@ -222,7 +125,7 @@ const Dashboard = () => {
         <CCardBody>
           <div className="d-flex flex-row flex-wrap justify-content-center">
             {
-              appList.data.map((appData, index) => (
+              apps.map((appData, index) => (
                 <CCard key={index} style={{minWidth: "300px"}} className="mr-2">
                   <CCardHeader className="h6 d-flex justify-content-between align-items-center">
                     <div>{appData.name}</div>
@@ -290,3 +193,4 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+

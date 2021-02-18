@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import React, {useState, useEffect, useRef, useContext} from 'react'
+import React, {useRef, useContext} from 'react'
 
 import {
   CCard,
@@ -45,19 +45,17 @@ import {CIcon} from "@coreui/icons-react";
 import ReactTags from "react-tag-autocomplete";
 import rolesAreEqual from "./rolesAreEqual";
 import SessionContext from "../../sessionContext";
-import requests from "../../requests";
+import {getApps, getUsers} from "../../redux/selectors";
+import {useDispatch, useSelector} from "react-redux";
+import {createUser, deleteUser, patchUser} from "../../redux/users";
 
 const Users = () => {
 
+  const dispatch = useDispatch();
   const context = useContext( SessionContext );
-
-  const [userList, setUserList] = useState({data: []})
-  const [appList, setAppList] = useState({data: []})
-  const [roleSuggestions, setRoleSuggestions] = useState([]);
 
   const [userToEdit, setUserToEdit] = React.useState({id: -1});
   const [userIdToDelete, setUserIdToDelete] = React.useState(0);
-  const [appLookup, setAppLookup] = React.useState({});
 
   const loginRef = useRef("");
   const nameRef = useRef("");
@@ -66,74 +64,37 @@ const Users = () => {
 
   const [newRoles, setNewRoles] = React.useState([]);
 
-  useEffect(() => {
-    // component mount
-    let ignore = false;
+  const apps = useSelector( getApps );
+  const users = useSelector( getUsers );
 
-    async function fetchLists() {
-      if (ignore) {
-        return;
-      }
-      let appListResponse;
+  const appLookup = {}
+  const roleSuggestions = [];
+  for (const app of apps) {
+    appLookup[app.id] = app;
+    for (const role of app.availableRoles) {
+      roleSuggestions.push({
+        id: role.id,
+        appId: role.appId,
+        name: app.name+" - "+role.name
+      });
+    }
+  }
 
-      try {
-        appListResponse = await requests.getApps( context.session );
-      } catch (e) {
-        console.log( e );
-      }
-      const alu = {}
-      if ( appListResponse && appListResponse.status === 200) {
-        const al = appListResponse.body;
-        const rs = [];
-        for (const app of al.data) {
-          alu[app.id] = app;
-          for (const role of app.availableRoles) {
-            rs.push({
-              id: role.id,
-              appId: role.appId,
-              name: app.name+" - "+role.name
-            });
-          }
-        }
-        setRoleSuggestions(rs);
-        setAppList(al);
-        setAppLookup(alu);
-      }
+  const appsByUserId = {};
 
-      let userListResponse;
-
-      try {
-        userListResponse = await requests.getUsers( context.session );
-      } catch (e) {
-        console.log( e );
-      }
-
-      if (userListResponse && userListResponse.status === 200) {
-        // everything is ok
-        const ul = userListResponse.body;
-        for (const user of ul.data) {
-          const localAppList = [];
-          for (const role of user.roles) {
-            let app = alu[role.appId];
-            if (localAppList.indexOf(app) === -1) {
-              localAppList.push(app);
-            }
-          }
-          localAppList.sort((a, b) => {
-            return a.name > b.name ? 1 : -1
-          });
-          user.appList = localAppList;
-        }
-        setUserList(ul);
+  for (const user of users) {
+    const localAppList = [];
+    for (const role of user.roles) {
+      let app = appLookup[role.appId];
+      if (localAppList.indexOf(app) === -1) {
+        localAppList.push(app);
       }
     }
-
-    fetchLists();
-    return () => {
-      // component unmount
-      ignore = true
-    }
-  }, [context.session])
+    localAppList.sort((a, b) => {
+      return a.name > b.name ? 1 : -1
+    });
+    appsByUserId[user.id]=localAppList;
+  }
 
   const clearUserToEdit = () => {
     setUserIdToDelete(0);
@@ -158,64 +119,47 @@ const Users = () => {
       return;
     }
 
-    try {
-      if (userToEdit.id === 0) {
-        // create new user in backend
-        const createData = {
-          login: loginRef.current.value,
-          name: nameRef.current.value,
-          email_address: emailAddressRef.current.value,
-          password: passwordRef.current.value,
-          roles: newRoles
-        };
+    if (userToEdit.id === 0) {
+      // create new user in backend
+      dispatch( createUser({
+        login: loginRef.current.value,
+        name: nameRef.current.value,
+        email_address: emailAddressRef.current.value,
+        password: passwordRef.current.value,
+        roles: newRoles
+      }, context.session ));
 
-        const userCreateResponse = await requests.createUser( createData, context.session );
-        const patchedUser = userCreateResponse.body;
-        userList.data.push( patchedUser );
-        userList.data.sort( (a,b) => a.login>b.login?1:-1 );
-        setUserList(userList);
+    } else {
+      // patch user in backend if changed
+      const patchData = {
+      };
 
-      } else {
-        // patch user in backend if changed
-        const patchData = {
-        };
-
-        if ( loginRef.current.value !== userToEdit.login ) {
-          patchData.login = loginRef.current.value;
-        }
-
-        if ( nameRef.current.value !== userToEdit.name ) {
-          patchData.name = nameRef.current.value;
-        }
-
-        if ( emailAddressRef.current.value !== userToEdit.email_address ) {
-          patchData.email_address = emailAddressRef.current.value;
-        }
-
-        if ( passwordRef.current.value !== "" ) {
-          patchData.password = passwordRef.current.value;
-        }
-
-        if ( !rolesAreEqual(newRoles, userToEdit.roles)) {
-          // check which roles are new and which ones
-          // we need to delete
-          patchData.roles = newRoles;
-        }
-
-        const userPatchResponse = await requests.patchUser( userToEdit.id, patchData, context.session );
-
-        const patchedUser = userPatchResponse.body;
-        console.log( patchedUser );
-        const userIndex = userList.data.findIndex( user => user.id === patchedUser.id );
-        if ( userIndex !== -1 ) {
-          userList.data[userIndex]=patchedUser;
-          setUserList(userList);
-        }
+      if ( loginRef.current.value !== userToEdit.login ) {
+        patchData.login = loginRef.current.value;
       }
-      clearUserToEdit();
-    } catch (e) {
-      console.log( e );
+
+      if ( nameRef.current.value !== userToEdit.name ) {
+        patchData.name = nameRef.current.value;
+      }
+
+      if ( emailAddressRef.current.value !== userToEdit.email_address ) {
+        patchData.email_address = emailAddressRef.current.value;
+      }
+
+      if ( passwordRef.current.value !== "" ) {
+        patchData.password = passwordRef.current.value;
+      }
+
+      if ( !rolesAreEqual(newRoles, userToEdit.roles)) {
+        // check which roles are new and which ones
+        // we need to delete
+        patchData.roles = newRoles;
+      }
+
+      dispatch( patchUser( userToEdit.id, patchData, context.session ) );
     }
+    clearUserToEdit();
+
   }
 
   const handleEditUserDelete = async (evt) => {
@@ -226,25 +170,10 @@ const Users = () => {
     }
 
     if (userIdToDelete > 0) {
-      try {
-        const userDeleteResponse = await requests.deleteUser( userIdToDelete, context.session );
-
-        if ( userDeleteResponse.status===204) {
-          const userIndex = userList.data.findIndex( user => user.id === userIdToDelete );
-          if ( userIndex !== -1 ) {
-            userList.data.splice( userIndex, 1);
-            setUserList(userList);
-          }
-        }
-        clearUserToEdit();
-        setUserIdToDelete(0);
-        return;
-
-      } catch (e) {
-        console.log( e );
-        return;
-      }
-
+      dispatch( deleteUser( userIdToDelete, context.session ) );
+      clearUserToEdit();
+      setUserIdToDelete(0);
+      return;
     }
     setUserIdToDelete(userToEdit.id);
   }
@@ -255,15 +184,15 @@ const Users = () => {
       <CRow><CCol>
         <CCard>
           <CCardBody>
-            User data: <pre>{ JSON.stringify(context.session.jwt, null, 2) }</pre>
+            User data: <pre>{ JSON.stringify(context.session.user, null, 2) }</pre>
           </CCardBody>
         </CCard>
       </CCol></CRow>
-      <CRow> {userList.data.map((userData) => (
+      <CRow> {users.map((userData) => (
         <UserDetails
           key={userData.id}
           userData={userData}
-          appList={appList.data}
+          appList={apps}
           roleSuggestions={roleSuggestions}
           onEditClick={(userData) => {
             loginRef.current.value = userData.login;

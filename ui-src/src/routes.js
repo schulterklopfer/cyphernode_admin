@@ -61,6 +61,7 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'));
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./views/users/Users'));
+const Profile = React.lazy( () => import('./views/users/UserProfile') )
 const Apps = React.lazy(() => import('./views/apps/Apps'));
 const Features = React.lazy(() => import('./views/features/Features'));
 const Links = React.lazy(() => import('./views/links/Links'));
@@ -106,8 +107,9 @@ const routes = [
   /* TODO: delete above later */
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
-  { path: '/users', exact: true,  name: 'Users', component: Users },
-  { path: '/apps', exact: true,  name: 'Cypherapps', component: Apps },
+  { path: '/fetchUsers', exact: true,  name: 'Users', component: Users },
+  { path: '/profile', exact: true,  name: 'Profile', component: Profile },
+  { path: '/fetchApps', exact: true,  name: 'Cypherapps', component: Apps },
   { path: '/features', exact: true,  name: 'Features', component: Features },
   { path: '/links', exact: true,  name: 'Links', component: Links },
 
