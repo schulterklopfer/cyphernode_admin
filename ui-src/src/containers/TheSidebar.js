@@ -27,6 +27,9 @@ const TheSidebar = () => {
   const show = useSelector( getSidebarShow );
   const context = useContext( SessionContext );
   const user = useSelector(state => {
+    if ( !state || !state.users || !state.users.data || !state.users.data.length ) {
+      return;
+    }
     return state.users.data.find( user => user.id === context.session.jwt.id );
   });
 
