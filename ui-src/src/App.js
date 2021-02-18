@@ -65,13 +65,13 @@ class App extends Component {
   async login(username, password ) {
     try {
       const response = await login( username, password );
-      console.log( response );
       if ( response.status === 200 ) {
         // everything is ok
-        if ( !response.body || !response.body.token ) {
+        const body = await response.json();
+        if ( !body || !body.token ) {
           return ErrorCodes.UNKNOWN_ERROR;
         }
-        await this.state.session.setToken( response.body.token );
+        await this.state.session.setToken( body.token );
         this.state.session.save();
       } else if( response.status === 401 ) {
         return ErrorCodes.WRONG_CREDENTIALS;
