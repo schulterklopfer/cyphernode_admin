@@ -31,6 +31,8 @@ import {
   initialAppsState, initialUsersState, initialStatusState, initialUiState
 } from "./reducers";
 
+import { composeWithDevTools } from 'redux-devtools-extension'; // from 'redux-devtools-extension/logOnlyInProduction'
+
 const rootReducer = combineReducers({
   ui: uiReducer,
   apps: appsReducer,
@@ -47,5 +49,5 @@ const initialState = {
   status: initialStatusState
 }
 
-const store = createStore(rootReducer, initialState, applyMiddleware(...middlewares));
+const store = createStore(rootReducer, initialState, composeWithDevTools(applyMiddleware(...middlewares)));
 export default store
