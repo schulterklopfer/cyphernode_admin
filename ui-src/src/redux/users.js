@@ -24,7 +24,7 @@
 
 import {
   fetchUsersError, fetchUsersPending, fetchUsersSuccess,
-  addUserError, addUserPending, addUserSuccess,
+  createUserError, createUserPending, createUserSuccess,
   patchUserError, patchUserPending, patchUserSuccess,
   deleteUserError, deleteUserPending, deleteUserSuccess
 } from "./actions";
@@ -54,19 +54,19 @@ export function fetchUsers(session ) {
 
 export function createUser(userData, session ) {
   return dispatch => {
-    dispatch(addUserPending());
+    dispatch(createUserPending());
     __createUser(userData, session)
       .then(res => {
-        if( res.status !== 200 ) {
+        if( res.status !== 201 ) { // status created
           throw( new Error("invalid createUser status code") );
         }
         return res.json();
       })
       .then(res => {
-        dispatch(addUserSuccess(res));
+        dispatch(createUserSuccess(res));
       })
       .catch(error => {
-        dispatch(addUserError(error));
+        dispatch(createUserError(error));
       })
   }
 }
@@ -95,12 +95,12 @@ export function deleteUser( userId, session ) {
     dispatch(deleteUserPending());
     __deleteUser(userId, session)
       .then(res => {
-        if( res.status !== 200 ) {
+        if( res.status !== 204 ) {
           throw( new Error("invalid deleteUser status code") );
         }
       })
       .then(() => {
-        dispatch(deleteUserSuccess());
+        dispatch(deleteUserSuccess(userId));
       })
       .catch(error => {
         dispatch(deleteUserError(error));

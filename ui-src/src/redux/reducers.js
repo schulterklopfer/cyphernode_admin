@@ -102,6 +102,7 @@ export function appsReducer(state = initialAppsState, action) {
 
 export function usersReducer(state = initialUsersState, action) {
   let userIndex = -1;
+  let data;
   switch(action.type) {
     case FETCH_USERS_PENDING:
       return {
@@ -126,10 +127,11 @@ export function usersReducer(state = initialUsersState, action) {
         pending: true
       }
     case CREATE_USER_SUCCESS:
-      state.data.push(action.data);
+      data = state.data.concat(action.data);
       return {
         ...state,
         pending: false,
+        data
       }
     case CREATE_USER_ERROR:
       return {
@@ -144,14 +146,16 @@ export function usersReducer(state = initialUsersState, action) {
       }
     case PATCH_USER_SUCCESS:
       // find index of user with same id in state.data:
-      userIndex = state.data.findIndex( user => user.id === action.data.id );
+      data = state.data.slice();
+      userIndex = data.findIndex( user => user.id === action.data.id );
       // replace that user in state.data with action.data:
       if ( userIndex !== -1 ) {
-        state.data[userIndex]=action.data;
+        data[userIndex]=action.data;
       }
       return {
         ...state,
         pending: false,
+        data
       }
     case PATCH_USER_ERROR:
       return {
@@ -166,14 +170,16 @@ export function usersReducer(state = initialUsersState, action) {
       }
     case DELETE_USER_SUCCESS:
       // find index of user with same id in state.data:
-      userIndex = state.data.findIndex( user => user.id === action.data.id );
+      data = state.data.slice();
+      userIndex = data.findIndex( user => user.id === action.data );
       // replace that user in state.data with action.data:
       if ( userIndex !== -1 ) {
-        state.data.splice( userIndex, 1);
+        data.splice( userIndex, 1);
       }
       return {
         ...state,
         pending: false,
+        data
       }
     case DELETE_USER_ERROR:
       return {

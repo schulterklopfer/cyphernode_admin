@@ -71,20 +71,20 @@ export function fetchUsersError(error) {
   }
 }
 
-export function addUserPending() {
+export function createUserPending() {
   return {
     type: CREATE_USER_PENDING
   }
 }
 
-export function addUserSuccess(user) {
+export function createUserSuccess(user) {
   return {
     type: CREATE_USER_SUCCESS,
     data: user
   }
 }
 
-export function addUserError(error) {
+export function createUserError(error) {
   return {
     type: CREATE_USER_ERROR,
     error: error
@@ -117,10 +117,10 @@ export function deleteUserPending() {
   }
 }
 
-export function deleteUserSuccess(user) {
+export function deleteUserSuccess(userId) {
   return {
     type: DELETE_USER_SUCCESS,
-    data: user
+    data: userId
   }
 }
 
