@@ -82,7 +82,16 @@ class Login extends React.Component {
                           <CButton color="primary" onClick={() => this.setState({error: undefined})}>Ok</CButton>
                         </CModalFooter>
                       </CModal>
-                      <CForm>
+                      <CForm onSubmit={async (event)=>{
+                        event.preventDefault();
+                        const errorCode = await context.login( this.state.username, this.state.password, this.props.history );
+                        if ( !errorCode ) {
+                          this.props.history.push("/");
+                          console.log( "success");
+                        } else {
+                          this.setState({ error: ErrorStrings[errorCode] })
+                        }
+                      }}>
                         <h1>Login</h1>
                         <p className="text-muted">Sign in to cyphernode</p>
                         <CInputGroup className="mb-3">
@@ -103,15 +112,7 @@ class Login extends React.Component {
                         </CInputGroup>
                         <CRow>
                           <CCol xs="6">
-                            <CButton color="primary" className="px-4" onClick={ async (event)=>{
-                              const errorCode = await context.login( this.state.username, this.state.password, this.props.history );
-                              if ( !errorCode ) {
-                                this.props.history.push("/");
-                                console.log( "success");
-                              } else {
-                                this.setState({ error: ErrorStrings[errorCode] })
-                              }
-                            } }>Login</CButton>
+                            <CButton color="primary" className="px-4" type="submit">Login</CButton>
                           </CCol>
                           {/*
                           <CCol xs="6" className="text-right">
