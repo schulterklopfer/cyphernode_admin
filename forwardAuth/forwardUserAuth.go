@@ -69,7 +69,7 @@ func ForwardUserAuth(c *gin.Context) {
 
   if tokenString == "" {
     // lets see if there is a cookie where we can get the auth from
-    if sessionCookie, err := c.Request.Cookie("session"); err == nil {
+    if sessionCookie, err := c.Request.Cookie(helpers.GetenvOrDefault(globals.CNA_SESSION_COOKIE_NAME_ENV_KEY)); err == nil {
       tokenString = sessionCookie.Value
     }
   }

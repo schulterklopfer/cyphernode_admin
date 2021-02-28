@@ -27,6 +27,8 @@ import * as Cookies from "js-cookie";
 
 class Session {
 
+  sessionCookieName = "io.cyphernode.session";
+
   constructor() {
     const token = this._getCookie();
     this.setToken( token );
@@ -90,17 +92,17 @@ class Session {
   }
 
   _setCookie(session) {
-    Cookies.remove("session");
+    Cookies.remove(this.sessionCookieName);
     // sameSite: "Strict", HttpOnly: true
-    Cookies.set("session", session, { expires: 14});
+    Cookies.set(this.sessionCookieName, session, { expires: 14});
   }
 
   _getCookie() {
-    return Cookies.get("session");
+    return Cookies.get(this.sessionCookieName);
   }
 
   _removeCookie() {
-    Cookies.remove("session");
+    Cookies.remove(this.sessionCookieName);
   }
 
   async setToken( token ) {
