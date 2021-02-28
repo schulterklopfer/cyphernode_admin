@@ -5,11 +5,11 @@ go 1.12
 require (
 	cloud.google.com/go v0.37.4 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/SatoshiPortal/cam v0.0.0-20210123095649-b1b9e5f3afd9
+	github.com/SatoshiPortal/cam v0.0.0-20210219205004-f45be2385b55
 	github.com/containerd/containerd v1.4.3 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.2+incompatible
+	github.com/docker/docker v20.10.3+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
@@ -18,7 +18,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
-	github.com/go-resty/resty/v2 v2.4.0
+	github.com/go-resty/resty/v2 v2.5.0
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gorilla/securecookie v1.1.1
@@ -30,6 +30,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.2.0 // indirect
+	github.com/magefile/mage v1.11.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
@@ -37,15 +38,15 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/sirupsen/logrus v1.7.0
-	github.com/ugorji/go v1.2.3 // indirect
+	github.com/sirupsen/logrus v1.8.0
+	github.com/ugorji/go v1.2.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210218145215-b8e89b74b9df
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210123111255-9b0068b26619 // indirect
+	golang.org/x/sys v0.0.0-20210219172841-57ea560cfca1 // indirect
 	golang.org/x/text v0.3.5
-	google.golang.org/genproto v0.0.0-20210122163508-8081c04a3579 // indirect
+	google.golang.org/genproto v0.0.0-20210219173056-d891e3cb3b5b // indirect
 	google.golang.org/grpc v1.35.0 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
