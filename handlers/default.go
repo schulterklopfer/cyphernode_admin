@@ -30,7 +30,6 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/authentication"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
   "net/http"
   "time"
 )
@@ -79,25 +78,10 @@ func DefaultLogin( c *gin.Context ) {
     return
   }
 
-  roles, err := queries.GetRolesOfUser( user )
-
-  if err != nil {
-    c.Header("X-Status-Reason", err.Error() )
-    c.Status(http.StatusBadRequest )
-    return
-  }
-
-  var roleStrings []string
-
-  for i:=0; i<len(roles); i++ {
-    roleStrings = append(roleStrings, roles[i].Name )
-  }
-
   nowUnix := time.Now().Unix()
 
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
     "id": user.ID,
-    "roles": roleStrings,
     "exp": nowUnix + 1*24*60*60, // expires in one day
     "auth_time": nowUnix,
   })
