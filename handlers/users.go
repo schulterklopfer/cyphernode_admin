@@ -266,12 +266,10 @@ func DeleteUser(c *gin.Context) {
 
 func FindUsers(c *gin.Context) {
   var userQuery transforms.UserV0
-  var paging PagingParams
+  var paging FindParams
 
   where := make( []interface{}, 0 )
   order := ""
-  offset := uint(0)
-  limit := -1
 
   if c.Bind(&userQuery) == nil {
     fields := make( []string, 0 )
@@ -309,10 +307,6 @@ func FindUsers(c *gin.Context) {
       paging.Order = "ASC"
     }
 
-    if paging.Limit == 0 {
-      paging.Limit = 20
-    }
-
     // is Sort empty or not in ALLOWED_USER_PROPERTIES?
     if helpers.SliceIndex( len(ALLOWED_USER_PROPERTIES), func(i int) bool {
           return ALLOWED_USER_PROPERTIES[i] == paging.Sort
@@ -329,19 +323,9 @@ func FindUsers(c *gin.Context) {
     }
   }
 
-  // makes no sense to request 0 users
-  // we assume user wants no limit
-  if paging.Limit > 0 {
-    limit = paging.Limit
-  }
-
-  if paging.Page > 0 && limit > 0 {
-    offset = (paging.Page-1)*uint(limit)
-  }
-
   var users []*models.UserModel
 
-  err := queries.Find( &users, where, order, limit, offset, true )
+  err := queries.Find( &users, where, order, -1, 0, true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -356,15 +340,9 @@ func FindUsers(c *gin.Context) {
     transforms.Transform( users[i], transformedUsers[i] )
   }
 
-  pagedResult := new( PagedResult )
+  pagedResult := new(Result)
 
-  pagedResult.Page = paging.Page
-  pagedResult.Limit = paging.Limit
-  pagedResult.Sort = paging.Sort
-  pagedResult.Order = paging.Order
-  pagedResult.Data = transformedUsers
-
-  _ = queries.TotalCount( &models.UserModel{}, &pagedResult.Total )
+  pagedResult.Results = transformedUsers
 
   c.JSON(http.StatusOK, pagedResult)
 

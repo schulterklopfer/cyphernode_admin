@@ -265,12 +265,10 @@ func DeleteApp(c *gin.Context) {
 
 func FindApps(c *gin.Context) {
   var appQuery transforms.UserV0
-  var paging PagingParams
+  var paging FindParams
 
   where := make( []interface{}, 0 )
   order := ""
-  offset := uint(0)
-  limit := -1
 
   if c.Bind(&appQuery) == nil {
     fields := make( []string, 0 )
@@ -308,10 +306,6 @@ func FindApps(c *gin.Context) {
       paging.Order = "ASC"
     }
 
-    if paging.Limit == 0 {
-      paging.Limit = 20
-    }
-
     // is Sort empty or not in ALLOWED_APP_PROPERTIES?
     if helpers.SliceIndex( len(ALLOWED_APP_PROPERTIES), func(i int) bool {
       return ALLOWED_APP_PROPERTIES[i] == paging.Sort
@@ -328,19 +322,9 @@ func FindApps(c *gin.Context) {
     }
   }
 
-  // makes no sense to request 0 apps
-  // we assume app wants no limit
-  if paging.Limit > 0 {
-    limit = paging.Limit
-  }
-
-  if paging.Page > 0 && limit > 0 {
-    offset = (paging.Page-1)*uint(limit)
-  }
-
   var apps []*models.AppModel
 
-  err := queries.Find( &apps, where, order, limit, offset, true )
+  err := queries.Find( &apps, where, order, -1, 0, true )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -355,15 +339,8 @@ func FindApps(c *gin.Context) {
     transforms.Transform( apps[i], transformedApps[i] )
   }
 
-  pagedResult := new( PagedResult )
-
-  pagedResult.Page = paging.Page
-  pagedResult.Limit = paging.Limit
-  pagedResult.Sort = paging.Sort
-  pagedResult.Order = paging.Order
-  pagedResult.Data = transformedApps
-
-  _ = queries.TotalCount( &models.AppModel{}, &pagedResult.Total )
+  pagedResult := new(Result)
+  pagedResult.Results = transformedApps
 
   c.JSON(http.StatusOK, pagedResult)
 
