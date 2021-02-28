@@ -38,6 +38,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) initAuthHandlers() {
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
+  /* session */
   cyphernodeAdmin.engineInternal.GET( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
   cyphernodeAdmin.engineInternal.PATCH( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.PatchSession )
   cyphernodeAdmin.engineInternal.DELETE( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.DeleteSession )
@@ -57,13 +58,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
     }
     c.Next()
   })
-}
 
-func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {
-  cyphernodeAdmin.engineExternal.GET(globals.PRIVATE_ENDPOINTS_LOGOUT, handlers.DefaultLogout )
-}
-
-func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
+  /* users */
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_USERS+"", handlers.FindUsers)
   cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_USERS+"", handlers.CreateUser)
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_USERS+"/:id", handlers.GetUser)
@@ -72,9 +68,8 @@ func (cyphernodeAdmin *CyphernodeAdmin) initUsersHandlers() {
   cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_USERS+"/:id/roles", handlers.UserAddRoles )
   cyphernodeAdmin.engineExternal.PATCH(globals.BASE_ENDPOINT_USERS+"/:id/roles", handlers.UserPatchRoles )
   cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_USERS+"/:id/roles/:roleId", handlers.UserRemoveRole )
-}
 
-func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
+  /* apps */
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_APPS+"", handlers.FindApps)
   cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_APPS+"", handlers.CreateApp)
   cyphernodeAdmin.engineExternal.GET(globals.BASE_ENDPOINT_APPS+"/:id", handlers.GetApp)
@@ -83,6 +78,13 @@ func (cyphernodeAdmin *CyphernodeAdmin) initAppsHandlers() {
   cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_APPS+"/:id", handlers.DeleteApp )
   cyphernodeAdmin.engineExternal.POST(globals.BASE_ENDPOINT_APPS+"/:id/roles", handlers.AppAddRoles )
   cyphernodeAdmin.engineExternal.DELETE(globals.BASE_ENDPOINT_APPS+"/:id/roles/:roleId", handlers.AppRemoveRole )
+
+  /* session */
+  //cyphernodeAdmin.engineExternal.GET( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
+}
+
+func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {
+  cyphernodeAdmin.engineExternal.GET(globals.PRIVATE_ENDPOINTS_LOGOUT, handlers.DefaultLogout )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initDockerHandlers() {

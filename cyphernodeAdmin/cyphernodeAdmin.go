@@ -132,8 +132,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   // create handlers for public and private endpoints
   cyphernodeAdmin.initInternalHandlers()
   cyphernodeAdmin.initPrivateHandlers()
-  cyphernodeAdmin.initUsersHandlers()
-  cyphernodeAdmin.initAppsHandlers()
   cyphernodeAdmin.initDockerHandlers()
   cyphernodeAdmin.initBlocksHandlers()
   cyphernodeAdmin.initAuthHandlers()
