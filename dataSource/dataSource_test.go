@@ -29,18 +29,13 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
   "github.com/sirupsen/logrus"
-  "math/rand"
-  "os"
-  "strconv"
   "testing"
-  "time"
 )
 
 func TestDataSource(t *testing.T) {
-  r := rand.New(rand.NewSource(time.Now().UnixNano()))
   logwrapper.Logger().SetLevel( logrus.PanicLevel )
-  dbFile := "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
-  dataSource.Init(dbFile)
+  dbDsn := "host=localhost port=5432 user=cnadmin password=cnadmin dbname=cnadmin sslmode=disable"
+  dataSource.Init(dbDsn)
 
   t.Run("testCreateApp", testCreateApp )
   t.Run("testLoadApp", testLoadApp )
@@ -50,13 +45,11 @@ func TestDataSource(t *testing.T) {
 
   dataSource.Close()
 
-  os.Remove(dbFile)
 }
 
 func testCreateApp(t *testing.T) {
 
   app1 := new(models.AppModel)
-  app1.ClientSecret = "hash1"
   app1.Name = "app1"
   app1.Description = "description"
 
@@ -75,7 +68,7 @@ func testCreateApp(t *testing.T) {
   db := dataSource.GetDB()
   db.Create(app1)
 
-  if db.NewRecord(app1) || db.NewRecord(role1) || db.NewRecord(role2) {
+  if app1.ID == 0 || role1.ID == 0 || role2.ID == 0 {
     t.Error("Failed to insert app")
   }
 
@@ -128,7 +121,7 @@ func testCreateUser(t *testing.T) {
 
   db.Create(user)
 
-  if db.NewRecord(user) {
+  if user.ID == 0 {
     t.Error("Failed to insert user")
   }
 }

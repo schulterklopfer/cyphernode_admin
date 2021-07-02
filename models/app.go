@@ -39,21 +39,21 @@ type AccessPolicies []*storage.AccessPolicy
 // this is used to create jsonb Data which then
 // will ne saved to the db by gorm
 func (aps AccessPolicies) Value() (driver.Value, error) {
-  bytes, err := json.Marshal( aps )
+  jsonValue, err := json.Marshal(aps)
   if err != nil {
     return nil, err
   }
-  return bytes, nil
+  return string(jsonValue), nil
 }
 
 // convert jsonb Data from database back into
 // a struct
 func (aps *AccessPolicies) Scan(value interface{}) error {
-  bytes, ok := value.([]byte)
+  jsonValue, ok := value.([]byte)
   if !ok {
     return errors.New(fmt.Sprint("Failed to unmarshal access policies:", value))
   }
-  err := json.Unmarshal(bytes, aps)
+  err := json.Unmarshal(jsonValue, aps)
   return err
 }
 
@@ -67,21 +67,21 @@ type Meta struct {
 // this is used to create jsonb Data which then
 // will ne saved to the db by gorm
 func (meta Meta) Value() (driver.Value, error) {
-  bytes, err := json.Marshal(meta)
+  jsonValue, err := json.Marshal(meta)
   if err != nil {
     return nil, err
   }
-  return bytes, nil
+  return string(jsonValue), nil
 }
 
 // convert jsonb Data from database back into
 // a struct
 func (meta *Meta) Scan(value interface{}) error {
-  bytes, ok := value.([]byte)
+  jsonValue, ok := value.([]byte)
   if !ok {
     return errors.New(fmt.Sprint("Failed to unmarshal access policies:", value))
   }
-  err := json.Unmarshal(bytes, meta)
+  err := json.Unmarshal(jsonValue, meta)
   return err
 }
 
@@ -95,8 +95,8 @@ type AppModel struct {
   Description    string         `json:"description" gorm:"type:varchar(255)"`
   Version        string         `json:"version" gorm:"type:varchar(255)"`
   AvailableRoles []*RoleModel   `json:"availableRoles" gorm:"foreignkey:AppId;preload"`
-  AccessPolicies AccessPolicies `json:"accessPolicies,omitempty" gorm:"type:jsonb"`
-  Meta           *Meta          `json:"meta,omitempty" gorm:"type:jsonb"`
+  AccessPolicies AccessPolicies `json:"accessPolicies,omitempty" gorm:"type:jsonb;default:'null'"`
+  Meta           *Meta          `json:"meta,omitempty" gorm:"type:jsonb;default:'null'"`
 }
 
 func ( app *AppModel ) AfterDelete( tx *gorm.DB ) {

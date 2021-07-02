@@ -50,7 +50,7 @@ func UpdateUser( user *models.UserModel ) error {
     tx.Rollback()
     return err
   }
-  err = tx.Model(&user).Association("Roles").Replace(user.Roles).Error
+  err = tx.Model(&user).Association("Roles").Replace(user.Roles)
   if err != nil {
     tx.Rollback()
     return err

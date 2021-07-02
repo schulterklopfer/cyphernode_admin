@@ -57,26 +57,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
 
   tx := db.Begin()
 
-  if adminRole.ID != 1 {
-    logwrapper.Logger().Info("adding admin role")
-    adminRole.ID = 1
-    adminRole.Name = ADMIN_APP_ADMIN_ROLE_NAME
-    adminRole.Description = ADMIN_APP_ADMIN_ROLE_DESCRIPTION
-    adminRole.AutoAssign = false
-    adminRole.AppId = 1
-    tx.Create(adminRole)
-  }
-
-  if userRole.ID != 2 {
-    logwrapper.Logger().Info("adding user role")
-    userRole.ID = 2
-    userRole.Name = ADMIN_APP_USER_ROLE_NAME
-    userRole.Description = ADMIN_APP_USER_ROLE_DESCRIPTION
-    userRole.AutoAssign = true
-    userRole.AppId = 1
-    tx.Create(userRole)
-  }
-
   if adminApp.ID != 1 {
     logwrapper.Logger().Info("adding admin app")
     adminApp.ID = 1
@@ -135,15 +115,43 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     tx.Create(adminApp)
   }
 
-  hasAdminRole := false
+  if adminRole.ID != 1 {
+    logwrapper.Logger().Info("adding admin role")
+    adminRole.ID = 1
+    adminRole.Name = ADMIN_APP_ADMIN_ROLE_NAME
+    adminRole.Description = ADMIN_APP_ADMIN_ROLE_DESCRIPTION
+    adminRole.AutoAssign = false
+    adminRole.AppId = 1
+    tx.Create(adminRole)
+  }
+
+  if userRole.ID != 2 {
+    logwrapper.Logger().Info("adding user role")
+    userRole.ID = 2
+    userRole.Name = ADMIN_APP_USER_ROLE_NAME
+    userRole.Description = ADMIN_APP_USER_ROLE_DESCRIPTION
+    userRole.AutoAssign = true
+    userRole.AppId = 1
+    tx.Create(userRole)
+  }
+
+  adminAppHasAdminRole := false
+  adminAppHasUserRole := false
   for i:=0; i<len(adminApp.AvailableRoles); i++ {
     if adminApp.AvailableRoles[i].ID == adminRole.ID {
-      hasAdminRole = true
+      adminAppHasAdminRole = true
+    }
+    if adminApp.AvailableRoles[i].ID == userRole.ID {
+      adminAppHasUserRole = true
     }
   }
 
-  if !hasAdminRole {
+  if !adminAppHasAdminRole {
     tx.Model(&adminApp).Association("AvailableRoles").Append(adminRole)
+  }
+
+  if !adminAppHasUserRole {
+    tx.Model(&adminApp).Association("AvailableRoles").Append(userRole)
   }
 
   if adminUser.ID != 1 {
@@ -156,16 +164,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) migrate() error {
     tx.Create(adminUser)
   }
 
-  // append all existing roles to super admin user
-  var allRoles []models.RoleModel
-
-  err = tx.Find( &allRoles ).Error
-
-  if err != nil {
-    return err
-  }
-
-  for _, role := range allRoles {
+  for _, role := range []*models.RoleModel{adminRole,userRole} {
     tx.Model(&adminUser).Association("Roles").Append(role)
   }
 

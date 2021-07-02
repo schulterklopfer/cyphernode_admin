@@ -63,7 +63,7 @@ func Update( model interface{} ) error {
   return db.Save( model ).Error
 }
 
-func Find( out interface{}, where []interface{}, order string, limit int, offset uint, recursive bool ) error {
+func Find( out interface{}, where []interface{}, order string, limit int, offset int, recursive bool ) error {
 
   /*
      where == nil -> no where
@@ -126,11 +126,5 @@ func LoadRoles( in interface{} ) error {
       in.(*models.AppModel).AvailableRoles = roles
     }
   }
-  return db.Error
-}
-
-func TotalCount( model interface{}, count *uint ) error {
-  db := dataSource.GetDB()
-  db.Model( model ).Count( count )
   return db.Error
 }

@@ -1,48 +1,13 @@
 version: '3.3'
 
 services:
-  webserver:
-    hostname: webserver
-    build:
-      context: ./_dummyWebserver
-      dockerfile: Dockerfile
-    image: traefikauthtest/webserver:latest
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.webserver.rule=PathPrefix(`/sparkwallet`)
-      # - traefik.http.routers.webserver.tls=false
-      - traefik.http.routers.webserver.entrypoints=web
-      - traefik.http.routers.webserver.service=webserver
-      - traefik.http.routers.webserver.middlewares=webserver-stripprefix@docker
-      - traefik.http.services.webserver.loadbalancer.server.port=3000
-      - traefik.http.middlewares.webserver-stripprefix.stripprefix.prefixes=/sparkwallet,/sparkwallet/
-      - traefik.http.middlewares.webserver-stripprefix.stripprefix.forceSlash=true
+  db:
+    hostname: db
+    image: postgres:13-alpine
     restart: always
-  cyphernodeadmin:
-    hostname: cyphernodeadmin
-    build:
-      context: ./
-      dockerfile: Dockerfile
-
-    image: traefikauthtest/cyphernodeadmin:latest
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.cyphernodeadmin.rule=PathPrefix(`/admin`)
-      - traefik.http.routers.cyphernodeadmin.entrypoints=web
-      - traefik.http.routers.cyphernodeadmin.service=cyphernodeadmin
-      - traefik.http.routers.cyphernodeadmin.middlewares=cyphernodeadmin-stripprefix@docker
-      - traefik.http.services.cyphernodeadmin.loadbalancer.server.port=3030
-      - traefik.http.middlewares.cyphernodeadmin-stripprefix.stripprefix.prefixes=/admin,/admin/
-      - traefik.http.middlewares.cyphernodeadmin-stripprefix.stripprefix.forceSlash=true
-    restart: always
-    volumes:
-      - "/Users/jash/go/src/github.com/SatoshiPortal/cam/apps:/data/apps"
-  traefik:
-    image: traefik:v2.3.6
+    environment:
+      - POSTGRES_USER=cnadmin
+      - POSTGRES_PASSWORD=cnadmin
+      - POSTGRES_DB=cnadmin
     ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
-    volumes:
-      - "/Users/jash/go/src/github.com/schulterklopfer/cyphernode_admin/traefik.toml:/etc/traefik/traefik.toml"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - 5432:5432

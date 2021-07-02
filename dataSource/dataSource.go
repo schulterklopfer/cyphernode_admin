@@ -25,8 +25,9 @@
 package dataSource
 
 import (
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "gorm.io/driver/postgres"
+  "gorm.io/gorm"
+  //_ "github.com/jinzhu/gorm/dialects/sqlite"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/schulterklopfer/cyphernode_admin/models"
@@ -38,13 +39,19 @@ func GetDB() *gorm.DB {
   return db
 }
 
-func Init( databaseFile string ) error {
+func Init( dsn string ) error {
   if db != nil {
     return nil
   }
   var err error
-  logwrapper.Logger().Info( "Opening database "+databaseFile)
-  db, err = gorm.Open("sqlite3", databaseFile )
+  logwrapper.Logger().Info( "Opening database "+dsn)
+
+  db, err = gorm.Open(postgres.New(postgres.Config{
+    DSN: dsn,
+    PreferSimpleProtocol: true, // disables implicit prepared statement usage
+  }), &gorm.Config{})
+
+  //db, err = gorm.Open("sqlite3", dsn )
   if err != nil {
     logwrapper.Logger().Panic("failed to connect to database "+err.Error() )
     return err
@@ -60,7 +67,12 @@ func Close() {
   if db == nil {
     return
   }
-  db.Close()
+
+  sqlDB, err := db.DB()
+  if err != nil {
+    logwrapper.Logger().Panic("failed to close " + err.Error())
+  }
+  defer sqlDB.Close()
   db = nil
 }
 
@@ -73,5 +85,5 @@ func AutoMigrate() error {
     &models.UserModel{},
     &models.AppModel{},
     &models.RoleModel{},
-    &models.SessionModel{} ).Error
+    &models.SessionModel{} )
 }

@@ -55,7 +55,7 @@ const ADMIN_APP_USER_ROLE_DESCRIPTION string = "Regular user"
 
 
 type Config struct {
-  DatabaseFile string
+  DatabaseDsn string
   InitialAdminLogin string
   InitialAdminPassword string
   InitialAdminName string
@@ -87,7 +87,7 @@ func Get() *CyphernodeAdmin {
 
 func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
-  err := dataSource.Init(cyphernodeAdmin.Config.DatabaseFile)
+  err := dataSource.Init(cyphernodeAdmin.Config.DatabaseDsn)
   if err != nil {
     logwrapper.Logger().Error("Failed to create database" )
     return err

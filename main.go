@@ -30,14 +30,23 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/helpers"
   "github.com/schulterklopfer/cyphernode_admin/logwrapper"
   "github.com/sirupsen/logrus"
+  "log"
+  "net/http"
   "os"
+  _ "net/http/pprof"
 )
+
+
 func main() {
+
+  go func() {
+    log.Println( http.ListenAndServe("localhost:6060", nil))
+  }()
 
   logwrapper.Logger().SetLevel(logrus.TraceLevel)
 
   app := cyphernodeAdmin.NewCyphernodeAdmin( &cyphernodeAdmin.Config{
-      DatabaseFile: helpers.GetenvOrDefault(globals.CNA_ADMIN_DATABASE_FILE_ENV_KEY ),
+      DatabaseDsn: helpers.GetenvOrDefault(globals.CNA_ADMIN_DATABASE_DSN_ENV_KEY ),
       InitialAdminLogin: helpers.GetenvOrDefault( globals.CNA_ADMIN_LOGIN_ENV_KEY ),
       InitialAdminPassword: helpers.GetenvOrDefault(globals.CNA_ADMIN_PASSWORD_ENV_KEY ),
       InitialAdminName: helpers.GetenvOrDefault(globals.CNA_ADMIN_NAME_ENV_KEY ),
