@@ -25,7 +25,7 @@
 package authentication
 
 import (
-  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_fauth/models"
   "github.com/schulterklopfer/cyphernode_fauth/password"
   "github.com/schulterklopfer/cyphernode_fauth/queries"
@@ -40,11 +40,11 @@ func CheckUserPassword( login string, pwString string ) (*models.UserModel, erro
   }
 
   if len(users) != 1 {
-    return nil, cnaErrors.ErrNoSuchUser
+    return nil, globals.ErrNoSuchUser
   }
 
   if !password.CheckPasswordHash( pwString, users[0].Password ) {
-    return nil, cnaErrors.ErrLoginOrPasswordWrong
+    return nil, globals.ErrLoginOrPasswordWrong
   }
 
   return users[0], nil

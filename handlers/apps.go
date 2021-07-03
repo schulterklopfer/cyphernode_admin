@@ -26,7 +26,7 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "github.com/schulterklopfer/cyphernode_fauth/helpers"
   "github.com/schulterklopfer/cyphernode_fauth/models"
@@ -85,11 +85,11 @@ func CreateApp(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case cnaErrors.ErrDuplicateUser:
+    case globals.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case cnaErrors.ErrUserHasUnknownRole:
+    case globals.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
       return
@@ -145,11 +145,11 @@ func UpdateApp(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case cnaErrors.ErrDuplicateUser:
+    case globals.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case cnaErrors.ErrUserHasUnknownRole:
+    case globals.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
       return
@@ -204,11 +204,11 @@ func PatchApp(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case cnaErrors.ErrDuplicateUser:
+    case globals.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case cnaErrors.ErrUserHasUnknownRole:
+    case globals.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
       return
@@ -375,7 +375,7 @@ func AppAddRoles(c *gin.Context) {
 
     if err != nil {
       switch err {
-      case cnaErrors.ErrCannotAddExistingRole:
+      case globals.ErrCannotAddExistingRole:
         c.Header("X-Status-Reason", "Trying to add an existing role" )
         c.Status(http.StatusBadRequest)
       default:
@@ -422,7 +422,7 @@ func AppRemoveRole(c *gin.Context) {
       err := queries.RemoveRoleFromApp( &app, uint(roleId) )
       if err != nil {
         switch err {
-        case cnaErrors.ErrNoSuchRole:
+        case globals.ErrNoSuchRole:
           c.Header("X-Status-Reason", "App does not have that role" )
           c.Status(http.StatusBadRequest)
         default:

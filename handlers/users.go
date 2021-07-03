@@ -28,7 +28,7 @@ import (
   "encoding/json"
   "github.com/dgrijalva/jwt-go"
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
+  "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "github.com/schulterklopfer/cyphernode_fauth/helpers"
   "github.com/schulterklopfer/cyphernode_fauth/models"
@@ -130,11 +130,11 @@ func CreateUser(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case cnaErrors.ErrDuplicateUser:
+    case globals.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case cnaErrors.ErrUserHasUnknownRole:
+    case globals.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
       return
@@ -195,11 +195,11 @@ func PatchUser(c *gin.Context) {
 
   if err != nil {
     switch err {
-    case cnaErrors.ErrDuplicateUser:
+    case globals.ErrDuplicateUser:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusConflict )
       return
-    case cnaErrors.ErrUserHasUnknownRole:
+    case globals.ErrUserHasUnknownRole:
       c.Header("X-Status-Reason", err.Error() )
       c.Status(http.StatusBadRequest )
       return
@@ -426,10 +426,10 @@ func UserAddRoles(c *gin.Context) {
     err = queries.AddRoleToUser( &user, uint( roleInputs[i].ID ) )
     if err != nil {
       switch err {
-      case cnaErrors.ErrNoSuchRole:
+      case globals.ErrNoSuchRole:
         c.Header("X-Status-Reason", "Role does not exist" )
         c.Status(http.StatusBadRequest)
-      case cnaErrors.ErrUserAlreadyHasRole:
+      case globals.ErrUserAlreadyHasRole:
         c.Header("X-Status-Reason", "Trying to add role twice" )
         c.Status(http.StatusBadRequest)
       default:
