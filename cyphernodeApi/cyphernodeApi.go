@@ -29,7 +29,7 @@ import (
   "crypto/x509"
   "github.com/go-resty/resty/v2"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
   "io/ioutil"
   "net/http"
   "path"

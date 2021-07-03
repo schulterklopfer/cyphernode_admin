@@ -24,7 +24,7 @@
 
 package transforms
 
-import "github.com/schulterklopfer/cyphernode_admin/models"
+import "github.com/schulterklopfer/cyphernode_fauth/models"
 
 type (
   AppV0 struct {

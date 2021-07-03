@@ -27,13 +27,13 @@ package main
 import (
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/logwrapper"
   "github.com/sirupsen/logrus"
   "log"
   "net/http"
-  "os"
   _ "net/http/pprof"
+  "os"
 )
 
 

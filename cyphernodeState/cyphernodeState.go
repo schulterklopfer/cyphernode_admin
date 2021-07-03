@@ -28,8 +28,8 @@ import (
   "github.com/SatoshiPortal/cam/cyphernodeInfo"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeApi"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/logwrapper"
   "sync"
   "time"
 )

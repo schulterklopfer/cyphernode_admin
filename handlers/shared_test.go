@@ -25,16 +25,13 @@
 package handlers_test
 
 import (
+  "bytes"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_fauth/dataSource"
+  "github.com/schulterklopfer/cyphernode_fauth/logwrapper"
+  "github.com/schulterklopfer/cyphernode_fauth/test_helpers"
   "github.com/sirupsen/logrus"
-  "math/rand"
   "net/http/httptest"
-  "os"
-  "strconv"
   "testing"
   "time"
 )
@@ -43,11 +40,21 @@ var testServer *httptest.Server
 
 func TestMain( m *testing.M ) {
 
-  r := rand.New(rand.NewSource(time.Now().UnixNano()))
   logwrapper.Logger().SetLevel( logrus.PanicLevel )
 
+  // startup fresh postgres db
+  println( "Preparing test env" )
+  containerId, err := test_helpers.StartupPostgres()
+
+  if err != nil {
+    return
+  }
+
+  println( "Waiting 3 seconds for database" )
+  time.Sleep(3 * time.Second)
+
   var config cyphernodeAdmin.Config
-  config.DatabaseFile = "/tmp/tests_"+strconv.Itoa(r.Intn(1000000 ))+".sqlite3"
+  config.DatabaseDsn = "host=localhost port=5432 user=cnadmin password=cnadmin dbname=cnadmin sslmode=disable"
   config.InitialAdminEmailAddress = "email@email.com"
   config.InitialAdminName = "admin"
   config.InitialAdminLogin = "admin"
@@ -55,29 +62,89 @@ func TestMain( m *testing.M ) {
   config.DisableAuth = true
 
   cnAdmin := cyphernodeAdmin.NewCyphernodeAdmin( &config )
-  cnAdmin.Init()
+  err = cnAdmin.Init()
+
+  if err != nil {
+    return
+  }
 
   testServer = httptest.NewServer( cnAdmin.Engine() )
 
-  var role models.RoleModel
+  err = createDummyAdminApp( testServer )
 
-  role.Name = "testRole"
-  role.AutoAssign = false
-  role.AppId = 99999
+  if err != nil {
+    println( "Closing test server" )
+    testServer.Close()
+    return
+  }
 
-  _ = queries.CreateRole(&role)
+  err = createDummyAdminUser( testServer )
 
-  code := m.Run()
+  if err != nil {
+    println( "Closing test server" )
+    testServer.Close()
+    return
+  }
 
-  testServer.Close()
-  dataSource.Close()
-  os.Remove(config.DatabaseFile)
+  defer func() {
+    println( "Closing test server" )
+    testServer.Close()
+    println( "Closing database connections" )
+    dataSource.Close()
+    println( "Removing database container" )
+    _ = test_helpers.CleanupContainer(containerId)
+  }()
 
-  os.Exit(code)
+  m.Run()
+
+}
+
+func createDummyAdminApp( testServer *httptest.Server ) error {
+  jsonInput := `
+{
+  "name": "dummy admin app",
+  "description": "dummy admin app",
+  "clientSecret": "01234567890123456789012345678912",
+  "availableRoles": [
+    {
+      "name": "admin",
+      "description": "god admin",
+      "autoAssign": false
+    },
+    {
+      "name": "user",
+      "description": "admin app user",
+      "autoAssign": true
+    }
+  ]
+}
+`
+  _, err := testServer.Client().Post( testServer.URL+"/api/v0/apps/", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
+
+  if err != nil {
+    return err
+  }
+  return nil
+}
+
+func createDummyAdminUser( testServer *httptest.Server ) error {
+  jsonInput := `
+{
+  "login": "admin",
+  "name": "admin",
+  "email_address": "admin@admin.com",
+  "password": "test123"
+}
+`
+  _, err := testServer.Client().Post( testServer.URL+"/api/v0/users/", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
+
+  if err != nil {
+    return err
+  }
+  return nil
 }
 
 func TestEveryting( t *testing.T ) {
   t.Run("apps", testAppHandlers )
   t.Run("users", testUserHandlers )
-  t.Run("sessions", testSessionHandlers )
 }

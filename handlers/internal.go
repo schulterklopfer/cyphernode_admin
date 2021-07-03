@@ -26,7 +26,7 @@ package handlers
 
 import (
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_fauth/models"
   "gopkg.in/validator.v2"
   "net/http"
 )

@@ -27,10 +27,10 @@ package handlers
 import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/models"
+  "github.com/schulterklopfer/cyphernode_fauth/queries"
   "gopkg.in/validator.v2"
   "net/http"
   "strconv"
@@ -240,7 +240,7 @@ func DeleteApp(c *gin.Context) {
 
   var app models.AppModel
 
-  err = queries.Get( &app, uint(id), true )
+  err = queries.Get( &app, uint(id), false )
 
   if err != nil {
     c.Status(http.StatusInternalServerError)
@@ -264,7 +264,7 @@ func DeleteApp(c *gin.Context) {
 }
 
 func FindApps(c *gin.Context) {
-  var appQuery transforms.UserV0
+  var appQuery transforms.AppV0
   var paging FindParams
 
   where := make( []interface{}, 0 )
@@ -278,16 +278,6 @@ func FindApps(c *gin.Context) {
       args = append( args, appQuery.Name+"%" )
     }
 
-    if appQuery.Login != "" {
-      fields = append( fields, "login LIKE ?" )
-      args = append( args, appQuery.Login+"%" )
-    }
-
-    if appQuery.EmailAddress != "" {
-      fields = append( fields, "email_address LIKE ?" )
-      args = append( args, appQuery.EmailAddress+"%" )
-    }
-
     if len(fields) > 0 {
       where = append( where, strings.Join( fields, " AND ") )
       where = append( where, args...)
@@ -299,7 +289,7 @@ func FindApps(c *gin.Context) {
 
 
     if paging.Sort == "" {
-      paging.Sort = "login"
+      paging.Sort = "name"
     }
 
     if paging.Order == "" {

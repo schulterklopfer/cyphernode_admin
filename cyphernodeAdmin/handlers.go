@@ -26,24 +26,10 @@ package cyphernodeAdmin
 
 import (
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/forwardAuth"
   "github.com/schulterklopfer/cyphernode_admin/globals"
   "github.com/schulterklopfer/cyphernode_admin/handlers"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
 )
-
-func (cyphernodeAdmin *CyphernodeAdmin) initAuthHandlers() {
-  cyphernodeAdmin.engineAuth.GET( globals.FORWARD_AUTH_ENDPOINTS_AUTH, forwardAuth.ForwardUserAuth)
-  cyphernodeAdmin.engineAuth.GET( globals.PROXY_GATEKEEPER_ENDPOINTS_AUTH, forwardAuth.ForwardGatekeeperAuth)
-}
-
-func (cyphernodeAdmin *CyphernodeAdmin) initInternalHandlers() {
-  /* session */
-  cyphernodeAdmin.engineInternal.GET( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
-  cyphernodeAdmin.engineInternal.PATCH( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.PatchSession )
-  cyphernodeAdmin.engineInternal.DELETE( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.DeleteSession )
-  cyphernodeAdmin.engineInternal.POST( globals.BASE_ENDPOINT_SESSIONS+"", handlers.CreateSession )
-}
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
   cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )

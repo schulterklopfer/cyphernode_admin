@@ -34,5 +34,5 @@ type FindParams struct {
 
 type Result struct {
   Results interface{} `json:"results"`
-  Error string `json:"errors"`
+  Error string `json:"error"`
 }

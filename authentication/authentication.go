@@ -26,9 +26,9 @@ package authentication
 
 import (
   "github.com/schulterklopfer/cyphernode_admin/cnaErrors"
-  "github.com/schulterklopfer/cyphernode_admin/models"
-  "github.com/schulterklopfer/cyphernode_admin/password"
-  "github.com/schulterklopfer/cyphernode_admin/queries"
+  "github.com/schulterklopfer/cyphernode_fauth/models"
+  "github.com/schulterklopfer/cyphernode_fauth/password"
+  "github.com/schulterklopfer/cyphernode_fauth/queries"
 )
 
 func CheckUserPassword( login string, pwString string ) (*models.UserModel, error) {

@@ -30,15 +30,14 @@ import (
   "github.com/SatoshiPortal/cam/utils"
   "github.com/gin-contrib/cors"
   "github.com/gin-gonic/gin"
-  "github.com/schulterklopfer/cyphernode_admin/appList"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeApi"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeKeys"
   "github.com/schulterklopfer/cyphernode_admin/cyphernodeState"
-  "github.com/schulterklopfer/cyphernode_admin/dataSource"
   "github.com/schulterklopfer/cyphernode_admin/dockerApi"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
-  "github.com/schulterklopfer/cyphernode_admin/logwrapper"
+  "github.com/schulterklopfer/cyphernode_fauth/dataSource"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/logwrapper"
   "golang.org/x/sync/errgroup"
   "io/ioutil"
   "strconv"
@@ -67,7 +66,6 @@ type CyphernodeAdmin struct {
   Config         *Config
   engineInternal *gin.Engine
   engineExternal *gin.Engine
-  engineAuth     *gin.Engine
   routerGroups   map[string]*gin.RouterGroup
   ClientID       string
   Secret         string
@@ -104,13 +102,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   }
 
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
-  err = cyphernodeAdmin.migrate()
-  if err != nil {
-    logwrapper.Logger().Error("Failed to init database" )
-    return err
-  }
 
-  cyphernodeAdmin.engineAuth = gin.New()
   cyphernodeAdmin.engineInternal = gin.New()
   cyphernodeAdmin.engineExternal = gin.New()
 
@@ -130,41 +122,13 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
   }
   */
   // create handlers for public and private endpoints
-  cyphernodeAdmin.initInternalHandlers()
   cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initDockerHandlers()
   cyphernodeAdmin.initBlocksHandlers()
-  cyphernodeAdmin.initAuthHandlers()
   cyphernodeAdmin.initPublicHandlers()
-
-  err = appList.Init( helpers.GetenvOrDefault( globals.CYPHERAPPS_INSTALL_DIR_ENV_KEY ) )
-  if err != nil {
-    logwrapper.Logger().Error("Failed to init applist" )
-    return err
-  }
 
   return nil
 }
-
-/*
-func CheckSession() gin.HandlerFunc {
-  return func(c *gin.Context) {
-    if !helpers.EndpointIsPublic( c.Request.URL.Path ) {
-      // fetch userinfo from hydra
-      if _, exists := c.Get("user"); !exists {
-        user, err := cnaOIDC.GetUser(c.Writer, c.Request)
-        if err != nil {
-          c.Redirect(http.StatusTemporaryRedirect, globals.ROUTER_GROUPS_BASE_ENDPOINT_PUBLIC+globals.PUBLIC_ENDPOINTS_LOGIN)
-          return
-        }
-        // put it in gin context for other handlers
-        c.Set("user", user)
-      }
-    }
-    c.Next()
-  }
-}
- */
 
 func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
   return cyphernodeAdmin.engineExternal
@@ -173,11 +137,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
 
   var g errgroup.Group
-
-  // oathkeeper session checker
-  g.Go(func() error {
-    return  cyphernodeAdmin.engineAuth.Run(":3032")
-  })
 
   // internal interface, only available to cypherapps
   g.Go(func() error {

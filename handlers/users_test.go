@@ -30,12 +30,13 @@ import (
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "io/ioutil"
   "net/http"
+  "strconv"
   "testing"
 )
 
 func testUserHandlers( t *testing.T ) {
-  t.Run( "testGetUser", testGetUser )
   t.Run( "testCreateUser", testCreateUser )
+  t.Run( "testGetUser", testGetUser )
   t.Run( "testUserAddRole", testUserAddRole )
   t.Run( "testUserRemoveRole", testUserRemoveRole )
   t.Run( "testPatchUser", testPatchUser )
@@ -43,34 +44,8 @@ func testUserHandlers( t *testing.T ) {
   t.Run( "testDeleteUser", testDeleteUser )
 }
 
-func testGetUser(t *testing.T) {
+var createdUserId = uint(0)
 
-  res, err := testServer.Client().Get( testServer.URL+"/api/v0/users/1" )
-
-  if err != nil {
-    t.Error(err)
-  }
-
-  body, err := ioutil.ReadAll(res.Body)
-  if err != nil {
-    t.Error(err)
-  }
-
-  if res.StatusCode != http.StatusOK {
-    t.Error("wrong status")
-  }
-
-  var user transforms.UserV0
-  json.Unmarshal(body, &user)
-
-  if user.Login != "admin" ||
-      user.Name != "admin" ||
-      user.EmailAddress != "email@email.com" ||
-      user.ID != 1 ||
-      len(user.Roles) != 1 {
-    t.Error( "error in get user" )
-  }
-}
 
 func testCreateUser(t *testing.T) {
 
@@ -106,7 +81,37 @@ func testCreateUser(t *testing.T) {
   if user.Login != "testUser" ||
       user.Name != "name" ||
       user.EmailAddress != "email@test.com" ||
-      user.ID != 2 ||
+      len(user.Roles) != 1 {
+    t.Error( "error in get user" )
+  }
+
+  createdUserId = user.ID
+}
+
+func testGetUser(t *testing.T) {
+
+  res, err := testServer.Client().Get( testServer.URL+"/api/v0/users/"+strconv.Itoa(int(createdUserId)) )
+
+  if err != nil {
+    t.Error(err)
+  }
+
+  body, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    t.Error(err)
+  }
+
+  if res.StatusCode != http.StatusOK {
+    t.Error("wrong status")
+  }
+
+  var user transforms.UserV0
+  json.Unmarshal(body, &user)
+
+  if user.Login != "testUser" ||
+      user.Name != "name" ||
+      user.EmailAddress != "email@test.com" ||
+      user.ID != createdUserId ||
       len(user.Roles) != 1 {
     t.Error( "error in get user" )
   }
@@ -114,7 +119,7 @@ func testCreateUser(t *testing.T) {
 
 func testUserAddRole( t *testing.T ) {
   jsonInput := `[{ "ID": 2 }]`
-  res, err := testServer.Client().Post( testServer.URL+"/api/v0/users/2/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
+  res, err := testServer.Client().Post( testServer.URL+"/api/v0/users/"+strconv.Itoa(int(createdUserId))+"/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
 
   if err != nil {
     t.Error(err)
@@ -142,7 +147,7 @@ func testUserAddRole( t *testing.T ) {
 }
 
 func testUserRemoveRole( t *testing.T ) {
-  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/users/2/roles/2",nil)
+  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/users/"+strconv.Itoa(int(createdUserId))+"/roles/2",nil)
 
   res, err := testServer.Client().Do(req)
 
@@ -163,7 +168,7 @@ func testPatchUser(t *testing.T) {
   "roles": []
 }
 `
-  req, err := http.NewRequest("PATCH", testServer.URL+"/api/v0/users/2",bytes.NewBuffer([]byte(jsonInput)))
+  req, err := http.NewRequest("PATCH", testServer.URL+"/api/v0/users/"+strconv.Itoa(int(createdUserId)),bytes.NewBuffer([]byte(jsonInput)))
   req.Header.Set("Content-Type", "application/json")
 
   res, err := testServer.Client().Do(req)
@@ -187,19 +192,15 @@ func testPatchUser(t *testing.T) {
   if user.Login != "testUser2" ||
       user.Name != "name" ||
       user.EmailAddress != "email@test.com" ||
-      user.ID != 2 ||
-      len(user.Roles) != 1 {
+      user.ID != createdUserId ||
+      len(user.Roles) != 0 {
     t.Error( "error in patch user" )
   }
 }
 
-type pagedUsers struct {
-  Page int `json:"page"`
-  Limit int` json:"limit"`
-  Sort string `json:"sort"`
-  Order string `json:"order"`
-  Total int `json:"total"`
-  Data []*transforms.UserV0 `json:"data"`
+type FindUsersResult struct {
+  Error string `json:"error"`
+  Results []*transforms.UserV0 `json:"results"`
 }
 
 func testFindUser(t *testing.T) {
@@ -219,17 +220,15 @@ func testFindUser(t *testing.T) {
     t.Error(err)
   }
 
-  var pagedResult pagedUsers
+  var pagedResult FindUsersResult
   json.Unmarshal(body, &pagedResult)
 
-  if pagedResult.Total != 2 ||
-      pagedResult.Page != 0 ||
-      len(pagedResult.Data) != 1 ||
-      pagedResult.Data[0].Login != "testUser2" ||
-      pagedResult.Data[0].Name != "name" ||
-      pagedResult.Data[0].EmailAddress != "email@test.com" ||
-      pagedResult.Data[0].ID != 2 ||
-      len(pagedResult.Data[0].Roles) != 1 {
+  if len(pagedResult.Results) != 1 ||
+      pagedResult.Results[0].Login != "testUser2" ||
+      pagedResult.Results[0].Name != "name" ||
+      pagedResult.Results[0].EmailAddress != "email@test.com" ||
+      pagedResult.Results[0].ID != createdUserId ||
+      len(pagedResult.Results[0].Roles) != 0 {
     t.Error( "error in find user" )
   }
 }
@@ -237,7 +236,7 @@ func testFindUser(t *testing.T) {
 
 func testDeleteUser(t *testing.T) {
 
-  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/users/2",nil)
+  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/users/"+strconv.Itoa(int(createdUserId)),nil)
   //req.Header.Set("Content-Type", "application/json")
 
   res, err := testServer.Client().Do(req)

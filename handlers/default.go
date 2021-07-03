@@ -29,7 +29,7 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/schulterklopfer/cyphernode_admin/authentication"
   "github.com/schulterklopfer/cyphernode_admin/globals"
-  "github.com/schulterklopfer/cyphernode_admin/helpers"
+  "github.com/schulterklopfer/cyphernode_fauth/helpers"
   "net/http"
   "time"
 )

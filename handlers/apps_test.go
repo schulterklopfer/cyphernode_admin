@@ -27,17 +27,17 @@ package handlers_test
 import (
   "bytes"
   "encoding/json"
-  "github.com/schulterklopfer/cyphernode_admin/cyphernodeAdmin"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
   "io/ioutil"
   "net/http"
+  "strconv"
   "testing"
 )
 
 
 func testAppHandlers( t *testing.T ) {
-  t.Run( "testGetApp", testGetApp )
   t.Run( "testCreateApp", testCreateApp )
+  t.Run( "testGetApp", testGetApp )
   t.Run( "testAppAddRole", testAppAddRole )
   t.Run( "testAppRemoveRole", testAppRemoveRole )
   t.Run( "testPatchApp", testPatchApp )
@@ -45,34 +45,8 @@ func testAppHandlers( t *testing.T ) {
   t.Run( "testDeleteApp", testDeleteApp )
 }
 
-func testGetApp(t *testing.T) {
-
-  res, err := testServer.Client().Get( testServer.URL+"/api/v0/apps/1" )
-
-  if err != nil {
-    t.Error(err)
-  }
-
-  body, err := ioutil.ReadAll(res.Body)
-  if err != nil {
-    t.Error(err)
-  }
-
-  if res.StatusCode != http.StatusOK {
-    t.Error("wrong status")
-  }
-
-  var app transforms.AppV0
-  _ = json.Unmarshal(body, &app)
-
-  if app.Name != cyphernodeAdmin.ADMIN_APP_NAME ||
-    app.Description != cyphernodeAdmin.ADMIN_APP_DESCRIPTION ||
-    app.ID != 1 ||
-
-    len(app.AvailableRoles) != 1 {
-    t.Error( "error in get app" )
-  }
-}
+var createdAppId = uint(0)
+var createdRoleId = uint(0)
 
 func testCreateApp(t *testing.T) {
 
@@ -80,17 +54,16 @@ func testCreateApp(t *testing.T) {
 {
   "name": "testApp",
   "description": "test app",
-  "clientID": "01234567890123456789012345678912",
   "clientSecret": "01234567890123456789012345678912",
   "availableRoles": [
     {
       "name": "admin",
-      "description": "admin",
+      "description": "test app admin",
       "autoAssign": false
     },
     {
       "name": "user",
-      "description": "user",
+      "description": "test app user",
       "autoAssign": true
     }
   ]
@@ -115,7 +88,34 @@ func testCreateApp(t *testing.T) {
   json.Unmarshal(body, &app)
 
   if app.Name != "testApp" ||
-      app.ClientID != "01234567890123456789012345678912" ||
+      app.Description != "test app" ||
+      len(app.AvailableRoles) != 2 {
+    t.Error( "error in create app" )
+  }
+  createdAppId = app.ID
+}
+
+func testGetApp(t *testing.T) {
+
+  res, err := testServer.Client().Get( testServer.URL+"/api/v0/apps/"+strconv.Itoa(int(createdAppId)) )
+
+  if err != nil {
+    t.Error(err)
+  }
+
+  body, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    t.Error(err)
+  }
+
+  if res.StatusCode != http.StatusOK {
+    t.Error("wrong status")
+  }
+
+  var app transforms.AppV0
+  _ = json.Unmarshal(body, &app)
+
+  if app.Name != "testApp" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 2 {
     t.Error( "error in get app" )
@@ -130,7 +130,7 @@ func testAppAddRole( t *testing.T ) {
       "autoAssign": false
     }
   ]`
-  res, err := testServer.Client().Post( testServer.URL+"/api/v0/apps/2/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
+  res, err := testServer.Client().Post( testServer.URL+"/api/v0/apps/"+strconv.Itoa(int(createdAppId))+"/roles", "application/json", bytes.NewBuffer([]byte(jsonInput)) )
 
   if err != nil {
     t.Error(err)
@@ -150,15 +150,22 @@ func testAppAddRole( t *testing.T ) {
 
 
   if app.Name != "testApp" ||
-      app.ClientID != "01234567890123456789012345678912" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 3 {
     t.Error( "error in app add role" )
   }
+
+  for _, role := range app.AvailableRoles {
+    if role.Name == "additionalRole" {
+      createdRoleId = role.ID
+      break
+    }
+  }
+
 }
 
 func testAppRemoveRole( t *testing.T ) {
-  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/apps/2/roles/3",nil)
+  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/apps/"+strconv.Itoa(int(createdAppId))+"/roles/"+strconv.Itoa(int(createdRoleId)),nil)
 
   res, err := testServer.Client().Do(req)
 
@@ -178,7 +185,7 @@ func testPatchApp(t *testing.T) {
   "name": "testApp2"
 }
 `
-  req, err := http.NewRequest("PATCH", testServer.URL+"/api/v0/apps/2",bytes.NewBuffer([]byte(jsonInput)))
+  req, err := http.NewRequest("PATCH", testServer.URL+"/api/v0/apps/"+strconv.Itoa(int(createdAppId)),bytes.NewBuffer([]byte(jsonInput)))
   req.Header.Set("Content-Type", "application/json")
 
   res, err := testServer.Client().Do(req)
@@ -200,20 +207,15 @@ func testPatchApp(t *testing.T) {
   json.Unmarshal(body, &app)
 
   if app.Name != "testApp2" ||
-      app.ClientID != "01234567890123456789012345678912" ||
       app.Description != "test app" ||
       len(app.AvailableRoles) != 2 {
     t.Error( "error in patch app" )
   }
 }
 
-type pagedApps struct {
-  Page int `json:"page"`
-  Limit int` json:"limit"`
-  Sort string `json:"sort"`
-  Order string `json:"order"`
-  Total int `json:"total"`
-  Data []*transforms.AppV0 `json:"data"`
+type FindAppsResult struct {
+  Error string `json:"error"`
+  Results []*transforms.AppV0 `json:"results"`
 }
 
 func testFindApp(t *testing.T) {
@@ -233,15 +235,13 @@ func testFindApp(t *testing.T) {
     t.Error(err)
   }
 
-  var pagedResult pagedApps
-  json.Unmarshal(body, &pagedResult)
+  var result FindAppsResult
+  json.Unmarshal(body, &result)
 
-  if pagedResult.Total != 2 ||
-    pagedResult.Page != 0 ||
-    len(pagedResult.Data) != 1 ||
-    pagedResult.Data[0].Name != "testApp2" ||
-    pagedResult.Data[0].ID != 2 ||
-    len(pagedResult.Data[0].AvailableRoles) != 2 {
+  if len(result.Results) != 1 ||
+    result.Results[0].Name != "testApp2" ||
+    result.Results[0].ID != createdAppId ||
+    len(result.Results[0].AvailableRoles) != 2 {
     t.Error( "error in find app" )
   }
 }
@@ -249,7 +249,7 @@ func testFindApp(t *testing.T) {
 
 func testDeleteApp(t *testing.T) {
 
-  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/apps/2",nil)
+  req, err := http.NewRequest("DELETE", testServer.URL+"/api/v0/apps/"+strconv.Itoa(int(createdAppId)),nil)
   //req.Header.Set("Content-Type", "application/json")
 
   res, err := testServer.Client().Do(req)

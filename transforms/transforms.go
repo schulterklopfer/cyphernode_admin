@@ -26,7 +26,7 @@ package transforms
 
 import (
   "github.com/SatoshiPortal/cam/storage"
-  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_fauth/models"
 )
 
 // transform from database model to api object
@@ -100,13 +100,6 @@ func Transform( in interface{}, out interface{} ) bool {
       out.(*AccessPolicyV0).Actions = in.(*storage.AccessPolicy).Actions
       out.(*AccessPolicyV0).Roles = in.(*storage.AccessPolicy).Roles
       out.(*AccessPolicyV0).Patterns = in.(*storage.AccessPolicy).Patterns
-      transformed = true
-    }
-  case *SessionV0:
-    switch in.(type) {
-    case *models.SessionModel:
-      out.(*SessionV0).SessionID = in.(*models.SessionModel).SessionID
-      out.(*SessionV0).Values = in.(*models.SessionModel).Values
       transformed = true
     }
   }

@@ -25,12 +25,13 @@
 package transforms_test
 
 import (
-  "github.com/schulterklopfer/cyphernode_admin/models"
+  "github.com/schulterklopfer/cyphernode_fauth/models"
   "github.com/schulterklopfer/cyphernode_admin/transforms"
+  "strconv"
   "testing"
 )
 
-func TestUserModelTransformV0( t* testing.T ) {
+func TestUserModelTransformV0(t *testing.T) {
   userModel := new( models.UserModel )
   var transformed transforms.UserV0
 
@@ -43,8 +44,8 @@ func TestUserModelTransformV0( t* testing.T ) {
 
   for i := 0; i<2; i++ {
     roles[i] = new(models.RoleModel)
-    roles[i].Name = "role"+string(i)
-    roles[i].Description = "description"+string(i)
+    roles[i].Name = "role"+strconv.Itoa(i)
+    roles[i].Description = "description"+strconv.Itoa(i)
     roles[i].AutoAssign = (i+1)%2==0
     roles[i].AppId = 1
   }
@@ -71,12 +72,11 @@ func TestUserModelTransformV0( t* testing.T ) {
 
 }
 
-func TestAppModelTransformV0( t* testing.T ) {
+func TestAppModelTransformV0(t *testing.T) {
   appModel := new( models.AppModel )
   var transformed transforms.AppV0
 
   appModel.ID = 1
-  appModel.ClientSecret = "hash"
   appModel.Name = "name"
   appModel.Description = "description"
 
@@ -84,8 +84,8 @@ func TestAppModelTransformV0( t* testing.T ) {
 
   for i := 0; i<2; i++ {
     availableRoles[i] = new(models.RoleModel)
-    availableRoles[i].Name = "role"+string(i)
-    availableRoles[i].Description = "description"+string(i)
+    availableRoles[i].Name = "role"+strconv.Itoa(i)
+    availableRoles[i].Description = "description"+strconv.Itoa(i)
     availableRoles[i].AutoAssign = (i+1)%2==0
     availableRoles[i].AppId = 1
   }
@@ -95,7 +95,6 @@ func TestAppModelTransformV0( t* testing.T ) {
   transforms.Transform(appModel, &transformed )
 
   if appModel.ID != transformed.ID ||
-      appModel.ClientSecret != transformed.Hash ||
       appModel.Name != transformed.Name ||
       appModel.Description != transformed.Description {
     t.Error("Property mismatch")
@@ -112,7 +111,7 @@ func TestAppModelTransformV0( t* testing.T ) {
 
 }
 
-func TestRoleModelTransformV0( t* testing.T ) {
+func TestRoleModelTransformV0(t *testing.T) {
   roleModel := new( models.RoleModel )
   var transformed transforms.RoleV0
 
