@@ -64,12 +64,15 @@ const Links = () => {
 
     if ( feature.extra && feature.extra.torified ) {
       // tor is enable for traefik, show qr code
+      // TODO: fix for o  === null
       const o = onionValue( feature );
-      onions.push( {
-        title: feature.name,
-        value: o.value,
-        footer: o.footer
-      } );
+      if( o ) {
+        onions.push( {
+          title: feature.name,
+          value: o.value,
+          footer: o.footer
+        } );
+      }
     }
   }
 
