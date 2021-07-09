@@ -64,7 +64,7 @@ type Config struct {
 
 type CyphernodeAdmin struct {
   Config         *Config
-  engineInternal *gin.Engine
+  //engineInternal *gin.Engine
   engineExternal *gin.Engine
   routerGroups   map[string]*gin.RouterGroup
   ClientID       string
@@ -103,7 +103,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
 
   cyphernodeAdmin.routerGroups = make(map[string]*gin.RouterGroup)
 
-  cyphernodeAdmin.engineInternal = gin.New()
+  //cyphernodeAdmin.engineInternal = gin.New()
   cyphernodeAdmin.engineExternal = gin.New()
 
   cyphernodeAdmin.engineExternal.Use(cors.New(cors.Config{
@@ -112,17 +112,7 @@ func (cyphernodeAdmin *CyphernodeAdmin) Init() error {
     AllowHeaders: []string{"Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"},
   }))
 
-  // add session checks b4 other handlers so they are handled first
-  // order is important here
-  /*
-  if !cyphernodeAdmin.Config.DisableAuth {
-    for i := 0; i < len(globals.PROTECTED_ROUTER_GROUPS_INDICES); i++ {
-      cyphernodeAdmin.routerGroups[globals.ROUTER_GROUPS[globals.PROTECTED_ROUTER_GROUPS_INDICES[i]]].Use(CheckSession())
-    }
-  }
-  */
   // create handlers for public and private endpoints
-  cyphernodeAdmin.initPrivateHandlers()
   cyphernodeAdmin.initDockerHandlers()
   cyphernodeAdmin.initBlocksHandlers()
   cyphernodeAdmin.initPublicHandlers()
@@ -137,11 +127,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) Engine() *gin.Engine {
 func (cyphernodeAdmin *CyphernodeAdmin) Start() {
 
   var g errgroup.Group
-
-  // internal interface, only available to cypherapps
-  g.Go(func() error {
-    return cyphernodeAdmin.engineInternal.Run(":3031")
-  })
 
   // external interface behind treaefik
   g.Go(func() error {

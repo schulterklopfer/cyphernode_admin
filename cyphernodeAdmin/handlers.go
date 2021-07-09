@@ -32,7 +32,7 @@ import (
 )
 
 func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
-  cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.DefaultLogin )
+  cyphernodeAdmin.engineExternal.POST( globals.PUBLIC_ENDPOINTS_LOGIN, handlers.Login)
   cyphernodeAdmin.engineExternal.Static( "/_", helpers.GetenvOrDefault(globals.CNA_STATIC_FILE_DIR_ENV_KEY) )
   cyphernodeAdmin.engineExternal.StaticFile( globals.BASE_ENDPOINT_FILES+"/config.7z", helpers.GetenvOrDefault( globals.CNA_ADMIN_CONFIG7Z_FILE_ENV_KEY ))
   cyphernodeAdmin.engineExternal.StaticFile( globals.BASE_ENDPOINT_FILES+"/client.7z", helpers.GetenvOrDefault( globals.CNA_ADMIN_CLIENT7Z_FILE_ENV_KEY ))
@@ -67,10 +67,6 @@ func (cyphernodeAdmin *CyphernodeAdmin) initPublicHandlers() {
 
   /* session */
   //cyphernodeAdmin.engineExternal.GET( globals.BASE_ENDPOINT_SESSIONS+"/:sessionID", handlers.GetSession )
-}
-
-func (cyphernodeAdmin *CyphernodeAdmin) initPrivateHandlers() {
-  cyphernodeAdmin.engineExternal.GET(globals.PRIVATE_ENDPOINTS_LOGOUT, handlers.DefaultLogout )
 }
 
 func (cyphernodeAdmin *CyphernodeAdmin) initDockerHandlers() {
